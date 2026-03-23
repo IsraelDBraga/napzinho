@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Napzinho</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Fraunces:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#FFF8F2;--card:#FFFFFF;--card2:#FFF3EA;--text:#2D1F14;--muted:#8A7060;--border:#EDD8C8;--sleep:#7F77DD;--feed:#1D9E75;--diaper:#D85A30;--accent:#D85A30;--pill-bg:#FAEEDA;--pill-text:#633806}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:60px}
+.header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px 10px;position:sticky;top:0;z-index:10}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.app-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600}
+.age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:3px 10px;border-radius:20px;font-weight:700}
+.date-line{font-size:11px;color:var(--muted)}
+.nav{display:flex;background:var(--card);border-top:1px solid var(--border);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:10}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0;cursor:pointer;font-size:10px;color:var(--muted);gap:3px}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:18px}
+.sections{padding:14px 14px 10px}
+.section{display:none}.section.active{display:block}
+.ww-card{border-radius:14px;padding:18px;margin-bottom:14px}
+.ww-card.day{background:linear-gradient(135deg,#534AB7,#7F77DD);color:white}
+.ww-card.night{background:linear-gradient(135deg,#1a1035,#2d1f5e);color:white}
+.ww-card.sleeping-day{background:linear-gradient(135deg,#534AB7,#7F77DD);color:white}
+.ww-card.sleeping-night{background:linear-gradient(135deg,#0d0820,#1a1035);color:white}
+.ww-label{font-size:11px;opacity:.7;margin-bottom:3px}
+.ww-title{font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.3}
+.ww-bar-bg{background:rgba(255,255,255,.2);border-radius:8px;height:8px;margin-bottom:6px}
+.ww-bar{border-radius:8px;height:8px;transition:width .5s,background .3s;max-width:100%}
+.ww-sub{font-size:11px;opacity:.8;line-height:1.5}
+.suggestion{margin-top:12px;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.5;border-left:3px solid rgba(255,255,255,.35)}
+.suggestion strong{display:block;font-size:13px;margin-bottom:3px}
+.action-row{display:grid;gap:10px;margin-top:12px}
+.action-row.two{grid-template-columns:1fr 1fr}
+.action-row.one{grid-template-columns:1fr}
+.abtn{padding:12px 8px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:transform .15s;text-align:center}
+.abtn:active{transform:scale(.95)}
+.abtn.sleep-btn{background:rgba(255,255,255,.18);color:white;border:1.5px solid rgba(255,255,255,.4)}
+.abtn.wake-btn{background:rgba(255,220,100,.2);color:#ffe97a;border:1.5px solid rgba(255,220,100,.35)}
+.abtn.primary-btn{background:rgba(255,255,255,.9);color:#2D1F14}
+.quick-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.qbtn{background:var(--card);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;transition:transform .15s}
+.qbtn:active{transform:scale(.94)}
+.qbtn.f{border:1.5px solid #5DCAA5;color:#0F6E56}
+.qbtn.d{border:1.5px solid #F0997B;color:#993C1D}
+.qbtn.m{border:1.5px solid #AFA9EC;color:#534AB7}
+.qbtn .qi{font-size:22px}
+.pred-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.pred-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pred-card-title{font-size:14px;font-weight:700}
+.confidence-badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700}
+.conf-low{background:#FFF3EA;color:#854F0B}
+.conf-mid{background:#E1F5EE;color:#0F6E56}
+.conf-high{background:#EEEDFE;color:#3C3489}
+.pred-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)}
+.pred-item:last-child{border-bottom:none}
+.pred-icon{font-size:16px;width:24px;text-align:center}
+.pred-body{flex:1}
+.pred-name{font-size:13px;font-weight:700}
+.pred-detail{font-size:11px;color:var(--muted);margin-top:1px}
+.pred-basis{font-size:10px;color:var(--muted);font-style:italic}
+.pred-time-block{text-align:right}
+.pred-time-main{font-size:16px;font-weight:700}
+.pred-time-range{font-size:10px;color:var(--muted);margin-top:1px}
+.learn-bar-wrap{background:var(--card2);border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.learn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.learn-title{font-size:12px;font-weight:700}
+.learn-phase{font-size:11px;color:var(--muted)}
+.learn-bg{background:var(--border);border-radius:8px;height:6px}
+.learn-fill{border-radius:8px;height:6px;background:linear-gradient(90deg,#7F77DD,#1D9E75);transition:width .6s ease}
+.learn-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+.night-summary{background:linear-gradient(135deg,#1a1035,#2d1f5e);border-radius:12px;padding:14px;margin-bottom:14px;color:white}
+.ns-title{font-size:11px;opacity:.7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.night-stats{display:flex}
+.nstat{flex:1;text-align:center;padding:0 4px}
+.nstat-val{font-size:20px;font-weight:700}
+.nstat-label{font-size:10px;opacity:.7;margin-top:2px}
+.nstat+.nstat{border-left:1px solid rgba(255,255,255,.15)}
+.cycle-pills{margin-top:10px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.cpill{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.cpill.sl{background:rgba(127,119,221,.4);color:#c8c4f7}
+.cpill.aw{background:rgba(255,180,50,.15);color:#ffd97a}
+.sec-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.empty{font-size:13px;color:var(--muted);text-align:center;padding:18px 0}
+.entry{display:flex;gap:10px;margin-bottom:10px}
+.edot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.edot.s{background:var(--sleep)}.edot.f{background:var(--feed)}.edot.d{background:var(--diaper)}
+.ebody{flex:1;background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:9px 12px}
+.eheader{display:flex;justify-content:space-between;align-items:center}
+.etype{font-size:13px;font-weight:700}
+.eright{display:flex;align-items:center;gap:2px}
+.etime{font-size:12px;color:var(--muted)}
+.edel{background:none;border:none;color:#E24B4A;cursor:pointer;font-size:15px;padding:2px 4px;line-height:1}
+.edetail{font-size:12px;color:var(--muted);margin-top:2px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px}
+.slabel{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.sval{font-size:20px;font-weight:700}
+.ssub{font-size:10px;color:var(--muted);margin-top:2px}
+.chart-wrap{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+.chart-title{font-size:12px;font-weight:700;margin-bottom:10px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:18px 18px 0 0;padding:22px 18px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto}
+.modal-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin-bottom:18px}
+.fgroup{margin-bottom:14px}
+.flabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.finput{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;background:#fff;color:#2D1F14}
+.seg{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+.segopt{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:#fff;border:none;font-family:'Nunito',sans-serif;transition:background .15s,color .15s}
+.segopt.sel{background:var(--accent);color:#fff}
+.btn-save{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:11px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px}
+.btn-cancel{width:100%;padding:11px;background:none;color:var(--muted);border:1.5px solid var(--border);border-radius:11px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:7px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2D1F14;color:white;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:700;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top"><span class="app-name">Napzinho</span><span class="age-badge" id="age-badge">3 meses</span></div>
+  <div class="date-line" id="date-line"></div>
+</div>
+<div class="sections">
+  <div class="section active" id="sec-home">
+    <div class="ww-card day" id="ww-card">
+      <div class="ww-label" id="ww-label">Janela de sono</div>
+      <div class="ww-title" id="ww-title">Bom dia</div>
+      <div class="ww-bar-bg"><div class="ww-bar" id="ww-bar" style="width:0%"></div></div>
+      <div class="ww-sub" id="ww-sub">Use os botões para registrar</div>
+      <div id="ww-suggestion"></div>
+      <div id="ww-actions"></div>
+    </div>
+    <div class="quick-row">
+      <div class="qbtn f" onclick="openModal('feed')"><span class="qi">🍼</span><span>Mamada</span></div>
+      <div class="qbtn d" onclick="openModal('diaper')"><span class="qi">💧</span><span>Fralda</span></div>
+      <div class="qbtn m" onclick="openModal('sleep-manual')"><span class="qi">✏️</span><span>Manual</span></div>
+    </div>
+    <div id="night-summary-block"></div>
+    <div class="pred-card">
+      <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
+      <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
+    </div>
+    <div class="learn-bar-wrap" id="learn-bar-wrap">
+      <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
+      <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
+      <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
+    </div>
+    <div class="sec-title">Hoje</div>
+    <div id="timeline"></div>
+  </div>
+  <div class="section" id="sec-stats">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">Sono hoje</div><div class="sval" id="s-sleep">0m</div><div class="ssub">meta: ~14–16h</div></div>
+      <div class="stat-card"><div class="slabel">Mamadas</div><div class="sval" id="s-feed">0</div><div class="ssub">meta: 8–12/dia</div></div>
+      <div class="stat-card"><div class="slabel">Fraldas</div><div class="sval" id="s-diaper">0</div><div class="ssub">normal: 6–8/dia</div></div>
+      <div class="stat-card"><div class="slabel">Despertares</div><div class="sval" id="s-wake">0</div><div class="ssub">esta noite</div></div>
+    </div>
+    <div class="chart-wrap"><div class="chart-title">Sono por hora (últimas 8h)</div><div style="position:relative;height:110px"><canvas id="barChart"></canvas></div></div>
+    <div class="chart-wrap">
+      <div class="chart-title">Registros de hoje</div>
+      <div style="position:relative;height:150px;max-width:150px;margin:0 auto"><canvas id="donutChart"></canvas></div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:11px;color:var(--muted)">
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#7F77DD;display:inline-block"></span>Sono</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#1D9E75;display:inline-block"></span>Mamada</span>
+        <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#D85A30;display:inline-block"></span>Fralda</span>
+      </div>
+    </div>
+  </div>
+  <div class="section" id="sec-history"><div class="sec-title">Histórico</div><div id="history-list"><div class="empty">Nenhum registro ainda</div></div></div>
+  <div class="section" id="sec-settings">
+    <div class="sec-title">Configurações</div>
+    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
+    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses</div><input class="finput" id="cfg-months" type="number" min="0" max="24"></div>
+    <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Início da noite</div>
+      <input class="finput" id="cfg-night-start" type="time">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Registros após este horário = sono noturno</div>
+    </div>
+    <button class="btn-save" onclick="saveSettings()">Salvar</button>
+  </div>
+</div>
+<nav class="nav">
+  <div class="nav-item active" id="nav-home" onclick="showSec('home')"><div class="nav-icon">🏠</div><span>Início</span></div>
+  <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon">📊</div><span>Dados</span></div>
+  <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon">📋</div><span>Histórico</span></div>
+  <div class="nav-item" id="nav-settings" onclick="showSec('settings')"><div class="nav-icon">⚙️</div><span>Config.</span></div>
+</nav>
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Registrar</div>
+    <div id="mf-feed" style="display:none">
+      <div class="fgroup"><label class="flabel">Tipo</label><div class="seg" id="seg-feed"><button class="segopt sel" data-val="breast">Seio</button><button class="segopt" data-val="bottle">Mamadeira</button></div></div>
+      <div class="fgroup frow"><div><label class="flabel">Horário</label><input class="finput" type="time" id="f-feed-time"></div><div><label class="flabel">Duração (min)</label><input class="finput" type="number" id="f-feed-dur" placeholder="15"></div></div>
+    </div>
+    <div id="mf-diaper" style="display:none">
+      <div class="fgroup"><label class="flabel">Tipo</label><div class="seg" id="seg-diaper"><button class="segopt sel" data-val="wet">Xixi</button><button class="segopt" data-val="dirty">Cocô</button><button class="segopt" data-val="both">Ambos</button></div></div>
+      <div class="fgroup"><label class="flabel">Horário</label><input class="finput" type="time" id="f-diaper-time"></div>
+    </div>
+    <div id="mf-sleep-manual" style="display:none">
+      <div class="fgroup frow"><div><label class="flabel">Início</label><input class="finput" type="time" id="f-manual-start"></div><div><label class="flabel">Fim</label><input class="finput" type="time" id="f-manual-end"></div></div>
+    </div>
+    <button class="btn-save" onclick="saveEntry()">Salvar</button>
+    <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let entries=JSON.parse(localStorage.getItem('nz3_entries')||'[]');
+let cfg=JSON.parse(localStorage.getItem('nz3_cfg')||'{"name":"Bebê","months":3,"nightStart":"18:00"}');
+let curModal=null,state={feedType:'breast',diaperType:'wet'};
+let wwTimer=null,barChart=null,donutChart=null;
+const $=id=>document.getElementById(id);
+const now=()=>new Date();
+const todayStr=()=>now().toISOString().split('T')[0];
+const fmtTime=d=>d.toTimeString().slice(0,5);
+const fmtDur=m=>{const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m')};
+const parseTime=s=>{const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
+const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m};
+const minsToTime=m=>{const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0')};
+const isNightHour=s=>{const h=parseInt(s.split(':')[0]);const nh=parseInt((cfg.nightStart||'18:00').split(':')[0]);return h>=nh||h<6};
+const isNight=e=>e.type==='sleep'&&isNightHour(e.start);
+const getActiveSleep=()=>entries.filter(e=>e.type==='sleep'&&!e.end).sort((a,b)=>b.id-a.id)[0]||null;
+const todayEntries=()=>entries.filter(e=>e.date===todayStr());
+const wwBaseTarget=m=>{if(m<=2)return 60;if(m<=4)return 90;if(m<=6)return 120;if(m<=9)return 150;if(m<=12)return 180;return 210};
+function getDaysWithData(){return[...new Set(entries.filter(e=>e.type==='sleep'&&e.durationMins).map(e=>e.date))].sort()}
+function getLearningPhase(){const days=getDaysWithData().length;if(days<4)return{phase:1,label:'Fase 1 — aprendendo',pct:Math.min(100,days/3*33),conf:'low'};if(days<8)return{phase:2,label:'Fase 2 — ajustando',pct:33+Math.min(33,(days-3)/4*33),conf:'mid'};return{phase:3,label:'Fase 3 — preciso',pct:Math.min(100,66+(days-7)/7*34),conf:'high'}}
+function getHistoricalWakeWindows(limit=10){const naps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&!isNightHour(e.start)).sort((a,b)=>a.date>b.date?1:a.start>b.start?1:-1);const w=[];for(let i=0;i<naps.length-1;i++){const a=naps[i],b=naps[i+1];if(a.date===b.date&&a.end){const d=timeToMins(b.start)-timeToMins(a.end);if(d>0&&d<300)w.push(d);}}return w.slice(-limit)}
+function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&&e.durationMins&&!isNightHour(e.start)).slice(-limit).map(e=>timeToMins(e.start))}
+function smartPredictNextNap(lastEnd,lastDur,todayTotal){const months=parseInt(cfg.months)||3;const base=wwBaseTarget(months);const phase=getLearningPhase();const hw=getHistoricalWakeWindows();const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;let pw,range;if(phase.phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase.phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw=Math.max(30,pw);const c=endM+pw;return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:phase.phase===1?'tabela da idade':phase.phase===2?'dados + tabela':'padrão do bebê',phase:phase.phase}}
+function smartPredictNextFeed(last){const months=parseInt(cfg.months)||3;const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);const phase=getLearningPhase();if(rf.length<4||phase.phase===1){const t=timeToMins(last)+base;return{center:minsToTime(t),from:minsToTime(t-20),to:minsToTime(t+20),basis:'tabela da idade'}}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=timeToMins(last)+base;return{center:minsToTime(t),from:minsToTime(t-20),to:minsToTime(t+20),basis:'tabela da idade'}}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=phase.phase===2?Math.round(ai*0.6+base*0.4):Math.round(ai*0.8+base*0.2);const t=timeToMins(last)+bl;const r=phase.phase===3?12:18;return{center:minsToTime(t),from:minsToTime(t-r),to:minsToTime(t+r),basis:phase.phase===2?'dados + tabela':'padrão do bebê'}}
+function renderHome(){renderTimeline();updateWW();renderPredictions();renderLearnBar();renderNightSummary()}
+function renderLearnBar(){const p=getLearningPhase();$('learn-fill').style.width=p.pct+'%';$('learn-phase').textContent=p.label;if(p.phase===3)$('learn-bar-wrap').style.display='none'}
+function renderPredictions(){const today=todayEntries();const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const preds=[];const dn=today.filter(e=>e.type==='sleep'&&e.end&&!isNightHour(e.start)).sort((a,b)=>a.start>b.start?-1:1);const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(dn.length){const l=dn[0];const p=smartPredictNextNap(l.end,l.durationMins,ts);preds.push({icon:'🌙',name:'Próxima soneca',detail:'Janela de sono estimada',pred:p});}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>`<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail}</div>${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
+function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()">☀️ Acordou agora</button></div>';return;}const all=todayEntries().filter(e=>e.type==='sleep'&&e.end).sort((a,b)=>a.start>b.start?-1:1);if(!all.length){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()">🌙 Dormiu agora</button></div>';return;}const last=all[0];const isN=isNight(last)||nightNow;const months=parseInt(cfg.months)||3;const base=wwBaseTarget(months);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=parseTime(last.end);const nc=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);function tick(){const diff=Math.floor((now()-endT)/60000);const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min';if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc.length>1?(nc.length+'° despertar desta noite'):'Primeiro despertar noturno';const s=getSuggestion(diff,nc.length);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);actions.innerHTML='<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()">🌙 Dormiu</button><button class="abtn wake-btn" onclick="openModal(\'feed\')">🍼 Mamou</button></div>';}
+function getSuggestion(d,c){if(d<5)return{title:'Acabou de acordar',body:'Aguarde antes de tentar recolocar.'};if(d<15)return c<=1?{title:'Tente recolocar',body:'Ainda na janela normal. Shush-pat ou chupeta podem ajudar.'}:{title:'Tente recolocar',body:c+'° despertar. Shush-pat, chupeta, ou mão na barriga.'};if(d<30)return c>=3?{title:'Considere amamentar',body:c+'° despertar. Amamentar pode ser mais rápido do que tentar recolocar.'}:{title:'Tente embalar',body:'Pegue no colo, embale até ficar sonolento, recoloque antes de dormir.'};if(d<60)return{title:'Amamente ou ofereça conforto',body:'Provavelmente com fome ou precisando de contato. Amamente e recoloque sonolento.'};return{title:'Reinicie a rotina',body:'Mais de 1h acordado. Troca, feed, ambiente escuro, e tente novamente do início.'}}
+function babySlept(){if(getActiveSleep()){showToast('Já tem sono em andamento!');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'sleep',subtype:isNightHour(t)?'night':'nap',start:t,end:null});save();showToast('😴 Dormiu às '+t);renderHome()}
+function babyWoke(){const active=getActiveSleep();if(!active){showToast('Nenhum sono ativo');return;}const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const sm=parseTime(entries[idx].start),em=parseTime(t);if(em<sm)em.setDate(em.getDate()+1);entries[idx].durationMins=Math.round((em-sm)/60000);save();showToast('☀️ Acordou às '+t);renderHome()}
+function renderNightSummary(){const block=$('night-summary-block');const cycles=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);if(cycles.length<2){block.innerHTML='';return;}const total=cycles.reduce((a,e)=>a+(e.durationMins||0),0);const allN=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)).sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=0;i<allN.length-1;i++){if(allN[i].end&&allN[i+1].start){const d=timeToMins(allN[i+1].start)-timeToMins(allN[i].end);if(d>0)iv.push(d);}}const aw=iv.length?Math.round(iv.reduce((a,b)=>a+b,0)/iv.length):0;block.innerHTML=`<div class="night-summary"><div class="ns-title">Resumo noturno</div><div class="night-stats"><div class="nstat"><div class="nstat-val">${fmtDur(total)}</div><div class="nstat-label">dormido</div></div><div class="nstat"><div class="nstat-val">${cycles.length}</div><div class="nstat-label">ciclos</div></div><div class="nstat"><div class="nstat-val">${aw?fmtDur(aw):'—'}</div><div class="nstat-label">acord. médio</div></div></div><div class="cycle-pills">${cycles.map((e,i)=>`<span class="cpill sl">${fmtDur(e.durationMins)}</span>${i<cycles.length-1&&iv[i]?`<span class="cpill aw">↑${fmtDur(iv[i])}</span>`:''}`).join('')}</div></div>`}
+function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos'};const cls={sleep:'s',feed:'f',diaper:'d'};let detail='';if(e.type==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(e.type==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start;return`<div class="entry"><div class="edot ${cls[e.type]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[e.type]} ${labels[e.type]}</span><div class="eright"><span class="etime">${e.start}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
+function renderTimeline(){const t=todayEntries().slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
+function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
+function renderCharts(){const today=todayEntries();const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;$('s-sleep').textContent=fmtDur(sleeps.reduce((a,e)=>a+(e.durationMins||0),0))||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTime(e.start),en=parseTime(e.end);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7F77DD',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7F77DD','#1D9E75','#D85A30'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
+function deleteEntry(id){entries=entries.filter(e=>e.id!==id);save();renderHome();showToast('Removido')}
+function save(){localStorage.setItem('nz3_entries',JSON.stringify(entries))}
+function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());if(type==='feed'){$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper')$('f-diaper-time').value=t;if(type==='sleep-manual'){$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
+function closeModal(){$('modal-overlay').classList.remove('open')}
+function saveEntry(){const date=todayStr();let e={id:Date.now(),date};if(curModal==='feed'){const t=$('f-feed-time').value;if(!t){showToast('Informe o horário');return;}e.type='feed';e.subtype=state.feedType;e.start=t;const d=parseInt($('f-feed-dur').value)||null;e.durationMins=d;}else if(curModal==='diaper'){const t=$('f-diaper-time').value;if(!t){showToast('Informe o horário');return;}e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!s){showToast('Informe o início');return;}e.type='sleep';e.subtype=isNightHour(s)?'night':'nap';e.start=s;e.end=en||null;if(s&&en){let sm=parseTime(s),em=parseTime(en);if(em<sm)em.setDate(em.getDate()+1);e.durationMins=Math.round((em-sm)/60000);}}entries.push(e);save();closeModal();showToast('Registro salvo!');renderHome()}
+function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;cfg.nightStart=$('cfg-night-start').value||'18:00';localStorage.setItem('nz3_cfg',JSON.stringify(cfg));$('age-badge').textContent=cfg.months+' meses';showToast('Configurações salvas!');renderHome()}
+function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function showSec(name){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');$('nav-'+name).classList.add('active');if(name==='stats')renderCharts();if(name==='history')renderHistory();if(name==='home')renderHome()}
+function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('.segopt').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('.segopt').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});})}
+function init(){$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();renderHome()}
+init();
+</script>
+</body>
+</html>
