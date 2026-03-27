@@ -227,7 +227,7 @@ let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
 const now=()=>new Date();
-const todayStr=()=>now().toISOString().split('T')[0];
+const todayStr=()=>new Date().toLocaleDateString('sv-SE');
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m<0)m=0;const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m')};
 const parseTime=s=>{const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
