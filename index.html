@@ -3,13 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Napzinho — sono, mamadas e fraldas do bebê. Funciona offline após o primeiro acesso.">
+<meta name="theme-color" content="#D85A30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Napzinho</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Fraunces:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#FFF8F2;--card:#FFFFFF;--card2:#FFF3EA;--text:#2D1F14;--muted:#8A7060;--border:#EDD8C8;--sleep:#7F77DD;--feed:#1D9E75;--diaper:#D85A30;--accent:#D85A30;--pill-bg:#FAEEDA;--pill-text:#633806}
+[data-theme="dark"]{--bg:#1a1512;--card:#2a221c;--card2:#352a22;--text:#f5ebe3;--muted:#b8a99a;--border:#4a3d34;--sleep:#9b92e8;--feed:#3ecf9a;--diaper:#e87a52;--accent:#e87a52;--pill-bg:#4a3528;--pill-text:#f5d4b8}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:60px}
+@media print{body{background:#fff;color:#000}.nav,.install-banner,.toast{display:none!important}.sections{padding:0}#print-area{display:block!important}}
+#print-area{display:none}
 .header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px 10px;position:sticky;top:0;z-index:10}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
 .app-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600}
@@ -129,9 +139,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .premium-list li{margin-bottom:4px}
 .context-banner{background:var(--card2);border:0.5px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.45;color:var(--text)}
 .context-banner strong{color:var(--accent)}
+.install-banner{display:none;background:var(--card2);border-bottom:1px solid var(--border);padding:10px 14px;font-size:12px;align-items:center;justify-content:space-between;gap:10px}
+.install-banner.show{display:flex}
 </style>
 </head>
 <body>
+<div class="install-banner" id="install-banner"><span>Instale o Napzinho no celular para usar offline.</span><button type="button" class="btn-save" style="margin-top:0;padding:8px 14px;font-size:12px" id="install-btn">Instalar</button></div>
 <div class="header">
   <div class="header-top"><span class="app-name">Napzinho</span><span class="age-badge" id="age-badge">3 meses</span></div>
   <div class="date-line" id="date-line"></div>
@@ -186,6 +199,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <div class="section" id="sec-history"><div class="sec-title">Histórico</div><div id="history-list"><div class="empty">Nenhum registro ainda</div></div></div>
   <div class="section" id="sec-settings">
     <div class="sec-title">Configurações</div>
+    <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Perfil do bebê</div>
+      <select class="finput" id="profile-select" onchange="switchProfile(this.value)" style="margin-bottom:8px"></select>
+      <div class="data-buttons">
+        <button type="button" class="btn-save" onclick="addNewProfile()">➕ Novo perfil</button>
+        <button type="button" class="btn-cancel" onclick="deleteCurrentProfile()">🗑️ Excluir perfil</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px">Cada perfil tem seus próprios registros e configurações (dados só neste aparelho).</p>
+    </div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses</div><input class="finput" id="cfg-months" type="number" min="0" max="24"></div>
     <div class="stat-card" style="margin-bottom:12px">
@@ -205,27 +227,35 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <input class="finput" id="ctx-note" placeholder="Ex.: adaptação na creche" maxlength="80">
       <p class="ctx-note">Isso ajuda o app a sugerir janelas um pouco mais tolerantes quando o bebê tende a precisar de mais conforto ou tem sono mais fragmentado.</p>
     </div>
+    <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Aparência</div>
+      <label class="ctx-row"><input type="checkbox" id="cfg-dark-theme" onchange="applyThemeFromCheckbox()"> <span>Tema escuro</span></label>
+    </div>
+    <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Lembretes (neste aparelho)</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px">O navegador precisa de permissão. Funciona melhor com o app instalado.</p>
+      <label class="ctx-row"><input type="checkbox" id="cfg-remind-nap"> <span>Avise ~10 min antes da próxima soneca (estimativa)</span></label>
+      <label class="ctx-row"><input type="checkbox" id="cfg-remind-night"> <span>Avise ~15 min antes da rotina da noite (estimativa)</span></label>
+    </div>
     <button class="btn-save" onclick="saveSettings()" style="margin-top:8px">Salvar configurações</button>
     <div class="premium-box">
-      <div class="slabel">Napzinho+ (em breve)</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Ideias para versão paga — ainda não cobramos nada no app.</p>
+      <div class="slabel">Recursos no app</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Grátis: perfis, CSV, relatório para impressão/PDF, tema escuro, PWA offline, lembretes locais. Ainda <strong>não</strong> há cobrança nem login.</p>
       <ul class="premium-list">
-        <li>Relatório PDF semanal/mensal</li>
-        <li>Sincronização na nuvem e segundo aparelho (pai/mãe/cuidadora)</li>
-        <li>Notificações (próxima soneca, rotina da noite)</li>
-        <li>Vários bebês / perfis</li>
-        <li>Widget na tela inicial</li>
-        <li>Temas e personalização</li>
-        <li>Exportação CSV</li>
-        <li>Integração opcional com saúde (Apple Health / Google Fit)</li>
+        <li><strong>Já nesta versão:</strong> vários bebês (perfis), exportação CSV, “PDF” via imprimir relatório, tema claro/escuro, instalar como app, lembretes básicos</li>
+        <li><strong>Para cobrar no futuro / nuvem:</strong> sync entre aparelhos, backup automático, widget nativo, integração Apple Health / Google Fit</li>
       </ul>
     </div>
     <div class="stat-card" style="margin-top:16px;margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Dados</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Exporte para backup ou importe dados de outro dispositivo.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">JSON completo ou tabela CSV (planilhas).</div>
       <div class="data-buttons">
-        <button class="btn-save" onclick="exportData()">📤 Exportar</button>
-        <button class="btn-cancel" onclick="document.getElementById('import-file').click()">📥 Importar</button>
+        <button class="btn-save" onclick="exportData()">📤 JSON</button>
+        <button class="btn-cancel" onclick="exportCsv()">📊 CSV</button>
+      </div>
+      <div class="data-buttons" style="margin-top:8px">
+        <button class="btn-save" onclick="printReport()">🖨️ Relatório / PDF</button>
+        <button class="btn-cancel" onclick="document.getElementById('import-file').click()">📥 Importar JSON</button>
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
     </div>
@@ -258,10 +288,25 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="print-area"></div>
 <script>
-let entries=JSON.parse(localStorage.getItem('nz3_entries')||'[]');
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:''});
-let cfg={...defaultCfg(),...JSON.parse(localStorage.getItem('nz3_cfg')||'{}')};
+let entries=[];
+const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:''});
+let cfg={...defaultCfg()};
+const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
+let reminderTimer=null;
+function loadProfilesBlob(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}}
+function migrateToProfiles(){const blob=loadProfilesBlob();if(blob)return;const oldE=localStorage.getItem('nz3_entries'),oldC=localStorage.getItem('nz3_cfg');const ent=oldE?JSON.parse(oldE):[];const c={...defaultCfg(),...(oldC?JSON.parse(oldC):{})};localStorage.setItem(PROFILE_KEY,JSON.stringify({default:{entries:ent,cfg:c}}));localStorage.setItem(CUR_PROFILE,'default');}
+function currentProfileId(){return localStorage.getItem(CUR_PROFILE)||'default';}
+function loadProfileIntoMemory(){migrateToProfiles();const id=currentProfileId(),blob=loadProfilesBlob();const slot=(blob&&blob[id])?blob[id]:{entries:[],cfg:defaultCfg()};entries=Array.isArray(slot.entries)?slot.entries:[];cfg={...defaultCfg(),...(slot.cfg||{})};}
+function persistAll(){const id=currentProfileId();let blob=loadProfilesBlob()||{};blob[id]={entries:JSON.parse(JSON.stringify(entries)),cfg:{...defaultCfg(),...cfg}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}
+function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${(blob[i].cfg&&blob[i].cfg.name)||i}</option>`).join('');sel.value=currentProfileId();}
+function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();migrateEntriesOnLoad();applyTheme();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil ativo');}
+function addNewProfile(){const n=prompt('Nome do bebê para o novo perfil:');if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim()}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil criado');}
+function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados dele?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil excluído');}
+function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#1a1512':'#D85A30');}
+function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
+function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -307,20 +352,28 @@ function renderTimeline(){const t=todayEntries().slice().reverse();$('timeline')
 function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
 function renderCharts(){const today=todayEntries();const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;$('s-sleep').textContent=fmtDur(sleeps.reduce((a,e)=>a+(e.durationMins||0),0))||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7F77DD',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7F77DD','#1D9E75','#D85A30'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
 function deleteEntry(id){entries=entries.filter(e=>e.id!==id);save();renderHome();showToast('Removido')}
-function save(){localStorage.setItem('nz3_entries',JSON.stringify(entries))}
+function save(){persistAll();}
 function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());const td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
 function closeModal(){$('modal-overlay').classList.remove('open')}
 function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;const d=parseInt($('f-feed-dur').value)||null;e.durationMins=d;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Informe um horário de início válido');return;}e.date=date;e.type='sleep';e.subtype=isNightHour(s)?'night':'nap';e.start=s;e.end=isValidTime(en)?en:null;if(s&&e.end){let sm=parseTimeOnDate(s,date),em=parseTimeOnDate(e.end,date);if(em<sm)em.setDate(em.getDate()+1);e.durationMins=Math.round((em-sm)/60000);}localStorage.removeItem('nz3_paused');}entries.push(e);save();closeModal();showToast('Registro salvo!');renderHome()}
-function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);localStorage.setItem('nz3_cfg',JSON.stringify(cfg));$('age-badge').textContent=cfg.months+' meses';showToast('Configurações salvas!');renderHome()}
-function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 Dados exportados!');}
-function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir todos os dados atuais. Continuar?'))return;entries=data.entries;if(data.cfg){cfg={...defaultCfg(),...data.cfg};localStorage.setItem('nz3_cfg',JSON.stringify(cfg));}save();$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';showToast('📥 Dados importados!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
+function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);applyTheme();save();$('age-badge').textContent=cfg.months+' meses';refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
+function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
+function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
+function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function printReport(){const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>Napzinho — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
+function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;entries=data.entries;if(data.cfg)cfg={...defaultCfg(),...data.cfg};save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function showSec(name){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');$('nav-'+name).classList.add('active');if(name==='stats')renderCharts();if(name==='history')renderHistory();if(name==='home')renderHome()}
 function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('.segopt').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('.segopt').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});})}
 function migrateEntriesOnLoad(){let ch=0;entries.forEach(e=>{if(!e.date||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)){e.date=todayStr();ch++;}});if(ch)save();}
-function init(){migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();renderHome()}
+async function requestNotify(){if(!('Notification' in window))return false;try{if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted';}catch(e){return false;}}
+function remindKey(k){return'nz_rm_'+todayStr()+'_'+k;}
+function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&isDayHour(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification('Napzinho',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&isDayHour(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification('Napzinho',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
+function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});}
+function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();renderHome()}
 init();
 </script>
 </body>
