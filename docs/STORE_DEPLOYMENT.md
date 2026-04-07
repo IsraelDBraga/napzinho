@@ -38,3 +38,22 @@ Para **App Store** com o mesmo código web, é preciso um **invólucro nativo** 
 - [ ] Testar instalação e uso **offline** no dispositivo real.
 - [ ] Política de privacidade (mesmo que curta: dados locais, sem servidor).
 - [ ] Ícones 192/512 e **maskable** (pasta `icons/`, regenerar com `python3 scripts/generate_icons.py` se mudar a arte).
+
+
+## Chaves vitalícias (controle manual por você)
+
+Para operação simples, você pode usar **chaves pré-programadas no backend**:
+
+- Defina códigos em `backend/preprogrammed_keys.json` (ex.: `NAPZ-VITALICIO-AMIGOS`).
+- Controle limite de ativações (`max_activations`) e se a chave está ativa.
+- O app envia a chave para `POST /api/activate` e recebe o entitlement.
+
+> Importante: para escala e antifraude avançado, evolua depois para assinatura digital + backend completo.
+
+
+### Backend simples já incluído no projeto
+
+- Pasta `backend/` com API local para ativar chave e consultar entitlement por dispositivo.
+- Suporta chaves pré-programadas em `backend/preprogrammed_keys.json` (ex.: vitalício para convidados).
+- Endpoints: `POST /api/activate`, `GET /api/entitlement`, `POST /api/admin/seed`.
+- Interface administrativa pronta em `admin.html` para criar/listar/desativar chaves sem editar JSON manualmente.

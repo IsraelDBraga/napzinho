@@ -141,6 +141,21 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .context-banner strong{color:var(--accent)}
 .install-banner{display:none;background:var(--card2);border-bottom:1px solid var(--border);padding:10px 14px;font-size:12px;align-items:center;justify-content:space-between;gap:10px}
 .install-banner.show{display:flex}
+
+.insight-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.insight-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.insight-list{display:grid;gap:8px}
+.insight-item{background:var(--card2);border-radius:10px;padding:9px 10px;font-size:12px;line-height:1.45}
+.insight-item strong{display:block;font-size:12px;color:var(--text);margin-bottom:1px}
+.risk-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.risk-low{background:#E1F5EE;color:#0F6E56}
+.risk-mid{background:#FFF3EA;color:#854F0B}
+.risk-high{background:#FCE8E8;color:#B42318}
+.premium-strip{background:linear-gradient(135deg,#2d1f14,#523526);color:#fff;border-radius:12px;padding:12px;margin-bottom:14px}
+.premium-strip h4{font-size:13px;margin-bottom:4px}
+.premium-strip p{font-size:11px;opacity:.88;line-height:1.45}
+.premium-strip .abtn{margin-top:8px;background:#fff;color:#2d1f14}
+
 </style>
 </head>
 <body>
@@ -174,6 +189,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
       <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
       <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
+    </div>
+    <div id="premium-strip-block"></div>
+    <div class="insight-card">
+      <div class="insight-title">Leitura emocional</div>
+      <div id="emotional-feedback" class="insight-list"><div class="empty" style="padding:4px 0">Registre dados para receber feedback</div></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Insights acionáveis de hoje</div>
+      <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
     </div>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
@@ -226,6 +250,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <label class="ctx-row"><input type="checkbox" id="ctx-other"> <span>➕ Outro (anote abaixo)</span></label>
       <input class="finput" id="ctx-note" placeholder="Ex.: adaptação na creche" maxlength="80">
       <p class="ctx-note">Isso ajuda o app a sugerir janelas um pouco mais tolerantes quando o bebê tende a precisar de mais conforto ou tem sono mais fragmentado.</p>
+    </div>
+    <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Plano Napzinho</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Freemium: registro básico é gratuito. Premium pode vir de assinatura ou chave vitalícia assinada por você.</p>
+      <input class="finput" id="cfg-license-key" placeholder="Cole sua chave (ex: NAPZ-VITALICIO-AMIGOS)" style="margin-bottom:8px">
+      <div class="data-buttons">
+        <button class="btn-save" onclick="startPremiumTrial()">🎁 Testar 7 dias grátis</button>
+        <button class="btn-cancel" onclick="activateLicenseKey()">🔐 Ativar chave</button>
+      </div>
+      <button class="btn-cancel" onclick="clearLicense()" style="margin-top:8px">Remover chave deste aparelho</button>
+      <p id="premium-status" style="font-size:11px;color:var(--muted);margin-top:8px"></p>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px">Backend de licenças padrão: <code>http://localhost:8787</code> (chaves pré-programadas ou admin).</p>
     </div>
     <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Aparência</div>
@@ -291,10 +327,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <div id="print-area"></div>
 <script>
 let entries=[];
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:''});
+const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null});
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
+const LICENSE_API_BASE=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';
 function loadProfilesBlob(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}}
 function migrateToProfiles(){const blob=loadProfilesBlob();if(blob)return;const oldE=localStorage.getItem('nz3_entries'),oldC=localStorage.getItem('nz3_cfg');const ent=oldE?JSON.parse(oldE):[];const c={...defaultCfg(),...(oldC?JSON.parse(oldC):{})};localStorage.setItem(PROFILE_KEY,JSON.stringify({default:{entries:ent,cfg:c}}));localStorage.setItem(CUR_PROFILE,'default');}
 function currentProfileId(){return localStorage.getItem(CUR_PROFILE)||'default';}
@@ -306,7 +343,7 @@ function addNewProfile(){const n=prompt('Nome do bebê para o novo perfil:');if(
 function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados dele?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil excluído');}
 function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#1a1512':'#D85A30');}
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
-function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';}
+function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-license-key').value=cfg.licenseToken||'';updatePremiumStatusText();}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -338,10 +375,145 @@ function smartPredictNextFeed(last){const cx=getContextAdjust();const months=par
 function getTypicalNightStartMins(){const ns=entries.filter(e=>e.type==='sleep'&&e.durationMins&&isNight(e));if(!ns.length)return timeToMins(cfg.nightStart||'18:00');const mins=ns.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}
 function nightStartPrediction(){const m=getTypicalNightStartMins(),cx=getContextAdjust(),r=Math.min(50,25+cx.rangeAdj),fromM=Math.max(0,m-r),toM=Math.min(1439,m+r);return{center:minsToTime(m),from:minsToTime(fromM),to:minsToTime(toM),basis:entries.filter(e=>e.type==='sleep'&&isNight(e)&&e.durationMins).length>=2?'padrão do bebê':'início da noite (config.)',phase:1}}
 function renderContextBanner(){const b=$('context-banner-block');if(!b)return;const bits=[];if(cfg.ctxTeething)bits.push('dentinho');if(cfg.ctxCold)bits.push('resfriado');if(cfg.ctxVaccine)bits.push('pós-vacina');if(cfg.ctxTravel)bits.push('viagem/rotina');if(cfg.ctxRegression)bits.push('regressão');if(cfg.ctxOther)bits.push('outro');const note=(cfg.ctxNote||'').trim();if(!bits.length&&!note){b.innerHTML='';return;}let t='Contexto: ';if(bits.length)t+=bits.join(', ');if(note)t+=(bits.length?' · ':'')+note;t+=' — previsões um pouco mais tolerantes.';b.innerHTML=`<div class="context-banner">${t}</div>`;}
-function renderHome(){renderTimeline();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary()}
+
+function getPremiumState(){
+  const nowDt=new Date();
+  const trialStart=cfg.trialStart?new Date(cfg.trialStart):null;
+  if(cfg.licenseTier){
+    if(cfg.licenseTier==='lifetime') return {tier:'lifetime',source:'license',trialDaysLeft:0};
+    if(cfg.licenseExpiresAt&&new Date(cfg.licenseExpiresAt)>nowDt) return {tier:'premium',source:'license',trialDaysLeft:0};
+  }
+  if(cfg.premiumState==='premium') return {tier:'premium',source:'store',trialDaysLeft:0};
+  if(cfg.premiumState==='trial'&&trialStart){
+    const elapsed=Math.floor((nowDt-trialStart)/(24*60*60*1000));
+    const trialDaysLeft=Math.max(0,7-elapsed);
+    if(trialDaysLeft>0) return {tier:'trial',source:'trial',trialDaysLeft};
+    cfg.premiumState='free';
+    save();
+  }
+  return {tier:'free',source:'free',trialDaysLeft:0};
+}
+function canUsePremiumFeatures(){const st=getPremiumState();return st.tier!=='free';}
+function updatePremiumStatusText(){
+  const st=getPremiumState();
+  const el=$('premium-status');
+  if(!el)return;
+  if(st.tier==='lifetime'){el.textContent='Vitalício ativo por chave';return;}
+  if(st.tier==='premium'&&st.source==='license'){el.textContent='Premium ativo por chave';return;}
+  if(st.tier==='premium'){el.textContent='Premium ativo';return;}
+  if(st.tier==='trial'){el.textContent=`Teste grátis ativo: ${st.trialDaysLeft} dia(s) restante(s)`;return;}
+  el.textContent='Plano gratuito ativo';
+}
+function startPremiumTrial(){
+  const st=getPremiumState();
+  if(st.tier!=='free'){showToast('Já existe um plano ativo');return;}
+  cfg.premiumState='trial';
+  cfg.trialStart=new Date().toISOString();
+  save();
+  syncSettingsForm();
+  renderHome();
+  showToast('🎁 Teste grátis ativado por 7 dias');
+}
+function clearLicense(){
+  cfg.licenseToken='';
+  cfg.licenseTier='';
+  cfg.licenseExpiresAt=null;
+  save();
+  syncSettingsForm();
+  renderHome();
+  showToast('Chave removida deste aparelho');
+}
+function getOrCreateDeviceId(){
+  const key='nz_device_id_v1';
+  let id=localStorage.getItem(key);
+  if(!id){id='dev-'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(key,id);} 
+  return id;
+}
+async function activateLicenseKey(){
+  const code=($('cfg-license-key').value||'').trim();
+  if(!code){showToast('Cole uma chave primeiro');return;}
+  try{
+    const res=await fetch(LICENSE_API_BASE+'/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_id:getOrCreateDeviceId()})});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Falha ao ativar chave');
+    cfg.licenseToken=code;
+    cfg.licenseTier=data.tier;
+    cfg.licenseExpiresAt=data.expires_at||null;
+    save();
+    syncSettingsForm();
+    renderHome();
+    showToast(data.tier==='lifetime'?'🔓 Vitalício ativado':'🔓 Premium ativado');
+  }catch(err){
+    showToast('Falha ao ativar: '+err.message);
+  }
+}
+async function syncEntitlementFromBackend(){
+  if(!LICENSE_API_BASE)return;
+  try{
+    const res=await fetch(LICENSE_API_BASE+'/api/entitlement?device_id='+encodeURIComponent(getOrCreateDeviceId()));
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data.tier&&data.tier!=='free'){
+      cfg.licenseTier=data.tier;
+      cfg.licenseExpiresAt=data.expires_at||null;
+      if(data.source_code)cfg.licenseToken=data.source_code;
+      save();
+    }
+  }catch(e){/* backend opcional */}
+}
+function getWakeRisk(minutesAwake,target){const ratio=target?minutesAwake/target:0; if(ratio<0.85) return {label:'Baixo',cls:'risk-low',msg:'ainda dentro da janela esperada'}; if(ratio<1.1) return {label:'Moderado',cls:'risk-mid',msg:'atenção aos sinais de sono agora'}; return {label:'Alto',cls:'risk-high',msg:'probabilidade de supercansaço elevada'};}
+function formatTimeUntil(timeStr){const nowM=timeToMins(fmtTime(now()));let diff=timeToMins(timeStr)-nowM;if(diff<0)diff+=1440;return diff;}
+function buildEmotionalMessages(){
+  const st=[];const months=parseInt(cfg.months)||3;const nightWakes=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
+  if(nightWakes>=2&&months<=6) st.push({title:'Isso é normal nesta fase',body:'Despertares noturnos são comuns até perto dos 6 meses. Você não está fazendo nada errado.'});
+  const todaySleep=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
+  if(todaySleep>=600) st.push({title:'Você está no caminho certo',body:'A rotina de hoje já acumulou boas horas de sono para a idade.'});
+  const feeds=todayEntries().filter(e=>e.type==='feed').length;
+  if(feeds>=6) st.push({title:'Base fisiológica bem cuidada',body:'Boa frequência de mamadas ajuda a reduzir despertares por fome.'});
+  if(!st.length) st.push({title:'Consistência > perfeição',body:'Pequenos ajustes diários já fazem diferença no sono em poucos dias.'});
+  return st.slice(0,3);
+}
+function buildDailyInsights(){
+  const list=[];const today=todayEntries();
+  const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);
+  const naps=sleeps.filter(e=>!isNight(e));
+  const wakes=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
+  if(naps.length>=2){
+    const lateNap=naps.some(e=>timeToMins(e.start)>timeToMins(cfg.nightStart||'18:00')-90);
+    if(lateNap&&wakes>=2) list.push({title:'Diagnóstico',body:'Soneca tardia + mais despertares. Recomendação: antecipe a próxima soneca em 20 min.'});
+  }
+  const last=getLastCompletedSleep();
+  if(last&&isDayHour(last.end)){
+    const target=wwBaseTarget(parseInt(cfg.months)||3)+Math.min(25,getContextAdjust().napAdj);
+    const awake=Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));
+    if(awake>target) list.push({title:'Ação agora',body:'Janela extrapolada. Inicie rotina de soneca nos próximos 10 minutos.'});
+  }
+  if(wakes>=3) list.push({title:'Causa provável',body:'Fragmentação noturna pode estar ligada a regressão de sono ou desconforto físico recente.'});
+  if(!list.length) list.push({title:'Sem alertas críticos',body:'Hoje está dentro do esperado. Mantenha horários próximos da previsão.'});
+  return list.slice(0,3);
+}
+function renderIntelligenceBlocks(){
+  const premium=canUsePremiumFeatures();
+  const emo=$('emotional-feedback'),ins=$('daily-insights'),strip=$('premium-strip-block');
+  if(!premium){
+    strip.innerHTML='<div class="premium-strip"><h4>Desbloqueie o Assistente de Rotina</h4><p>Predição em tempo real, insights interpretativos e personalização progressiva ficam no Premium (assinatura ou chave).</p><button class="abtn" onclick="startPremiumTrial()">Ativar teste grátis de 7 dias</button></div>';
+    emo.innerHTML='<div class="insight-item"><strong>Recurso Premium</strong>Feedback emocional contextual para reduzir ansiedade durante a rotina.</div>';
+    ins.innerHTML='<div class="insight-item"><strong>Recurso Premium</strong>Diagnóstico automático, causa provável e recomendação direta do que fazer agora.</div>';
+    return;
+  }
+  strip.innerHTML='';
+  emo.innerHTML=buildEmotionalMessages().map(i=>`<div class="insight-item"><strong>${i.title}</strong>${i.body}</div>`).join('');
+  ins.innerHTML=buildDailyInsights().map(i=>`<div class="insight-item"><strong>${i.title}</strong>${i.body}</div>`).join('');
+}
+
+function renderHome(){renderTimeline();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary();renderIntelligenceBlocks()}
 function renderLearnBar(){const p=getLearningPhase();$('learn-fill').style.width=p.pct+'%';$('learn-phase').textContent=p.label;if(p.phase===3)$('learn-bar-wrap').style.display='none'}
-function renderPredictions(){const today=todayEntries();const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=isDayHour(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>`<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail}</div>${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
+function renderPredictions(){const today=todayEntries();const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const premium=canUsePremiumFeatures();if(!premium){$('pred-list').innerHTML='<div class="insight-item"><strong>Predição avançada é Premium</strong>Ative o teste grátis para ver próxima janela em tempo real e alertas de risco.</div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=isDayHour(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name.includes('soneca')?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3)):null;return `<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail} · próxima janela em ${mins} min</div>${risk?`<span class="risk-chip ${risk.cls}">⚠️ ${risk.msg}</span>`:''}${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`}).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
 function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()">☀️ Acordou agora</button></div>';return;}const last=getLastCompletedSleep();if(!last){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()">🌙 Dormiu agora</button></div>';return;}const wokeInDaytime=isDayHour(last.end);const isN=!wokeInDaytime&&nightNow;const months=parseInt(cfg.months)||3;const cxAdj=Math.min(25,getContextAdjust().napAdj);const base=wwBaseTarget(months)+(!isN?cxAdj:0);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=sleepEndDate(last);const nc=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');function tick(){let diff;if(paused){diff=paused.elapsed;}else{diff=Math.floor((now()-endT)/60000);}if(diff<0)diff=0;const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min'+(paused?' ⏸️':'');if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc.length>1?(nc.length+'° despertar desta noite'):'Primeiro despertar noturno';const s=getSuggestion(diff,nc.length);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);const pauseLabel=paused?'▶️ Retomar':'⏸️ Pausar';actions.innerHTML=`<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()">🌙 Dormiu</button><button class="abtn wake-btn" onclick="openModal('feed')">🍼 Mamou</button></div><div class="action-row one" style="margin-top:6px"><button class="abtn pause-btn" onclick="togglePause()">${pauseLabel} contagem</button></div>`;}
+
+function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
+function wwCurrentTargetMinutes(){const months=parseInt(cfg.months)||3;return wwBaseTarget(months)+Math.min(25,getContextAdjust().napAdj);}
+
 function getSuggestion(d,c){if(d<5)return{title:'Acabou de acordar',body:'Aguarde antes de tentar recolocar.'};if(d<15)return c<=1?{title:'Tente recolocar',body:'Ainda na janela normal. Shush-pat ou chupeta podem ajudar.'}:{title:'Tente recolocar',body:c+'° despertar. Shush-pat, chupeta, ou mão na barriga.'};if(d<30)return c>=3?{title:'Considere amamentar',body:c+'° despertar. Amamentar pode ser mais rápido do que tentar recolocar.'}:{title:'Tente embalar',body:'Pegue no colo, embale até ficar sonolento, recoloque antes de dormir.'};if(d<60)return{title:'Amamente ou ofereça conforto',body:'Provavelmente com fome ou precisando de contato. Amamente e recoloque sonolento.'};return{title:'Reinicie a rotina',body:'Mais de 1h acordado. Troca, feed, ambiente escuro, e tente novamente do início.'}}
 function togglePause(){const last=getLastCompletedSleep();if(!last)return;const endT=sleepEndDate(last);const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');if(paused){const pausedMs=paused.elapsed*60000;const newEnd=new Date(now().getTime()-pausedMs);const newEndStr=fmtTime(newEnd);entries.forEach(e=>{if(e.id===last.id)e.end=newEndStr;});save();localStorage.removeItem('nz3_paused');showToast('▶️ Contagem retomada');}else{const elapsed=Math.floor((now()-endT)/60000);localStorage.setItem('nz3_paused',JSON.stringify({elapsed,at:Date.now()}));showToast('⏸️ Contagem pausada');}renderHome();}
 function babySlept(){if(getActiveSleep()){showToast('Já tem sono em andamento!');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'sleep',subtype:isNightHour(t)?'night':'nap',start:t,end:null});save();showToast('😴 Dormiu às '+t);renderHome()}
@@ -373,7 +545,7 @@ async function requestNotify(){if(!('Notification' in window))return false;try{i
 function remindKey(k){return'nz_rm_'+todayStr()+'_'+k;}
 function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&isDayHour(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification('Napzinho',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&isDayHour(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification('Napzinho',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
 function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});}
-function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();renderHome()}
+function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();}
 init();
 </script>
 </body>
