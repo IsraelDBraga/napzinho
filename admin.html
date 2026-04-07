@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Napzinho Admin • Licenças</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:980px;margin:0 auto;padding:20px;background:#f8f8fb;color:#1f2937}
+h1{margin:0 0 16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:12px;color:#6b7280;display:block;margin-bottom:4px}
+input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px}
+button{padding:10px 12px;border:0;border-radius:8px;background:#111827;color:#fff;cursor:pointer;font-weight:700}
+button.alt{background:#6b7280}
+button.danger{background:#b91c1c}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+small{color:#6b7280}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}
+.code{font-family:monospace}
+.badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+.on{background:#dcfce7;color:#166534}.off{background:#fee2e2;color:#991b1b}
+#msg{margin-top:8px;font-size:13px}
+</style>
+</head>
+<body>
+<h1>Admin de Licenças • Napzinho</h1>
+<div class="card">
+  <div class="row">
+    <div>
+      <label>URL do backend</label>
+      <input id="apiBase" value="http://localhost:8787" />
+    </div>
+    <div>
+      <label>Token admin (X-Admin-Token)</label>
+      <input id="adminToken" type="password" placeholder="ex: change-me" />
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:10px">
+    <button onclick="loadLicenses()">Conectar e listar chaves</button>
+  </div>
+  <div id="msg"></div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">Criar / atualizar chave</h3>
+  <div class="row">
+    <div><label>Código</label><input id="kCode" placeholder="ex: NAPZ-VITALICIO-CLIENTE-01" /></div>
+    <div><label>Tipo</label><select id="kTier"><option value="lifetime">lifetime</option><option value="premium">premium</option></select></div>
+    <div><label>Expira em (ISO, opcional)</label><input id="kExp" placeholder="2026-12-31T23:59:59+00:00" /></div>
+    <div><label>Máx. ativações</label><input id="kMax" type="number" min="1" value="1" /></div>
+  </div>
+  <div style="margin-top:10px"><label>Observação</label><input id="kNote" placeholder="Ex.: cliente plano anual" /></div>
+  <div class="toolbar" style="margin-top:10px">
+    <button onclick="saveKey()">Salvar chave</button>
+  </div>
+  <small>Dica: para vitalício simples, deixe expiração em branco.</small>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">Chaves cadastradas</h3>
+  <table>
+    <thead><tr><th>Código</th><th>Tipo</th><th>Ativações</th><th>Expiração</th><th>Status</th><th>Ação</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="6">Nenhuma chave carregada.</td></tr></tbody>
+  </table>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function headers(){return {'Content-Type':'application/json','X-Admin-Token':$('adminToken').value.trim()};}
+function base(){return $('apiBase').value.trim().replace(/\/$/,'');}
+function msg(t,ok=true){$('msg').style.color=ok?'#166534':'#b91c1c';$('msg').textContent=t;}
+
+async function loadLicenses(){
+  try{
+    const r=await fetch(base()+'/api/admin/licenses',{headers:headers()});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Falha ao listar');
+    renderRows(d.items||[]);
+    msg('Conectado. '+(d.items||[]).length+' chave(s) carregada(s).');
+  }catch(e){msg(e.message,false);}
+}
+
+function renderRows(items){
+  const tb=$('rows');
+  if(!items.length){tb.innerHTML='<tr><td colspan="6">Nenhuma chave.</td></tr>';return;}
+  tb.innerHTML=items.map(it=>`<tr>
+    <td class="code">${it.code}</td>
+    <td>${it.tier}</td>
+    <td>${it.activations}/${it.max_activations}</td>
+    <td>${it.expires_at||'—'}</td>
+    <td><span class="badge ${it.active?'on':'off'}">${it.active?'ativa':'inativa'}</span></td>
+    <td>${it.active?`<button class="danger" onclick="deactivateKey('${it.code}')">Desativar</button>`:'—'}</td>
+  </tr>`).join('');
+}
+
+async function saveKey(){
+  const body={
+    code:$('kCode').value.trim(),
+    tier:$('kTier').value,
+    expires_at:$('kExp').value.trim()||null,
+    max_activations:parseInt($('kMax').value||'1',10),
+    note:$('kNote').value.trim()||null
+  };
+  try{
+    const r=await fetch(base()+'/api/admin/seed',{method:'POST',headers:headers(),body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Falha ao salvar chave');
+    msg('Chave salva: '+d.code);
+    await loadLicenses();
+  }catch(e){msg(e.message,false);}
+}
+
+async function deactivateKey(code){
+  if(!confirm('Desativar chave '+code+'?'))return;
+  try{
+    const r=await fetch(base()+'/api/admin/deactivate',{method:'POST',headers:headers(),body:JSON.stringify({code})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Falha ao desativar');
+    msg('Chave desativada: '+code);
+    await loadLicenses();
+  }catch(e){msg(e.message,false);}
+}
+</script>
+</body>
+</html>
