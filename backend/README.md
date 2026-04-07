@@ -19,6 +19,10 @@ Exemplo já incluso:
 - `NAPZ-VITALICIO-AMIGOS` (lifetime)
 - `NAPZ-PREMIUM-30DIAS` (premium com expiração)
 
+**Importante:** essas chaves só existem **depois** de subir `python3 server.py`. O servidor cria `napzinho.db` e insere as chaves do JSON na primeira execução. Se o app abrir em outro dispositivo ou em `file://`, ele não alcança `localhost:8787` do seu PC — configure no app a URL pública do backend (HTTPS) ou use túnel (ngrok, etc.).
+
+**Por que “não funcionou” no celular:** o app costuma apontar para `http://localhost:8787`. No telefone, `localhost` é o próprio celular, não o computador onde o Python roda. Solução: expor o backend com URL acessível e colar essa URL em Config. → “URL do servidor de licenças”.
+
 ## Endpoints
 
 - `POST /api/activate`
