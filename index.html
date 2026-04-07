@@ -254,6 +254,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Plano Napzinho</div>
       <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Freemium: registro básico é gratuito. Premium pode vir de assinatura ou chave vitalícia assinada por você.</p>
+      <label class="ctx-row"><input type="checkbox" id="cfg-premium-local" onchange="applyPremiumLocalToggle()"> <span>Liberar Premium neste aparelho <strong>sem servidor</strong> (até você subir o backend)</span></label>
       <input class="finput" id="cfg-license-key" placeholder="Cole sua chave (ex: NAPZ-VITALICIO-AMIGOS)" style="margin-bottom:8px">
       <div class="data-buttons">
         <button class="btn-save" onclick="startPremiumTrial()">🎁 Testar 7 dias grátis</button>
@@ -329,7 +330,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <div id="print-area"></div>
 <script>
 let entries=[];
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null});
+const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false});
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
@@ -345,7 +346,8 @@ function addNewProfile(){const n=prompt('Nome do bebê para o novo perfil:');if(
 function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados dele?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil excluído');}
 function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#1a1512':'#D85A30');}
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
-function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-license-key').value=cfg.licenseToken||'';const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
+function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=!!$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?'🔓 Premium liberado (local)':'Plano gratuito');}
+function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -379,6 +381,7 @@ function nightStartPrediction(){const m=getTypicalNightStartMins(),cx=getContext
 function renderContextBanner(){const b=$('context-banner-block');if(!b)return;const bits=[];if(cfg.ctxTeething)bits.push('dentinho');if(cfg.ctxCold)bits.push('resfriado');if(cfg.ctxVaccine)bits.push('pós-vacina');if(cfg.ctxTravel)bits.push('viagem/rotina');if(cfg.ctxRegression)bits.push('regressão');if(cfg.ctxOther)bits.push('outro');const note=(cfg.ctxNote||'').trim();if(!bits.length&&!note){b.innerHTML='';return;}let t='Contexto: ';if(bits.length)t+=bits.join(', ');if(note)t+=(bits.length?' · ':'')+note;t+=' — previsões um pouco mais tolerantes.';b.innerHTML=`<div class="context-banner">${t}</div>`;}
 
 function getPremiumState(){
+  if(cfg.premiumUnlockLocal) return {tier:'lifetime',source:'local',trialDaysLeft:0};
   const nowDt=new Date();
   const trialStart=cfg.trialStart?new Date(cfg.trialStart):null;
   if(cfg.licenseTier){
@@ -400,6 +403,7 @@ function updatePremiumStatusText(){
   const st=getPremiumState();
   const el=$('premium-status');
   if(!el)return;
+  if(st.source==='local'){el.textContent='Premium liberado neste aparelho (sem servidor — desmarque para voltar ao gratuito)';return;}
   if(st.tier==='lifetime'){el.textContent='Vitalício ativo por chave';return;}
   if(st.tier==='premium'&&st.source==='license'){el.textContent='Premium ativo por chave';return;}
   if(st.tier==='premium'){el.textContent='Premium ativo';return;}
@@ -408,7 +412,7 @@ function updatePremiumStatusText(){
 }
 function startPremiumTrial(){
   const st=getPremiumState();
-  if(st.tier!=='free'){showToast('Já existe um plano ativo');return;}
+  if(st.source==='local'||st.tier!=='free'){showToast('Já existe um plano ativo');return;}
   cfg.premiumState='trial';
   cfg.trialStart=new Date().toISOString();
   save();
@@ -454,6 +458,7 @@ async function activateLicenseKey(){
   }
 }
 async function syncEntitlementFromBackend(){
+  if(cfg.premiumUnlockLocal)return;
   const base=getLicenseApiBase();
   if(!base)return;
   try{
@@ -535,7 +540,7 @@ function save(){persistAll();}
 function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());const td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
 function closeModal(){$('modal-overlay').classList.remove('open')}
 function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;const d=parseInt($('f-feed-dur').value)||null;e.durationMins=d;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Informe um horário de início válido');return;}e.date=date;e.type='sleep';e.subtype=isNightHour(s)?'night':'nap';e.start=s;e.end=isValidTime(en)?en:null;if(s&&e.end){let sm=parseTimeOnDate(s,date),em=parseTimeOnDate(e.end,date);if(em<sm)em.setDate(em.getDate()+1);e.durationMins=Math.round((em-sm)/60000);}localStorage.removeItem('nz3_paused');}entries.push(e);save();closeModal();showToast('Registro salvo!');renderHome()}
-function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();save();$('age-badge').textContent=cfg.months+' meses';refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
+function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);if($('cfg-premium-local'))cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();save();$('age-badge').textContent=cfg.months+' meses';refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
 function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
 function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
