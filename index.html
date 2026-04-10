@@ -18,6 +18,7 @@
 :root{--bg:#FFF8F2;--card:#FFFFFF;--card2:#FFF3EA;--text:#2D1F14;--muted:#8A7060;--border:#EDD8C8;--sleep:#7F77DD;--feed:#1D9E75;--diaper:#D85A30;--accent:#D85A30;--pill-bg:#FAEEDA;--pill-text:#633806}
 [data-theme="dark"]{--bg:#1a1512;--card:#2a221c;--card2:#352a22;--text:#f5ebe3;--muted:#b8a99a;--border:#4a3d34;--sleep:#9b92e8;--feed:#3ecf9a;--diaper:#e87a52;--accent:#e87a52;--pill-bg:#4a3528;--pill-text:#f5d4b8}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:60px}
+button{font:inherit}
 @media print{body{background:#fff;color:#000}.nav,.install-banner,.toast{display:none!important}.sections{padding:0}#print-area{display:block!important}}
 #print-area{display:none}
 .header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px 10px;position:sticky;top:0;z-index:10}
@@ -430,6 +431,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
         <li><strong>Para cobrar no futuro / nuvem:</strong> sync entre aparelhos, backup automático, widget nativo, integração Apple Health / Google Fit</li>
       </ul>
     </div>
+    <div class="stat-card" style="margin-top:12px;margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Store readiness (Play / App Store)</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Este app é PWA. Billing nativo exige wrapper (TWA/Android e app iOS nativo com StoreKit).</p>
+      <button class="btn-save" style="margin-top:0" onclick="runStoreReadinessCheck()">Validar checklist da loja</button>
+      <div id="store-readiness-output" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45">Toque para validar requisitos mínimos.</div>
+    </div>
     <div class="stat-card" style="margin-top:16px;margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Dados</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px">JSON completo ou tabela CSV (planilhas).</div>
@@ -447,6 +454,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 <nav class="nav">
   <div class="nav-item active" id="nav-home" onclick="showSec('home')"><div class="nav-icon">🏠</div><span>Início</span></div>
+  <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
   <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon">📊</div><span>Dados</span></div>
   <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon">📋</div><span>Histórico</span></div>
   <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
@@ -476,7 +484,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <div id="print-area"></div>
 <script>
 let entries=[];
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false});
+const APP_SCHEMA_VERSION=2;
+const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
@@ -484,7 +493,14 @@ function getLicenseApiBase(){return(localStorage.getItem('nz_license_api_base')|
 function loadProfilesBlob(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}}
 function migrateToProfiles(){const blob=loadProfilesBlob();if(blob)return;const oldE=localStorage.getItem('nz3_entries'),oldC=localStorage.getItem('nz3_cfg');const ent=oldE?JSON.parse(oldE):[];const c={...defaultCfg(),...(oldC?JSON.parse(oldC):{})};localStorage.setItem(PROFILE_KEY,JSON.stringify({default:{entries:ent,cfg:c}}));localStorage.setItem(CUR_PROFILE,'default');}
 function currentProfileId(){return localStorage.getItem(CUR_PROFILE)||'default';}
-function loadProfileIntoMemory(){migrateToProfiles();const id=currentProfileId(),blob=loadProfilesBlob();const slot=(blob&&blob[id])?blob[id]:{entries:[],cfg:defaultCfg()};entries=Array.isArray(slot.entries)?slot.entries:[];cfg={...defaultCfg(),...(slot.cfg||{})};}
+function normalizeEntry(raw){if(!raw||typeof raw!=='object')return null;const safe={...raw};safe.id=typeof safe.id==='number'?safe.id:Date.now()+Math.floor(Math.random()*1000);safe.date=isValidDateStr(safe.date)?safe.date:todayStr();safe.type=typeof safe.type==='string'?safe.type:'unknown';safe.start=isValidTime(safe.start)?safe.start:fmtTime(now());if(safe.end!=null&&!isValidTime(safe.end))safe.end=null;if(safe.durationMins!=null&&(!Number.isFinite(safe.durationMins)||safe.durationMins<0))safe.durationMins=null;return safe;}
+function migrateDataModel(){
+  cfg={...defaultCfg(),...(cfg||{})};
+  if(!Array.isArray(entries))entries=[];
+  entries=entries.map(normalizeEntry).filter(Boolean);
+  if((cfg.dataSchemaVersion||0)<APP_SCHEMA_VERSION)cfg.dataSchemaVersion=APP_SCHEMA_VERSION;
+}
+function loadProfileIntoMemory(){migrateToProfiles();const id=currentProfileId(),blob=loadProfilesBlob();const slot=(blob&&blob[id])?blob[id]:{entries:[],cfg:defaultCfg()};entries=Array.isArray(slot.entries)?slot.entries:[];cfg={...defaultCfg(),...(slot.cfg||{})};migrateDataModel();}
 function persistAll(){const id=currentProfileId();let blob=loadProfilesBlob()||{};blob[id]={entries:JSON.parse(JSON.stringify(entries)),cfg:{...defaultCfg(),...cfg}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}
 function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${(blob[i].cfg&&blob[i].cfg.name)||i}</option>`).join('');sel.value=currentProfileId();}
 function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();migrateEntriesOnLoad();applyTheme();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil ativo');}
