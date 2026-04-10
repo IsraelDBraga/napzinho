@@ -157,9 +157,15 @@ button{font:inherit}
 .premium-strip p{font-size:11px;opacity:.88;line-height:1.45}
 .premium-strip .abtn{margin-top:8px;background:#fff;color:#2d1f14}
 .copilot-grid{display:grid;gap:10px}
-.copilot-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.copilot-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(30,20,10,.06)}
 .copilot-card h4{font-size:13px;margin-bottom:6px}
 .copilot-card p{font-size:12px;color:var(--muted);line-height:1.45}
+.copilot-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin-bottom:10px}
+.copilot-tab{border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fff7f2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px rgba(20,12,8,.08);transition:all .18s ease}
+.copilot-tab.active{background:linear-gradient(135deg,#E06D46,#D85A30);color:#fff;border-color:#D85A30;box-shadow:0 6px 14px rgba(216,90,48,.28)}
+.copilot-tab:active{transform:scale(.97)}
+.copilot-panel{display:none}
+.copilot-panel.active{display:block}
 .copilot-action{margin-top:10px;background:var(--card2);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.4}
 .copilot-action strong{display:block;color:var(--text);margin-bottom:2px}
 .diag-row{display:flex;gap:8px;margin-top:8px}
@@ -197,79 +203,6 @@ button{font:inherit}
     </div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
-    <div class="pred-card">
-      <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
-      <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
-    </div>
-    <div class="learn-bar-wrap" id="learn-bar-wrap">
-      <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
-      <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
-      <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
-    </div>
-    <div id="premium-strip-block"></div>
-    <div class="insight-card">
-      <div class="insight-title">Leitura emocional</div>
-      <div id="emotional-feedback" class="insight-list"><div class="empty" style="padding:4px 0">Registre dados para receber feedback</div></div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-title">Insights acionáveis de hoje</div>
-      <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
-    </div>
-    <div class="copilot-grid">
-      <div class="copilot-card">
-        <h4>🧭 Copiloto do Bebê</h4>
-        <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
-        <div id="copilot-now" class="copilot-action">Coletando dados de hoje...</div>
-      </div>
-      <div class="copilot-card">
-        <h4>😭 Diagnóstico de Choro</h4>
-        <p>Estimativa probabilística (nunca 100%): fome, sono ou desconforto.</p>
-        <div class="diag-row">
-          <button class="abtn primary-btn" onclick="runCryDiagnosis('feed')">Última mamada</button>
-          <button class="abtn primary-btn" onclick="runCryDiagnosis('sleep')">Última soneca</button>
-        </div>
-        <div id="cry-diagnosis" class="copilot-action">Toque em um contexto para diagnosticar.</div>
-      </div>
-      <div class="copilot-card">
-        <h4>🚨 Prevenção de Colapso</h4>
-        <p>Combina tempo acordado + sinais de irritação para agir antes.</p>
-        <div id="collapse-alert" class="copilot-action">Sem risco alto neste momento.</div>
-      </div>
-      <div class="copilot-card">
-        <h4>🌙 Modo Sobrevivência Noturna</h4>
-        <p>Fluxo curto, sem leitura longa, para quando todo mundo está exausto.</p>
-        <div class="night-mode-box">
-          <div class="diag-row">
-            <button class="abtn sleep-btn" onclick="runNightSurvival('crying')">Acordou chorando</button>
-            <button class="abtn sleep-btn" onclick="runNightSurvival('quiet')">Acordou quieto</button>
-          </div>
-          <div id="night-survival-flow" class="night-mode-flow">Escolha um cenário para ver o passo a passo.</div>
-        </div>
-      </div>
-      <div class="copilot-card">
-        <h4>🗓️ Roteiro Diário Inteligente</h4>
-        <p>Atualiza próxima soneca e mamada automaticamente ao longo do dia.</p>
-        <div id="daily-plan" class="copilot-action">Aguardando registros para montar o roteiro.</div>
-      </div>
-      <div class="copilot-card">
-        <h4>🧠 Tradutor de Desenvolvimento</h4>
-        <p>Interpretação rápida por faixa etária: normal, atenção e quando buscar médico.</p>
-        <input id="dev-input" class="inline-input" placeholder="Ex.: meu bebê não está rolando ainda">
-        <button class="abtn primary-btn" style="margin-top:8px" onclick="runDevelopmentTranslator()">Traduzir</button>
-        <div id="dev-output" class="copilot-action">Escreva uma dúvida curta para traduzir.</div>
-      </div>
-      <div class="copilot-card">
-        <h4>🔮 Simulador de Consequência</h4>
-        <p>Direcional e útil: estima impacto no humor e no sono noturno.</p>
-        <div class="sim-grid">
-          <button class="abtn primary-btn" onclick="runConsequenceSimulation('skipNap')">Pular soneca</button>
-          <button class="abtn primary-btn" onclick="runConsequenceSimulation('lateNap')">Soneca tardia</button>
-          <button class="abtn primary-btn" onclick="runConsequenceSimulation('feedDelay')">Atrasar mamada</button>
-          <button class="abtn primary-btn" onclick="runConsequenceSimulation('overtiredNight')">Passar da janela</button>
-        </div>
-        <div id="sim-output" class="copilot-action">Selecione um cenário para simular.</div>
-      </div>
-    </div>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
   </div>
@@ -303,6 +236,24 @@ button{font:inherit}
     </div>
     <div class="copilot-grid">
       <div class="copilot-panel active" id="cpanel-realtime">
+        <div class="pred-card">
+          <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
+          <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
+        </div>
+        <div class="learn-bar-wrap" id="learn-bar-wrap">
+          <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
+          <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
+          <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
+        </div>
+        <div id="premium-strip-block"></div>
+        <div class="insight-card">
+          <div class="insight-title">Leitura emocional</div>
+          <div id="emotional-feedback" class="insight-list"><div class="empty" style="padding:4px 0">Registre dados para receber feedback</div></div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-title">Insights acionáveis de hoje</div>
+          <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
+        </div>
         <div class="copilot-card">
           <h4>🧭 Copiloto do Bebê</h4>
           <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
@@ -481,11 +432,20 @@ button{font:inherit}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="modal-overlay" id="paywall-overlay" style="z-index:120;align-items:center;justify-content:center">
+  <div class="modal-box" style="border-radius:16px;max-height:none;padding:18px">
+    <div class="modal-title" style="font-size:18px;margin-bottom:10px">Assinatura necessária</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.45;margin-bottom:12px">Seu teste de 7 dias terminou. Para continuar com o Assistente de Rotina, ative uma assinatura/chave no app.</p>
+    <button class="btn-save" style="margin-top:0" onclick="closePaywallAndGoSettings()">Ver opções de assinatura</button>
+    <button class="btn-cancel" onclick="closePaywall()">Agora não</button>
+  </div>
+</div>
 <div id="print-area"></div>
 <script>
 let entries=[];
 const APP_SCHEMA_VERSION=2;
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
+const BUILD_VERSION='2026.04.10.3';
+const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,trialUsedAt:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
@@ -555,9 +515,10 @@ function getPremiumState(){
     const elapsed=Math.floor((nowDt-trialStart)/(24*60*60*1000));
     const trialDaysLeft=Math.max(0,7-elapsed);
     if(trialDaysLeft>0) return {tier:'trial',source:'trial',trialDaysLeft};
-    cfg.premiumState='free';
+    cfg.premiumState='locked';
     save();
   }
+  if(cfg.premiumState==='locked'||cfg.trialUsedAt) return {tier:'free',source:'trial_ended',trialDaysLeft:0};
   return {tier:'free',source:'free',trialDaysLeft:0};
 }
 function canUsePremiumFeatures(){const st=getPremiumState();return st.tier!=='free';}
@@ -570,18 +531,25 @@ function updatePremiumStatusText(){
   if(st.tier==='premium'&&st.source==='license'){el.textContent='Premium ativo por chave';return;}
   if(st.tier==='premium'){el.textContent='Premium ativo';return;}
   if(st.tier==='trial'){el.textContent=`Teste grátis ativo: ${st.trialDaysLeft} dia(s) restante(s)`;return;}
+  if(st.source==='trial_ended'){el.textContent='Teste grátis já utilizado neste aparelho';return;}
   el.textContent='Plano gratuito ativo';
 }
 function startPremiumTrial(){
   const st=getPremiumState();
   if(st.source==='local'||st.tier!=='free'){showToast('Já existe um plano ativo');return;}
+  if(cfg.trialUsedAt||cfg.premiumState==='locked'){showToast('Teste já utilizado neste aparelho');showPaywall();return;}
   cfg.premiumState='trial';
   cfg.trialStart=new Date().toISOString();
+  cfg.trialUsedAt=cfg.trialUsedAt||cfg.trialStart;
   save();
   syncSettingsForm();
   renderHome();
   showToast('🎁 Teste grátis ativado por 7 dias');
 }
+function showPaywall(){const pw=$('paywall-overlay');if(pw)pw.classList.add('open');}
+function closePaywall(){const pw=$('paywall-overlay');if(pw)pw.classList.remove('open');}
+function closePaywallAndGoSettings(){closePaywall();showSec('settings');}
+function maybeEnforcePaywall(){const st=getPremiumState();if(st.source==='trial_ended'&&!cfg.licenseTier&&!cfg.premiumUnlockLocal)showPaywall();}
 function clearLicense(){
   cfg.licenseToken='';
   cfg.licenseTier='';
@@ -745,6 +713,18 @@ function renderCopilotSuite(){
   renderCollapsePrevention();
   renderDailyPlan();
 }
+function runStoreReadinessCheck(){
+  const out=$('store-readiness-output');if(!out)return;
+  const checks=[
+    {ok:location.protocol==='https:'||location.hostname==='localhost',txt:'App em HTTPS (ou localhost para dev)'},
+    {ok:'serviceWorker' in navigator,txt:'Service Worker disponível (offline/install)'},
+    {ok:!!document.querySelector('link[rel=\"manifest\"]'),txt:'Manifest configurado'},
+    {ok:typeof cfg.licenseToken==='string',txt:'Camada de entitlement local existente'},
+    {ok:true,txt:'Android: falta wrapper TWA + Play Billing Library no app nativo'},
+    {ok:true,txt:'iOS: falta wrapper nativo + StoreKit (IAP) com validação de recibo'}
+  ];
+  out.innerHTML=checks.map(c=>`${c.ok?'✅':'❌'} ${c.txt}`).join('<br>');
+}
 function buildEmotionalMessages(){
   const st=[];const months=parseInt(cfg.months)||3;const nightWakes=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
   if(nightWakes>=2&&months<=6) st.push({title:'Isso é normal nesta fase',body:'Despertares noturnos são comuns até perto dos 6 meses. Você não está fazendo nada errado.'});
@@ -788,7 +768,7 @@ function renderIntelligenceBlocks(){
   ins.innerHTML=buildDailyInsights().map(i=>`<div class="insight-item"><strong>${i.title}</strong>${i.body}</div>`).join('');
 }
 
-function renderHome(){renderTimeline();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary();renderIntelligenceBlocks();renderCopilotSuite()}
+function renderHome(){renderTimeline();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary();renderIntelligenceBlocks();renderCopilotSuite();maybeEnforcePaywall()}
 function renderLearnBar(){const p=getLearningPhase();$('learn-fill').style.width=p.pct+'%';$('learn-phase').textContent=p.label;if(p.phase===3)$('learn-bar-wrap').style.display='none'}
 function renderPredictions(){const today=todayEntries();const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const premium=canUsePremiumFeatures();if(!premium){$('pred-list').innerHTML='<div class="insight-item"><strong>Predição avançada é Premium</strong>Ative o teste grátis para ver próxima janela em tempo real e alertas de risco.</div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=isDayHour(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name.includes('soneca')?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3)):null;return `<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail} · próxima janela em ${mins} min</div>${risk?`<span class="risk-chip ${risk.cls}">⚠️ ${risk.msg}</span>`:''}${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`}).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
 function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()">☀️ Acordou agora</button></div>';return;}const last=getLastCompletedSleep();if(!last){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()">🌙 Dormiu agora</button></div>';return;}const wokeInDaytime=isDayHour(last.end);const isN=!wokeInDaytime&&nightNow;const months=parseInt(cfg.months)||3;const cxAdj=Math.min(25,getContextAdjust().napAdj);const base=wwBaseTarget(months)+(!isN?cxAdj:0);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=sleepEndDate(last);const nc=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');function tick(){let diff;if(paused){diff=paused.elapsed;}else{diff=Math.floor((now()-endT)/60000);}if(diff<0)diff=0;const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min'+(paused?' ⏸️':'');if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc.length>1?(nc.length+'° despertar desta noite'):'Primeiro despertar noturno';const s=getSuggestion(diff,nc.length);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);const pauseLabel=paused?'▶️ Retomar':'⏸️ Pausar';actions.innerHTML=`<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()">🌙 Dormiu</button><button class="abtn wake-btn" onclick="openModal('feed')">🍼 Mamou</button></div><div class="action-row one" style="margin-top:6px"><button class="abtn pause-btn" onclick="togglePause()">${pauseLabel} contagem</button></div>`;}
@@ -801,7 +781,7 @@ function togglePause(){const last=getLastCompletedSleep();if(!last)return;const 
 function babySlept(){if(getActiveSleep()){showToast('Já tem sono em andamento!');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'sleep',subtype:isNightHour(t)?'night':'nap',start:t,end:null});save();showToast('😴 Dormiu às '+t);renderHome()}
 function babyWoke(){const active=getActiveSleep();if(!active){showToast('Nenhum sono ativo');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const sm=parseTime(entries[idx].start),em=parseTime(t);if(em<sm)em.setDate(em.getDate()+1);entries[idx].durationMins=Math.round((em-sm)/60000);save();showToast('☀️ Acordou às '+t);renderHome()}
 function renderNightSummary(){const block=$('night-summary-block');const cycles=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);if(cycles.length<2){block.innerHTML='';return;}const total=cycles.reduce((a,e)=>a+(e.durationMins||0),0);const allN=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)).sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=0;i<allN.length-1;i++){if(allN[i].end&&allN[i+1].start){const d=timeToMins(allN[i+1].start)-timeToMins(allN[i].end);if(d>0)iv.push(d);}}const aw=iv.length?Math.round(iv.reduce((a,b)=>a+b,0)/iv.length):0;block.innerHTML=`<div class="night-summary"><div class="ns-title">Resumo noturno</div><div class="night-stats"><div class="nstat"><div class="nstat-val">${fmtDur(total)}</div><div class="nstat-label">dormido</div></div><div class="nstat"><div class="nstat-val">${cycles.length}</div><div class="nstat-label">ciclos</div></div><div class="nstat"><div class="nstat-val">${aw?fmtDur(aw):'—'}</div><div class="nstat-label">acord. médio</div></div></div><div class="cycle-pills">${cycles.map((e,i)=>`<span class="cpill sl">${fmtDur(e.durationMins)}</span>${i<cycles.length-1&&iv[i]?`<span class="cpill aw">↑${fmtDur(iv[i])}</span>`:''}`).join('')}</div></div>`}
-function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧',signal:'🚩'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',signal:e.subtype==='cry'?'Choro manual':'Irritação manual'};const cls={sleep:'s',feed:'f',diaper:'d',signal:'sg'};const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);let detail='';if(e.type==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(e.type==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start;return`<div class="entry"><div class="edot ${cls[e.type]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[e.type]} ${labels[e.type]}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
+function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧',signal:'🚩',unknown:'📝'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',signal:e.subtype==='cry'?'Choro manual':'Irritação manual',unknown:'Registro'};const cls={sleep:'s',feed:'f',diaper:'d',signal:'sg',unknown:'d'};const tp=icons[e.type]?e.type:'unknown';const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);let detail='';if(tp==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(tp==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start||'sem horário';return`<div class="entry"><div class="edot ${cls[tp]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[tp]} ${labels[tp]}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start||'--:--'}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
 function renderTimeline(){const t=todayEntries().slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
 function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
 function renderCharts(){const today=todayEntries();const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;$('s-sleep').textContent=fmtDur(sleeps.reduce((a,e)=>a+(e.durationMins||0),0))||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7F77DD',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7F77DD','#1D9E75','#D85A30'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
@@ -820,6 +800,26 @@ function importData(ev){const file=ev.target.files[0];if(!file)return;const read
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function sanitizeUiStructure(){
+  const home=$('sec-home');
+  if(home){
+    home.querySelectorAll('.learn-bar-wrap,.insight-card,.copilot-card').forEach(el=>el.remove());
+    const prem=$('premium-strip-block');if(prem&&prem.closest('#sec-home'))prem.remove();
+    const ctx=$('context-banner-block');if(ctx&&ctx.parentElement!==home)home.prepend(ctx);
+    const ns=$('night-summary-block');if(ns&&ns.parentElement!==home)home.prepend(ns);
+  }
+  const nav=document.querySelector('.nav');
+  if(nav){
+    const seen=new Set();
+    [...nav.querySelectorAll('.nav-item')].forEach((item)=>{
+      const key=(item.id||'')+'|'+(item.textContent||'').trim();
+      if(seen.has(key)){item.remove();return;}
+      seen.add(key);
+    });
+    const homeItem=$('nav-home'),copItem=$('nav-copilot'),statsItem=$('nav-stats');
+    if(homeItem&&copItem&&statsItem&&homeItem.nextElementSibling!==copItem){nav.insertBefore(copItem,statsItem);}
+  }
+}
 function showCopilotPanel(name){document.querySelectorAll('.copilot-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.copilot-tab').forEach(t=>t.classList.remove('active'));const panel=$('cpanel-'+name),tab=$('ctab-'+name);if(panel)panel.classList.add('active');if(tab)tab.classList.add('active');}
 function showSec(name){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');$('nav-'+name).classList.add('active');if(name==='stats')renderCharts();if(name==='history')renderHistory();if(name==='home'||name==='copilot')renderHome()}
 function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('.segopt').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('.segopt').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});})}
@@ -827,8 +827,21 @@ function migrateEntriesOnLoad(){let ch=0;entries.forEach(e=>{if(!e.date||!/^\d{4
 async function requestNotify(){if(!('Notification' in window))return false;try{if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted';}catch(e){return false;}}
 function remindKey(k){return'nz_rm_'+todayStr()+'_'+k;}
 function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&isDayHour(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification('Napzinho',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&isDayHour(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification('Napzinho',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
-function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});}
-function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();}
+function registerPWA(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js?v='+BUILD_VERSION).then((reg)=>{
+      if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+      reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller){showToast('Atualização disponível. Recarregando...');}});});
+    }).catch(()=>{});
+    let reloaded=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;window.location.reload();});
+  }
+  let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});
+}
+function init(){
+  if(localStorage.getItem('nz_build_version')!==BUILD_VERSION){localStorage.setItem('nz_build_version',BUILD_VERSION);}
+  sanitizeUiStructure();
+  migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});const pwo=$('paywall-overlay');if(pwo)pwo.addEventListener('click',function(e){if(e.target===this)closePaywall();});initSegs();}
 init();
 </script>
 </body>
