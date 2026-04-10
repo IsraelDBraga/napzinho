@@ -159,11 +159,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .copilot-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .copilot-card h4{font-size:13px;margin-bottom:6px}
 .copilot-card p{font-size:12px;color:var(--muted);line-height:1.45}
-.copilot-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
-.copilot-tab{border:1px solid var(--border);background:var(--card2);color:var(--text);border-radius:20px;padding:7px 10px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
-.copilot-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.copilot-panel{display:none}
-.copilot-panel.active{display:block}
 .copilot-action{margin-top:10px;background:var(--card2);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.4}
 .copilot-action strong{display:block;color:var(--text);margin-bottom:2px}
 .diag-row{display:flex;gap:8px;margin-top:8px}
@@ -219,10 +214,60 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="insight-title">Insights acionáveis de hoje</div>
       <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
     </div>
-    <div class="copilot-card">
-      <h4>🧭 Central do Copiloto</h4>
-      <p>Os recursos avançados agora ficam em uma aba própria para evitar rolagem longa no início.</p>
-      <button class="abtn primary-btn" style="margin-top:8px;width:100%" onclick="showSec('copilot')">Abrir Copiloto</button>
+    <div class="copilot-grid">
+      <div class="copilot-card">
+        <h4>🧭 Copiloto do Bebê</h4>
+        <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
+        <div id="copilot-now" class="copilot-action">Coletando dados de hoje...</div>
+      </div>
+      <div class="copilot-card">
+        <h4>😭 Diagnóstico de Choro</h4>
+        <p>Estimativa probabilística (nunca 100%): fome, sono ou desconforto.</p>
+        <div class="diag-row">
+          <button class="abtn primary-btn" onclick="runCryDiagnosis('feed')">Última mamada</button>
+          <button class="abtn primary-btn" onclick="runCryDiagnosis('sleep')">Última soneca</button>
+        </div>
+        <div id="cry-diagnosis" class="copilot-action">Toque em um contexto para diagnosticar.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🚨 Prevenção de Colapso</h4>
+        <p>Combina tempo acordado + sinais de irritação para agir antes.</p>
+        <div id="collapse-alert" class="copilot-action">Sem risco alto neste momento.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🌙 Modo Sobrevivência Noturna</h4>
+        <p>Fluxo curto, sem leitura longa, para quando todo mundo está exausto.</p>
+        <div class="night-mode-box">
+          <div class="diag-row">
+            <button class="abtn sleep-btn" onclick="runNightSurvival('crying')">Acordou chorando</button>
+            <button class="abtn sleep-btn" onclick="runNightSurvival('quiet')">Acordou quieto</button>
+          </div>
+          <div id="night-survival-flow" class="night-mode-flow">Escolha um cenário para ver o passo a passo.</div>
+        </div>
+      </div>
+      <div class="copilot-card">
+        <h4>🗓️ Roteiro Diário Inteligente</h4>
+        <p>Atualiza próxima soneca e mamada automaticamente ao longo do dia.</p>
+        <div id="daily-plan" class="copilot-action">Aguardando registros para montar o roteiro.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🧠 Tradutor de Desenvolvimento</h4>
+        <p>Interpretação rápida por faixa etária: normal, atenção e quando buscar médico.</p>
+        <input id="dev-input" class="inline-input" placeholder="Ex.: meu bebê não está rolando ainda">
+        <button class="abtn primary-btn" style="margin-top:8px" onclick="runDevelopmentTranslator()">Traduzir</button>
+        <div id="dev-output" class="copilot-action">Escreva uma dúvida curta para traduzir.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🔮 Simulador de Consequência</h4>
+        <p>Direcional e útil: estima impacto no humor e no sono noturno.</p>
+        <div class="sim-grid">
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('skipNap')">Pular soneca</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('lateNap')">Soneca tardia</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('feedDelay')">Atrasar mamada</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('overtiredNight')">Passar da janela</button>
+        </div>
+        <div id="sim-output" class="copilot-action">Selecione um cenário para simular.</div>
+      </div>
     </div>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
