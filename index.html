@@ -203,6 +203,15 @@ button{font:inherit}
     </div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
+    <div class="pred-card">
+      <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
+      <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
+    </div>
+    <div class="learn-bar-wrap" id="learn-bar-wrap">
+      <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
+      <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
+      <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
+    </div>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
   </div>
@@ -236,15 +245,6 @@ button{font:inherit}
     </div>
     <div class="copilot-grid">
       <div class="copilot-panel active" id="cpanel-realtime">
-        <div class="pred-card">
-          <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
-          <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
-        </div>
-        <div class="learn-bar-wrap" id="learn-bar-wrap">
-          <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
-          <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
-          <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
-        </div>
         <div id="premium-strip-block"></div>
         <div class="insight-card">
           <div class="insight-title">Leitura emocional</div>
@@ -803,7 +803,7 @@ function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('sh
 function sanitizeUiStructure(){
   const home=$('sec-home');
   if(home){
-    home.querySelectorAll('.learn-bar-wrap,.insight-card,.copilot-card').forEach(el=>el.remove());
+    home.querySelectorAll('.insight-card,.copilot-card').forEach(el=>el.remove());
     const prem=$('premium-strip-block');if(prem&&prem.closest('#sec-home'))prem.remove();
     const ctx=$('context-banner-block');if(ctx&&ctx.parentElement!==home)home.prepend(ctx);
     const ns=$('night-summary-block');if(ns&&ns.parentElement!==home)home.prepend(ns);
