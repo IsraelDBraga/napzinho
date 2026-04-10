@@ -1,5 +1,5 @@
 /* Napzinho service worker — cache shell for offline PWA */
-const CACHE = 'napzinho-v1';
+const CACHE = 'napzinho-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -25,10 +25,27 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = e.request.url;
   if (!url.includes(self.location.origin) && !url.includes('cdnjs.cloudflare.com')) return;
+  const isAppShell = e.request.mode === 'navigate' || url.endsWith('/index.html') || url.endsWith('/sw.js');
+  if (isAppShell) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          if (res.ok) caches.open(CACHE).then((cache) => cache.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((c) => c || caches.match('./index.html')))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
