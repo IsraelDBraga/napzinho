@@ -157,15 +157,9 @@ button{font:inherit}
 .premium-strip p{font-size:11px;opacity:.88;line-height:1.45}
 .premium-strip .abtn{margin-top:8px;background:#fff;color:#2d1f14}
 .copilot-grid{display:grid;gap:10px}
-.copilot-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(30,20,10,.06)}
+.copilot-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .copilot-card h4{font-size:13px;margin-bottom:6px}
 .copilot-card p{font-size:12px;color:var(--muted);line-height:1.45}
-.copilot-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin-bottom:10px}
-.copilot-tab{border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fff7f2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px rgba(20,12,8,.08);transition:all .18s ease}
-.copilot-tab.active{background:linear-gradient(135deg,#E06D46,#D85A30);color:#fff;border-color:#D85A30;box-shadow:0 6px 14px rgba(216,90,48,.28)}
-.copilot-tab:active{transform:scale(.97)}
-.copilot-panel{display:none}
-.copilot-panel.active{display:block}
 .copilot-action{margin-top:10px;background:var(--card2);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.4}
 .copilot-action strong{display:block;color:var(--text);margin-bottom:2px}
 .diag-row{display:flex;gap:8px;margin-top:8px}
@@ -203,6 +197,79 @@ button{font:inherit}
     </div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
+    <div class="pred-card">
+      <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
+      <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
+    </div>
+    <div class="learn-bar-wrap" id="learn-bar-wrap">
+      <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
+      <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
+      <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
+    </div>
+    <div id="premium-strip-block"></div>
+    <div class="insight-card">
+      <div class="insight-title">Leitura emocional</div>
+      <div id="emotional-feedback" class="insight-list"><div class="empty" style="padding:4px 0">Registre dados para receber feedback</div></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Insights acionáveis de hoje</div>
+      <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
+    </div>
+    <div class="copilot-grid">
+      <div class="copilot-card">
+        <h4>🧭 Copiloto do Bebê</h4>
+        <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
+        <div id="copilot-now" class="copilot-action">Coletando dados de hoje...</div>
+      </div>
+      <div class="copilot-card">
+        <h4>😭 Diagnóstico de Choro</h4>
+        <p>Estimativa probabilística (nunca 100%): fome, sono ou desconforto.</p>
+        <div class="diag-row">
+          <button class="abtn primary-btn" onclick="runCryDiagnosis('feed')">Última mamada</button>
+          <button class="abtn primary-btn" onclick="runCryDiagnosis('sleep')">Última soneca</button>
+        </div>
+        <div id="cry-diagnosis" class="copilot-action">Toque em um contexto para diagnosticar.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🚨 Prevenção de Colapso</h4>
+        <p>Combina tempo acordado + sinais de irritação para agir antes.</p>
+        <div id="collapse-alert" class="copilot-action">Sem risco alto neste momento.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🌙 Modo Sobrevivência Noturna</h4>
+        <p>Fluxo curto, sem leitura longa, para quando todo mundo está exausto.</p>
+        <div class="night-mode-box">
+          <div class="diag-row">
+            <button class="abtn sleep-btn" onclick="runNightSurvival('crying')">Acordou chorando</button>
+            <button class="abtn sleep-btn" onclick="runNightSurvival('quiet')">Acordou quieto</button>
+          </div>
+          <div id="night-survival-flow" class="night-mode-flow">Escolha um cenário para ver o passo a passo.</div>
+        </div>
+      </div>
+      <div class="copilot-card">
+        <h4>🗓️ Roteiro Diário Inteligente</h4>
+        <p>Atualiza próxima soneca e mamada automaticamente ao longo do dia.</p>
+        <div id="daily-plan" class="copilot-action">Aguardando registros para montar o roteiro.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🧠 Tradutor de Desenvolvimento</h4>
+        <p>Interpretação rápida por faixa etária: normal, atenção e quando buscar médico.</p>
+        <input id="dev-input" class="inline-input" placeholder="Ex.: meu bebê não está rolando ainda">
+        <button class="abtn primary-btn" style="margin-top:8px" onclick="runDevelopmentTranslator()">Traduzir</button>
+        <div id="dev-output" class="copilot-action">Escreva uma dúvida curta para traduzir.</div>
+      </div>
+      <div class="copilot-card">
+        <h4>🔮 Simulador de Consequência</h4>
+        <p>Direcional e útil: estima impacto no humor e no sono noturno.</p>
+        <div class="sim-grid">
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('skipNap')">Pular soneca</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('lateNap')">Soneca tardia</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('feedDelay')">Atrasar mamada</button>
+          <button class="abtn primary-btn" onclick="runConsequenceSimulation('overtiredNight')">Passar da janela</button>
+        </div>
+        <div id="sim-output" class="copilot-action">Selecione um cenário para simular.</div>
+      </div>
+    </div>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
   </div>
@@ -236,24 +303,6 @@ button{font:inherit}
     </div>
     <div class="copilot-grid">
       <div class="copilot-panel active" id="cpanel-realtime">
-        <div class="pred-card">
-          <div class="pred-card-header"><span class="pred-card-title">Previsões</span><span class="confidence-badge conf-low" id="conf-badge">aprendendo</span></div>
-          <div id="pred-list"><div class="empty" style="padding:4px 0">Registre dados para ver previsões</div></div>
-        </div>
-        <div class="learn-bar-wrap" id="learn-bar-wrap">
-          <div class="learn-header"><span class="learn-title">Aprendendo o padrão do bebê</span><span class="learn-phase" id="learn-phase">Fase 1</span></div>
-          <div class="learn-bg"><div class="learn-fill" id="learn-fill" style="width:0%"></div></div>
-          <div class="learn-labels"><span>Começando</span><span>Ajustando</span><span>Preciso</span></div>
-        </div>
-        <div id="premium-strip-block"></div>
-        <div class="insight-card">
-          <div class="insight-title">Leitura emocional</div>
-          <div id="emotional-feedback" class="insight-list"><div class="empty" style="padding:4px 0">Registre dados para receber feedback</div></div>
-        </div>
-        <div class="insight-card">
-          <div class="insight-title">Insights acionáveis de hoje</div>
-          <div id="daily-insights" class="insight-list"><div class="empty" style="padding:4px 0">Sem insights ainda</div></div>
-        </div>
         <div class="copilot-card">
           <h4>🧭 Copiloto do Bebê</h4>
           <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
@@ -408,6 +457,7 @@ button{font:inherit}
   <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
   <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon">📊</div><span>Dados</span></div>
   <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon">📋</div><span>Histórico</span></div>
+  <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
   <div class="nav-item" id="nav-settings" onclick="showSec('settings')"><div class="nav-icon">⚙️</div><span>Config.</span></div>
 </nav>
 <div class="modal-overlay" id="modal-overlay">
@@ -695,18 +745,6 @@ function renderCopilotSuite(){
   renderCollapsePrevention();
   renderDailyPlan();
 }
-function runStoreReadinessCheck(){
-  const out=$('store-readiness-output');if(!out)return;
-  const checks=[
-    {ok:location.protocol==='https:'||location.hostname==='localhost',txt:'App em HTTPS (ou localhost para dev)'},
-    {ok:'serviceWorker' in navigator,txt:'Service Worker disponível (offline/install)'},
-    {ok:!!document.querySelector('link[rel=\"manifest\"]'),txt:'Manifest configurado'},
-    {ok:typeof cfg.licenseToken==='string',txt:'Camada de entitlement local existente'},
-    {ok:true,txt:'Android: falta wrapper TWA + Play Billing Library no app nativo'},
-    {ok:true,txt:'iOS: falta wrapper nativo + StoreKit (IAP) com validação de recibo'}
-  ];
-  out.innerHTML=checks.map(c=>`${c.ok?'✅':'❌'} ${c.txt}`).join('<br>');
-}
 function buildEmotionalMessages(){
   const st=[];const months=parseInt(cfg.months)||3;const nightWakes=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
   if(nightWakes>=2&&months<=6) st.push({title:'Isso é normal nesta fase',body:'Despertares noturnos são comuns até perto dos 6 meses. Você não está fazendo nada errado.'});
@@ -763,7 +801,7 @@ function togglePause(){const last=getLastCompletedSleep();if(!last)return;const 
 function babySlept(){if(getActiveSleep()){showToast('Já tem sono em andamento!');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'sleep',subtype:isNightHour(t)?'night':'nap',start:t,end:null});save();showToast('😴 Dormiu às '+t);renderHome()}
 function babyWoke(){const active=getActiveSleep();if(!active){showToast('Nenhum sono ativo');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const sm=parseTime(entries[idx].start),em=parseTime(t);if(em<sm)em.setDate(em.getDate()+1);entries[idx].durationMins=Math.round((em-sm)/60000);save();showToast('☀️ Acordou às '+t);renderHome()}
 function renderNightSummary(){const block=$('night-summary-block');const cycles=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);if(cycles.length<2){block.innerHTML='';return;}const total=cycles.reduce((a,e)=>a+(e.durationMins||0),0);const allN=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)).sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=0;i<allN.length-1;i++){if(allN[i].end&&allN[i+1].start){const d=timeToMins(allN[i+1].start)-timeToMins(allN[i].end);if(d>0)iv.push(d);}}const aw=iv.length?Math.round(iv.reduce((a,b)=>a+b,0)/iv.length):0;block.innerHTML=`<div class="night-summary"><div class="ns-title">Resumo noturno</div><div class="night-stats"><div class="nstat"><div class="nstat-val">${fmtDur(total)}</div><div class="nstat-label">dormido</div></div><div class="nstat"><div class="nstat-val">${cycles.length}</div><div class="nstat-label">ciclos</div></div><div class="nstat"><div class="nstat-val">${aw?fmtDur(aw):'—'}</div><div class="nstat-label">acord. médio</div></div></div><div class="cycle-pills">${cycles.map((e,i)=>`<span class="cpill sl">${fmtDur(e.durationMins)}</span>${i<cycles.length-1&&iv[i]?`<span class="cpill aw">↑${fmtDur(iv[i])}</span>`:''}`).join('')}</div></div>`}
-function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧',signal:'🚩',unknown:'📝'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',signal:e.subtype==='cry'?'Choro manual':'Irritação manual',unknown:'Registro'};const cls={sleep:'s',feed:'f',diaper:'d',signal:'sg',unknown:'d'};const tp=icons[e.type]?e.type:'unknown';const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);let detail='';if(tp==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(tp==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start||'sem horário';return`<div class="entry"><div class="edot ${cls[tp]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[tp]} ${labels[tp]}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start||'--:--'}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
+function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧',signal:'🚩'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',signal:e.subtype==='cry'?'Choro manual':'Irritação manual'};const cls={sleep:'s',feed:'f',diaper:'d',signal:'sg'};const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);let detail='';if(e.type==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(e.type==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start;return`<div class="entry"><div class="edot ${cls[e.type]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[e.type]} ${labels[e.type]}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
 function renderTimeline(){const t=todayEntries().slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
 function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
 function renderCharts(){const today=todayEntries();const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;$('s-sleep').textContent=fmtDur(sleeps.reduce((a,e)=>a+(e.durationMins||0),0))||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7F77DD',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7F77DD','#1D9E75','#D85A30'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
