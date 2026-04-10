@@ -291,6 +291,81 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
   </div>
   <div class="section" id="sec-history"><div class="sec-title">Histórico</div><div id="history-list"><div class="empty">Nenhum registro ainda</div></div></div>
+  <div class="section" id="sec-copilot">
+    <div class="sec-title">Central do Copiloto</div>
+    <div class="copilot-tabs">
+      <button class="copilot-tab active" id="ctab-realtime" onclick="showCopilotPanel('realtime')">Tempo real</button>
+      <button class="copilot-tab" id="ctab-diagnosis" onclick="showCopilotPanel('diagnosis')">Diagnóstico</button>
+      <button class="copilot-tab" id="ctab-night" onclick="showCopilotPanel('night')">Noite</button>
+      <button class="copilot-tab" id="ctab-dev" onclick="showCopilotPanel('dev')">Desenvolvimento</button>
+      <button class="copilot-tab" id="ctab-sim" onclick="showCopilotPanel('sim')">Simulador</button>
+    </div>
+    <div class="copilot-grid">
+      <div class="copilot-panel active" id="cpanel-realtime">
+        <div class="copilot-card">
+          <h4>🧭 Copiloto do Bebê</h4>
+          <p>Decisão pronta em tempo real com base em sono, mamada, sinais e idade.</p>
+          <div id="copilot-now" class="copilot-action">Coletando dados de hoje...</div>
+        </div>
+        <div class="copilot-card">
+          <h4>🚨 Prevenção de Colapso</h4>
+          <p>Combina tempo acordado + sinais de irritação para agir antes.</p>
+          <div id="collapse-alert" class="copilot-action">Sem risco alto neste momento.</div>
+        </div>
+        <div class="copilot-card">
+          <h4>🗓️ Roteiro Diário Inteligente</h4>
+          <p>Atualiza próxima soneca e mamada automaticamente ao longo do dia.</p>
+          <div id="daily-plan" class="copilot-action">Aguardando registros para montar o roteiro.</div>
+        </div>
+      </div>
+      <div class="copilot-panel" id="cpanel-diagnosis">
+        <div class="copilot-card">
+          <h4>😭 Diagnóstico de Choro</h4>
+          <p>Estimativa probabilística (nunca 100%): fome, sono ou desconforto.</p>
+          <div class="diag-row">
+            <button class="abtn primary-btn" onclick="runCryDiagnosis('feed')">Última mamada</button>
+            <button class="abtn primary-btn" onclick="runCryDiagnosis('sleep')">Última soneca</button>
+          </div>
+          <div id="cry-diagnosis" class="copilot-action">Toque em um contexto para diagnosticar.</div>
+        </div>
+      </div>
+      <div class="copilot-panel" id="cpanel-night">
+        <div class="copilot-card">
+          <h4>🌙 Modo Sobrevivência Noturna</h4>
+          <p>Fluxo curto, sem leitura longa, para quando todo mundo está exausto.</p>
+          <div class="night-mode-box">
+            <div class="diag-row">
+              <button class="abtn sleep-btn" onclick="runNightSurvival('crying')">Acordou chorando</button>
+              <button class="abtn sleep-btn" onclick="runNightSurvival('quiet')">Acordou quieto</button>
+            </div>
+            <div id="night-survival-flow" class="night-mode-flow">Escolha um cenário para ver o passo a passo.</div>
+          </div>
+        </div>
+      </div>
+      <div class="copilot-panel" id="cpanel-dev">
+        <div class="copilot-card">
+          <h4>🧠 Tradutor de Desenvolvimento</h4>
+          <p>Interpretação rápida por faixa etária: normal, atenção e quando buscar médico.</p>
+          <input id="dev-input" class="inline-input" placeholder="Ex.: meu bebê não está rolando ainda">
+          <button class="abtn primary-btn" style="margin-top:8px" onclick="runDevelopmentTranslator()">Traduzir</button>
+          <div id="dev-output" class="copilot-action">Escreva uma dúvida curta para traduzir.</div>
+        </div>
+      </div>
+      <div class="copilot-panel" id="cpanel-sim">
+        <div class="copilot-card">
+          <h4>🔮 Simulador de Consequência</h4>
+          <p>Direcional e útil: estima impacto no humor e no sono noturno.</p>
+          <div class="sim-grid">
+            <button class="abtn primary-btn" onclick="runConsequenceSimulation('skipNap')">Pular soneca</button>
+            <button class="abtn primary-btn" onclick="runConsequenceSimulation('lateNap')">Soneca tardia</button>
+            <button class="abtn primary-btn" onclick="runConsequenceSimulation('feedDelay')">Atrasar mamada</button>
+            <button class="abtn primary-btn" onclick="runConsequenceSimulation('overtiredNight')">Passar da janela</button>
+          </div>
+          <div id="sim-output" class="copilot-action">Selecione um cenário para simular.</div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="section" id="sec-settings">
     <div class="sec-title">Configurações</div>
     <div class="stat-card" style="margin-bottom:12px">
@@ -374,6 +449,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <div class="nav-item active" id="nav-home" onclick="showSec('home')"><div class="nav-icon">🏠</div><span>Início</span></div>
   <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon">📊</div><span>Dados</span></div>
   <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon">📋</div><span>Histórico</span></div>
+  <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
   <div class="nav-item" id="nav-settings" onclick="showSec('settings')"><div class="nav-icon">⚙️</div><span>Config.</span></div>
 </nav>
 <div class="modal-overlay" id="modal-overlay">
@@ -728,7 +804,8 @@ function importData(ev){const file=ev.target.files[0];if(!file)return;const read
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-function showSec(name){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');$('nav-'+name).classList.add('active');if(name==='stats')renderCharts();if(name==='history')renderHistory();if(name==='home')renderHome()}
+function showCopilotPanel(name){document.querySelectorAll('.copilot-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.copilot-tab').forEach(t=>t.classList.remove('active'));const panel=$('cpanel-'+name),tab=$('ctab-'+name);if(panel)panel.classList.add('active');if(tab)tab.classList.add('active');}
+function showSec(name){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');$('nav-'+name).classList.add('active');if(name==='stats')renderCharts();if(name==='history')renderHistory();if(name==='home'||name==='copilot')renderHome()}
 function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('.segopt').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('.segopt').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});})}
 function migrateEntriesOnLoad(){let ch=0;entries.forEach(e=>{if(!e.date||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)){e.date=todayStr();ch++;}});if(ch)save();}
 async function requestNotify(){if(!('Notification' in window))return false;try{if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted';}catch(e){return false;}}
