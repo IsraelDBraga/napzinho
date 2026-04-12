@@ -35,9 +35,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 #print-area{display:none}
 .header{background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px 10px;position:sticky;top:0;z-index:20}
 [data-theme="dark"] .header{background:rgba(31,27,24,.85)}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:10px}
-.app-name{font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-.02em}
-.age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:4px 11px;border-radius:999px;font-weight:600;border:1px solid var(--border)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:10px;min-height:36px}
+.app-name{font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;display:flex;align-items:center;margin:0}
+.age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:5px 11px;border-radius:999px;font-weight:600;border:1px solid var(--border);line-height:1.25;flex-shrink:1;max-width:58%;text-align:center;align-self:center}
 .date-line{font-size:12px;color:var(--muted);font-weight:500}
 .nav{display:flex;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-top:1px solid var(--border);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;z-index:30;padding-bottom:var(--safe-bottom);box-shadow:0 -4px 24px rgba(28,25,23,.06)}
 [data-theme="dark"] .nav{background:rgba(28,25,23,.92);box-shadow:0 -8px 32px rgba(0,0,0,.35)}
@@ -45,7 +45,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .nav-item.active{color:var(--accent)}
 .nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:var(--accent);border-radius:0 0 4px 4px}
 /* Emoji/icons: avoid faux-bold + text font — prevents “tilted” glyphs on iOS/Windows */
-.nav-icon{font-size:22px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",emoji,sans-serif;font-weight:400;font-style:normal;display:inline-flex;align-items:center;justify-content:center}
+.nav-icon{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-icon svg{display:block;width:24px;height:24px}
 .sections{padding:12px 14px 8px}
 .section{display:none}.section.active{display:block}
 .ww-card{border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.2)}
@@ -70,11 +71,9 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .abtn.wake-btn{background:rgba(255,220,100,.2);color:#ffe97a;border:1.5px solid rgba(255,220,100,.35)}
 .abtn.primary-btn{background:rgba(255,255,255,.9);color:#2D1F14}
 .quick-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.quick-row-5{grid-template-columns:repeat(5,1fr);gap:8px}
-.quick-row-signals{grid-template-columns:repeat(6,1fr);gap:6px}
-@media(max-width:400px){.quick-row-signals{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:360px){.quick-row-5{grid-template-columns:repeat(3,1fr)}.quick-row-5 .qbtn{padding:11px 4px;font-size:10px}}
-.qbtn{background:var(--card);border-radius:var(--radius-sm);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;transition:transform .12s,box-shadow .2s;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.quick-row-signals{grid-template-columns:repeat(3,1fr)}
+@media(max-width:360px){.qbtn{padding:10px 4px;min-height:86px}.qbtn .qbtn-lbl{font-size:10px}}
+.qbtn{background:var(--card);border-radius:var(--radius-sm);padding:12px 6px;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:11px;font-weight:700;transition:transform .12s,box-shadow .2s;box-shadow:var(--shadow-sm);border:1px solid var(--border);-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 .qbtn:active{transform:scale(.97)}
 .qbtn.f{border-color:var(--feed-soft);background:var(--feed-soft);color:#0F766E}
 .qbtn.d{border-color:var(--diaper-soft);background:var(--diaper-soft);color:#9A3412}
@@ -82,10 +81,14 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .qbtn.cry{border-color:rgba(59,130,246,.25);background:rgba(59,130,246,.1);color:#1D4ED8}
 .qbtn.irrit{border-color:rgba(234,179,8,.35);background:rgba(250,204,21,.12);color:#A16207}
 .qbtn.gas{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:#047857}
-.qbtn .qi{font-size:22px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",emoji,sans-serif;font-weight:400;font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-height:26px}
+.qbtn .qbtn-ico{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex-shrink:0;border-radius:12px;background:rgba(255,255,255,.45)}
+.qbtn .qbtn-ico svg{display:block;width:28px;height:28px}
+.qbtn .qbtn-lbl{font-size:11px;font-weight:700;line-height:1.2;text-align:center;width:100%;word-break:break-word}
+[data-theme="dark"] .qbtn .qbtn-ico{background:rgba(0,0,0,.12)}
 .home-copilot-cta{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1e1b4b 0%,#4338CA 50%,#6366F1 100%);color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;text-decoration:none;box-shadow:0 8px 28px rgba(67,56,202,.35);border:1px solid rgba(255,255,255,.12)}
 .home-copilot-cta:active{transform:scale(.99)}
-.hcc-icon{font-size:28px;line-height:1;display:inline-flex;align-items:center;justify-content:center;font-family:"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",emoji,sans-serif;font-weight:400;font-style:normal}
+.hcc-icon{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,.95)}
+.hcc-icon svg{display:block;width:32px;height:32px}
 .hcc-text{flex:1;min-width:0}
 .hcc-text strong{display:block;font-size:14px;font-weight:700}
 .hcc-text small{display:block;font-size:11px;opacity:.88;margin-top:2px;font-weight:500;line-height:1.35}
@@ -188,7 +191,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .badge-night{background:var(--night-soft);color:#3730A3}
 [data-theme="dark"] .badge-nap{color:#C4B5FD}[data-theme="dark"] .badge-night{color:#A5B4FC}
 .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm)}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
 .slabel{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .sval{font-size:20px;font-weight:700}
 .ssub{font-size:10px;color:var(--muted);margin-top:2px}
@@ -201,7 +204,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .fgroup{margin-bottom:14px}
 .flabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.finput{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--card);color:var(--text)}
+.finput{width:100%;max-width:100%;min-width:0;padding:11px 13px;border:1px solid var(--border);border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--card);color:var(--text);box-sizing:border-box}
+.finput-date{font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .seg{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
 .segopt{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:var(--card);border:none;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s}
 .segopt.sel{background:var(--accent);color:#fff}
@@ -275,20 +279,18 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       <div id="ww-suggestion"></div>
       <div id="ww-actions"></div>
     </div>
-    <div class="quick-row quick-row-5">
-      <div class="qbtn f" onclick="openModal('feed')"><span class="qi">🍼</span><span>Mamada</span></div>
-      <div class="qbtn d" onclick="openModal('diaper')"><span class="qi">💧</span><span>Fralda</span></div>
-      <div class="qbtn m" onclick="openModal('sleep-manual')"><span class="qi">✏️</span><span>Manual</span></div>
-    </div>
     <div class="quick-row quick-row-signals">
-      <div class="qbtn cry" onclick="logMoodQuick('crying')"><span class="qi">😢</span><span>Choro</span></div>
-      <div class="qbtn irrit" onclick="logMoodQuick('fussy')"><span class="qi">😣</span><span>Irritação</span></div>
-      <div class="qbtn gas" onclick="logMoodQuick('gas')"><span class="qi">💨</span><span>Gases</span></div>
+      <div class="qbtn f" onclick="openModal('feed')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4.5" rx="1.5"/><rect x="7.5" y="7" width="9" height="15" rx="2"/></svg></span><span class="qbtn-lbl">Mamada</span></div>
+      <div class="qbtn d" onclick="openModal('diaper')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c-1.9 3.7-5.2 7-5.2 10.6a5.2 5.2 0 1010.4 0c0-3.6-3.3-6.9-5.2-10.6z"/></svg></span><span class="qbtn-lbl">Fralda</span></div>
+      <div class="qbtn m" onclick="openModal('sleep-manual')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h3.5l11.5-11.5-3.5-3.5L4 16.5V20z"/><path d="M14 4l4 4"/></svg></span><span class="qbtn-lbl">Manual</span></div>
+      <div class="qbtn cry" onclick="logMoodQuick('crying')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M9.3 15.3a4.2 4.2 0 005.4 0"/></svg></span><span class="qbtn-lbl">Choro</span></div>
+      <div class="qbtn irrit" onclick="logMoodQuick('fussy')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10l-1.2-1.2M15 10l1.2-1.2M8.5 15.5h7"/></svg></span><span class="qbtn-lbl">Irritação</span></div>
+      <div class="qbtn gas" onclick="logMoodQuick('gas')"><span class="qbtn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"><path d="M3 8c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3M3 13h4c1.5 0 2-2 3.5-2S12 13 13.5 13 15 11 16.5 11c1.2 0 1.8.8 2.5 1.3M4 18h6"/></svg></span><span class="qbtn-lbl">Gases</span></div>
     </div>
     <div id="today-strip-block"></div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
-    <a href="javascript:void(0)" class="home-copilot-cta" onclick="showSec('copilot')"><span class="hcc-icon">🧭</span><span class="hcc-text"><strong>Abrir Copiloto</strong><small>Previsões, prioridades e leitura dos seus dados</small></span><span class="hcc-arr">→</span></a>
+    <a href="javascript:void(0)" class="home-copilot-cta" onclick="showSec('copilot')"><span class="hcc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><polygon points="12,7 15,15 9,15" fill="currentColor" stroke="none" opacity=".35"/></svg></span><span class="hcc-text"><strong>Abrir Copiloto</strong><small>Previsões, prioridades e leitura dos seus dados</small></span><span class="hcc-arr">→</span></a>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
   </div>
@@ -429,7 +431,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
     <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Data de nascimento</div>
-      <input class="finput" type="date" id="cfg-birth-date" max="">
+      <input class="finput finput-date" type="text" inputmode="numeric" id="cfg-birth-date" placeholder="AAAA-MM-DD" maxlength="10" autocomplete="bday" autocorrect="off" spellcheck="false" oninput="maskDateBirth(this)">
       <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">Com a data preenchida, a <strong>idade em meses</strong> é calculada sozinha (não precisa atualizar todo mês). Deixe em branco se preferir informar só a idade manualmente.</p>
     </div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses <span id="months-auto-hint" style="font-weight:600;color:var(--accent)"></span></div><input class="finput" id="cfg-months" type="number" min="0" max="36" title="Usado quando não há data de nascimento"></div>
@@ -506,11 +508,11 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
   </div>
 </div>
 <nav class="nav">
-  <div class="nav-item active" id="nav-home" onclick="showSec('home')"><div class="nav-icon">🏠</div><span>Início</span></div>
-  <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon">🧭</div><span>Copiloto</span></div>
-  <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon">📊</div><span>Dados</span></div>
-  <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon">📋</div><span>Histórico</span></div>
-  <div class="nav-item" id="nav-settings" onclick="showSec('settings')"><div class="nav-icon">⚙️</div><span>Config.</span></div>
+  <div class="nav-item active" id="nav-home" onclick="showSec('home')"><div class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z"/></svg></div><span>Início</span></div>
+  <div class="nav-item" id="nav-copilot" onclick="showSec('copilot')"><div class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><polygon points="12,8 15,16 9,16" fill="currentColor" stroke="none" opacity=".4"/></svg></div><span>Copiloto</span></div>
+  <div class="nav-item" id="nav-stats" onclick="showSec('stats')"><div class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg></div><span>Dados</span></div>
+  <div class="nav-item" id="nav-history" onclick="showSec('history')"><div class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div><span>Histórico</span></div>
+  <div class="nav-item" id="nav-settings" onclick="showSec('settings')"><div class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M2 12h2M20 12h2M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5"/></svg></div><span>Config.</span></div>
 </nav>
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-box">
@@ -547,7 +549,7 @@ let entries=[];
 const APP_SCHEMA_VERSION=2;
 const defaultCfg=()=>({appName:'Nest',name:'Bebê',babyBirthDate:'',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
 function babyAgeMonths(){if(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)){const b=new Date(cfg.babyBirthDate+'T12:00:00'),t=now();let m=(t.getFullYear()-b.getFullYear())*12+(t.getMonth()-b.getMonth());if(t.getDate()<b.getDate())m--;return Math.max(0,Math.min(48,Math.floor(m)));}return Math.max(0,Math.min(48,parseInt(cfg.months,10)||3));}
-function updateAgeBadgeUI(){const el=$('age-badge');if(!el)return;const m=babyAgeMonths();const auto=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate);el.textContent=m+' meses'+(auto?' · idade pela data':'');}
+function updateAgeBadgeUI(){const el=$('age-badge');if(!el)return;const m=babyAgeMonths();el.textContent=m+' meses';}
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
@@ -574,7 +576,7 @@ function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.dar
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
 function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=!!$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();renderCopilot();showToast(cfg.premiumUnlockLocal?'🔓 Premium liberado (local)':'Plano gratuito');}
 function applyAppName(){const n=(cfg.appName||'Nest').trim()||'Nest';document.title=n;const h=$('header-app-name');if(h)h.textContent=n;}
-function syncSettingsForm(){const an=$('cfg-app-name');if(an)an.value=cfg.appName||'Nest';applyAppName();$('cfg-name').value=cfg.name||'';const bd=$('cfg-birth-date');if(bd){bd.max=todayStr();bd.value=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?cfg.babyBirthDate:'';}const mh=$('months-auto-hint');if(mh)mh.textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático pela data)':'(manual)';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';updateAgeBadgeUI();$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
+function syncSettingsForm(){const an=$('cfg-app-name');if(an)an.value=cfg.appName||'Nest';applyAppName();$('cfg-name').value=cfg.name||'';const bd=$('cfg-birth-date');if(bd)bd.value=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?cfg.babyBirthDate:'';const mh=$('months-auto-hint');if(mh)mh.textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático pela data)':'(manual)';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';updateAgeBadgeUI();$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -913,6 +915,7 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
 function printReport(){const app=(cfg.appName||'Nest').trim()||'Nest';const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>'+escHtml(app)+' — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
 function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch(err){}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;if(x.date&&isValidDateStr(x.date))return x;return{...x,date:fb};});if(data.cfg)cfg={...defaultCfg(),...data.cfg};migrateEntriesOnLoad();save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
+function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length>=5)d=d.slice(0,4)+'-'+d.slice(4);if(d.length>=8)d=d.slice(0,7)+'-'+d.slice(7);el.value=d;}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function dedupeNavCopilot(){const nav=document.querySelector('.nav');if(!nav)return;const dup=[...nav.querySelectorAll('#nav-copilot')];for(let i=1;i<dup.length;i++)dup[i].remove();const home=$('nav-home'),cop=$('nav-copilot'),stats=$('nav-stats');if(home&&cop&&stats&&home.nextElementSibling!==cop)nav.insertBefore(cop,stats);}
