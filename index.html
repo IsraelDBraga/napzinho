@@ -24,19 +24,22 @@
   --nav-h:62px;--safe-bottom:env(safe-area-inset-bottom,0px);
 }
 [data-theme="dark"]{
-  --bg:#12100E;--bg2:#1C1917;--card:#1f1b18;--card2:#292524;--text:#FAFAF9;--muted:#A8A29E;--border:#3F3A36;
-  --sleep:#A5B4FC;--sleep-soft:rgba(165,180,252,.12);--night:#818CF8;--night-soft:rgba(129,140,248,.12);
-  --feed:#2DD4BF;--feed-soft:rgba(45,212,191,.12);--diaper:#FB923C;--diaper-soft:rgba(251,146,60,.12);
-  --accent:#F4A698;--accent2:#E7BC91;--pill-bg:#3F3A36;--pill-text:#E7E5E4;
-  --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-sm:0 2px 8px rgba(0,0,0,.25);
+  --bg:#1c1917;--bg2:#292524;--card:#2d2825;--card2:#3f3834;--text:#fafaf9;--muted:#d6d3d1;--border:#57534e;
+  --sleep:#c4b5fd;--sleep-soft:rgba(196,181,253,.18);--night:#a5b4fc;--night-soft:rgba(165,180,252,.2);
+  --feed:#5eead4;--feed-soft:rgba(94,234,212,.15);--diaper:#fdba74;--diaper-soft:rgba(253,186,116,.15);
+  --accent:#fb923c;--accent2:#fbbf24;--pill-bg:#44403c;--pill-text:#fafaf9;
+  --shadow:0 8px 28px rgba(0,0,0,.28);--shadow-sm:0 2px 8px rgba(0,0,0,.2);
 }
 body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -10%,var(--bg2),transparent);color:var(--text);min-height:100vh;max-width:440px;margin:0 auto;padding-bottom:calc(var(--nav-h) + 12px + var(--safe-bottom));-webkit-font-smoothing:antialiased}
 @media print{body{background:#fff;color:#000}.nav,.install-banner,.toast{display:none!important}.sections{padding:0}#print-area{display:block!important}}
 #print-area{display:none}
-.header{background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px 10px;position:sticky;top:0;z-index:20}
-[data-theme="dark"] .header{background:rgba(31,27,24,.85)}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:10px;min-height:36px}
-.app-name{font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;display:flex;align-items:center;margin:0}
+.header{background:rgba(255,255,255,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:14px 16px 12px;position:sticky;top:0;z-index:20}
+[data-theme="dark"] .header{background:rgba(45,40,37,.92)}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:12px;min-height:40px}
+.header-brand{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.app-name{font-family:'Fraunces',serif;font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:0;background:linear-gradient(125deg,#1c1917 0%,#7c6fd6 45%,#e07a5f 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+[data-theme="dark"] .app-name{background:linear-gradient(125deg,#fafaf9 0%,#c4b5fd 50%,#fdba74 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.app-tagline{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em}
 .age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:5px 11px;border-radius:999px;font-weight:600;border:1px solid var(--border);line-height:1.25;flex-shrink:1;max-width:58%;text-align:center;align-self:center}
 .date-line{font-size:12px;color:var(--muted);font-weight:500}
 .nav{display:flex;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-top:1px solid var(--border);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;z-index:30;padding-bottom:var(--safe-bottom);box-shadow:0 -4px 24px rgba(28,25,23,.06)}
@@ -124,6 +127,26 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .cop-teaser button{margin-top:8px}
 .cop-mood-pills{display:flex;flex-wrap:wrap;gap:8px}
 .cop-mood-pill{font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;background:var(--card2);border:1px solid var(--border)}
+.home-pred-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+.home-pred-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.home-pred-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.home-pred-badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px}
+.home-pred-badge.conf-high{background:#EEEDFE;color:#4338CA}
+.home-pred-badge.conf-mid{background:#E1F5EE;color:#0F6E56}
+.home-pred-badge.conf-low{background:#FFF3EA;color:#854F0B}
+[data-theme="dark"] .home-pred-badge.conf-high{background:rgba(165,180,252,.2);color:#e0e7ff}
+[data-theme="dark"] .home-pred-badge.conf-mid{background:rgba(45,212,191,.15);color:#5eead4}
+[data-theme="dark"] .home-pred-badge.conf-low{background:rgba(251,191,36,.15);color:#fcd34d}
+.home-pred-list{display:flex;flex-direction:column;gap:8px}
+.home-pred-item{display:flex;align-items:stretch;gap:10px;padding:10px 11px;border-radius:12px;background:var(--card2);border:1px solid var(--border)}
+.home-pred-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(124,111,214,.12)}
+.home-pred-mid{flex:1;min-width:0}
+.home-pred-name{font-size:13px;font-weight:800;line-height:1.25;margin-bottom:2px;color:var(--text)}
+.home-pred-sub{font-size:11px;color:var(--muted);line-height:1.35}
+.home-pred-time{text-align:right;flex-shrink:0}
+.home-pred-clock{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--text)}
+.home-pred-range{font-size:9px;color:var(--muted);margin-top:2px;font-weight:600}
+.home-pred-pay{font-size:12px;color:var(--muted);text-align:center;padding:8px 0 4px;line-height:1.45}
 .today-strip{background:var(--card);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
 .today-strip-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
 .today-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -254,9 +277,15 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .premium-strip p{font-size:11px;opacity:.88;line-height:1.45}
 .premium-strip .abtn{margin-top:8px;background:#fff;color:#2d1f14}
 .copilot-grid{display:grid;gap:10px}
-.copilot-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(30,20,10,.06)}
-.copilot-card h4{font-size:13px;margin-bottom:6px}
-.copilot-card p{font-size:12px;color:var(--muted);line-height:1.45}
+.copilot-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 6px 20px rgba(30,20,10,.06)}
+[data-theme="dark"] .copilot-card{background:var(--card2);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.copilot-card h4{font-size:14px;margin-bottom:4px;font-weight:800;letter-spacing:-.01em}
+.copilot-card p.cop-card-lead{font-size:11px;color:var(--muted);line-height:1.35;margin-bottom:8px}
+.copilot-card p:not(.cop-card-lead){font-size:12px;color:var(--muted);line-height:1.45}
+.copilot-action{font-size:13px!important;line-height:1.45;color:var(--text)!important}
+[data-theme="dark"] .copilot-action{background:#1c1917!important;border:1px solid var(--border)!important}
+.copilot-tabs{margin-bottom:12px}
+.copilot-tabs-after{margin-top:4px;margin-bottom:14px}
 .copilot-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin-bottom:10px}
 .copilot-tab{border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fff7f2);color:var(--text);border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px rgba(20,12,8,.08);transition:all .18s ease}
 .copilot-tab.active{background:linear-gradient(135deg,#E06D46,#D85A30);color:#fff;border-color:#D85A30;box-shadow:0 6px 14px rgba(216,90,48,.28)}
@@ -278,7 +307,13 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 <body>
 <div class="install-banner" id="install-banner"><span>Instale o app no celular para usar offline.</span><button type="button" class="btn-save" style="margin-top:0;padding:8px 14px;font-size:12px" id="install-btn">Instalar</button></div>
 <div class="header">
-  <div class="header-top"><span class="app-name" id="header-app-name">Nest</span><span class="age-badge" id="age-badge">3 meses</span></div>
+  <div class="header-top">
+    <div class="header-brand">
+      <h1 class="app-name" id="header-app-name">Nest</h1>
+      <span class="app-tagline">Sono e rotina do bebê</span>
+    </div>
+    <span class="age-badge" id="age-badge">3 meses</span>
+  </div>
   <div class="date-line" id="date-line"></div>
 </div>
 <div class="sections">
@@ -302,7 +337,11 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
     <div id="today-strip-block"></div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
-    <a href="javascript:void(0)" class="home-copilot-cta" onclick="showSec('copilot')"><span class="hcc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><polygon points="12,7 15,15 9,15" fill="currentColor" stroke="none" opacity=".35"/></svg></span><span class="hcc-text"><strong>Abrir Copiloto</strong><small>Previsões, prioridades e leitura dos seus dados</small></span><span class="hcc-arr">→</span></a>
+    <div class="home-pred-wrap" id="home-pred-wrap">
+      <div class="home-pred-head"><span class="home-pred-title">Previsões</span><span class="home-pred-badge conf-low" id="home-conf-badge">aprendendo</span></div>
+      <div class="home-pred-list" id="home-pred-list"></div>
+    </div>
+    <a href="javascript:void(0)" class="home-copilot-cta" onclick="showSec('copilot')"><span class="hcc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><polygon points="12,7 15,15 9,15" fill="currentColor" stroke="none" opacity=".35"/></svg></span><span class="hcc-text"><strong>Copiloto</strong><small>Prioridades, padrões e ferramentas</small></span><span class="hcc-arr">→</span></a>
     <div class="sec-title">Hoje</div>
     <div id="timeline"></div>
   </div>
@@ -330,33 +369,6 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
   </div>
   <div class="section" id="sec-history"><div class="sec-title">Histórico</div><div id="history-list"><div class="empty">Nenhum registro ainda</div></div></div>
   <div class="section" id="sec-copilot">
-    <div class="copilot-hero" id="copilot-hero">
-      <div class="cop-hero-top"><span class="cop-badge" id="cop-badge-phase">—</span><span class="cop-hero-kicker">Copiloto</span></div>
-      <h2 class="cop-hero-title" id="cop-hero-title">Analisando seu dia…</h2>
-      <p class="cop-hero-sub" id="cop-hero-sub"></p>
-      <div class="cop-hero-meter"><div class="cop-hero-fill" id="cop-hero-fill" style="width:0%"></div></div>
-      <p class="cop-hero-foot" id="cop-hero-foot"></p>
-    </div>
-    <div class="cop-section">
-      <div class="cop-section-title">Prioridade agora</div>
-      <div id="cop-priority-list"></div>
-    </div>
-    <div class="cop-section">
-      <div class="cop-section-title">Próximas janelas (dados + idade)</div>
-      <div id="cop-windows-list"></div>
-    </div>
-    <div class="cop-section">
-      <div class="cop-section-title">Padrões que o app já notou</div>
-      <div id="cop-patterns-list"></div>
-    </div>
-    <div class="cop-section">
-      <div class="cop-section-title">Humor & conforto (hoje)</div>
-      <div id="cop-mood-strip"></div>
-    </div>
-    <div class="cop-section" id="cop-premium-wrap">
-      <div class="cop-section-title">Leitura para os pais</div>
-      <div id="cop-parent-read"></div>
-    </div>
     <div class="copilot-tabs">
       <button class="copilot-tab active" id="ctab-realtime" onclick="showCopilotPanel('realtime')">Agora</button>
       <button class="copilot-tab" id="ctab-diagnosis" onclick="showCopilotPanel('diagnosis')">Choro</button>
@@ -364,28 +376,29 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       <button class="copilot-tab" id="ctab-dev" onclick="showCopilotPanel('dev')">Marcos</button>
       <button class="copilot-tab" id="ctab-sim" onclick="showCopilotPanel('sim')">E se…</button>
     </div>
+    <p class="copilot-tabs-after" style="font-size:11px;color:var(--muted);line-height:1.4;margin-bottom:12px">Ferramentas rápidas abaixo. O resumo de prioridades e janelas fica no bloco seguinte.</p>
     <div class="copilot-grid">
       <div class="copilot-panel active" id="cpanel-realtime">
         <div class="copilot-card">
-          <h4>🧭 O que fazer agora</h4>
-          <p>Prioridade única com base no relógio, na última soneca e nos sinais de hoje.</p>
-          <div id="copilot-now" class="copilot-action">Coletando dados de hoje...</div>
+          <h4>Agora</h4>
+          <p class="cop-card-lead">Uma linha com o próximo passo.</p>
+          <div id="copilot-now" class="copilot-action">Coletando dados…</div>
         </div>
         <div class="copilot-card">
-          <h4>🚨 Prevenção de Colapso</h4>
-          <p>Combina tempo acordado + sinais de irritação para agir antes.</p>
-          <div id="collapse-alert" class="copilot-action">Sem risco alto neste momento.</div>
+          <h4>Risco de cansaço</h4>
+          <p class="cop-card-lead">Tempo acordado vs. janela.</p>
+          <div id="collapse-alert" class="copilot-action">—</div>
         </div>
         <div class="copilot-card">
-          <h4>🗓️ Roteiro Diário Inteligente</h4>
-          <p>Atualiza próxima soneca e mamada automaticamente ao longo do dia.</p>
-          <div id="daily-plan" class="copilot-action">Aguardando registros para montar o roteiro.</div>
+          <h4>Roteiro do dia</h4>
+          <p class="cop-card-lead">Próximas janelas (Premium).</p>
+          <div id="daily-plan" class="copilot-action">—</div>
         </div>
       </div>
       <div class="copilot-panel" id="cpanel-diagnosis">
         <div class="copilot-card">
-          <h4>😭 Diagnóstico de Choro</h4>
-          <p>Estimativa probabilística (nunca 100%): fome, sono ou desconforto.</p>
+          <h4>Diagnóstico de choro</h4>
+          <p class="cop-card-lead">Estimativa (não é certeza).</p>
           <div class="diag-row">
             <button class="abtn primary-btn" onclick="runCryDiagnosis('feed')">Última mamada</button>
             <button class="abtn primary-btn" onclick="runCryDiagnosis('sleep')">Última soneca</button>
@@ -395,8 +408,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       </div>
       <div class="copilot-panel" id="cpanel-night">
         <div class="copilot-card">
-          <h4>🌙 Modo Sobrevivência Noturna</h4>
-          <p>Fluxo curto, sem leitura longa, para quando todo mundo está exausto.</p>
+          <h4>Noite — passo a passo</h4>
+          <p class="cop-card-lead">Cenários curtos.</p>
           <div class="night-mode-box">
             <div class="diag-row">
               <button class="abtn sleep-btn" onclick="runNightSurvival('crying')">Acordou chorando</button>
@@ -408,8 +421,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       </div>
       <div class="copilot-panel" id="cpanel-dev">
         <div class="copilot-card">
-          <h4>🧠 Tradutor de Desenvolvimento</h4>
-          <p>Interpretação rápida por faixa etária: normal, atenção e quando buscar médico.</p>
+          <h4>Marcos / dúvidas</h4>
+          <p class="cop-card-lead">Por idade — não substitui pediatra.</p>
           <input id="dev-input" class="inline-input" placeholder="Ex.: meu bebê não está rolando ainda">
           <button class="abtn primary-btn" style="margin-top:8px" onclick="runDevelopmentTranslator()">Traduzir</button>
           <div id="dev-output" class="copilot-action">Escreva uma dúvida curta para traduzir.</div>
@@ -417,8 +430,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       </div>
       <div class="copilot-panel" id="cpanel-sim">
         <div class="copilot-card">
-          <h4>🔮 Simulador de Consequência</h4>
-          <p>Direcional e útil: estima impacto no humor e no sono noturno.</p>
+          <h4>E se…</h4>
+          <p class="cop-card-lead">O que pode acontecer se…</p>
           <div class="sim-grid">
             <button class="abtn primary-btn" onclick="runConsequenceSimulation('skipNap')">Pular soneca</button>
             <button class="abtn primary-btn" onclick="runConsequenceSimulation('lateNap')">Soneca tardia</button>
@@ -429,6 +442,35 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
         </div>
       </div>
     </div>
+    <div class="copilot-hero" id="copilot-hero" style="margin-top:8px">
+      <div class="cop-hero-top"><span class="cop-badge" id="cop-badge-phase">—</span><span class="cop-hero-kicker">Resumo</span></div>
+      <h2 class="cop-hero-title" id="cop-hero-title">Seu dia</h2>
+      <p class="cop-hero-sub" id="cop-hero-sub"></p>
+      <div class="cop-hero-meter"><div class="cop-hero-fill" id="cop-hero-fill" style="width:0%"></div></div>
+      <p class="cop-hero-foot" id="cop-hero-foot"></p>
+    </div>
+    <div class="cop-section">
+      <div class="cop-section-title">Prioridade</div>
+      <div id="cop-priority-list"></div>
+    </div>
+    <div class="cop-section">
+      <div class="cop-section-title">Janelas</div>
+      <div id="cop-windows-list"></div>
+    </div>
+    <div class="cop-section">
+      <div class="cop-section-title">Padrões</div>
+      <div id="cop-patterns-list"></div>
+    </div>
+    <div class="cop-section">
+      <div class="cop-section-title">Humor hoje</div>
+      <div id="cop-mood-strip"></div>
+    </div>
+    <div class="cop-section" id="cop-premium-wrap">
+      <div class="cop-section-title">Para os pais</div>
+      <div id="cop-parent-read"></div>
+    </div>
+    <div id="emotional-feedback" style="display:none" aria-hidden="true"></div>
+    <div id="daily-insights" style="display:none" aria-hidden="true"></div>
   </div>
   <div class="section" id="sec-settings">
     <div class="sec-title">Configurações</div>
@@ -441,11 +483,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
       </div>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">Cada perfil tem seus próprios registros e configurações (dados só neste aparelho).</p>
     </div>
-    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do app (aparece no topo)</div><input class="finput" id="cfg-app-name" placeholder="Ex: Nest" maxlength="24"></div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
     <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Data de nascimento</div>
-      <input class="finput finput-date" type="text" inputmode="numeric" id="cfg-birth-date" placeholder="AAAA-MM-DD" maxlength="10" autocomplete="bday" autocorrect="off" spellcheck="false" oninput="maskDateBirth(this)">
+      <input class="finput finput-date" type="text" inputmode="numeric" id="cfg-birth-date" placeholder="DD-MM-AAAA" maxlength="10" autocomplete="bday" autocorrect="off" spellcheck="false" oninput="maskDateBirth(this)">
       <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">Com a data preenchida, a <strong>idade em meses</strong> é calculada sozinha (não precisa atualizar todo mês). Deixe em branco se preferir informar só a idade manualmente.</p>
     </div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses <span id="months-auto-hint" style="font-weight:600;color:var(--accent)"></span></div><input class="finput" id="cfg-months" type="number" min="0" max="36" title="Usado quando não há data de nascimento"></div>
@@ -561,7 +602,8 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 <script>
 let entries=[];
 const APP_SCHEMA_VERSION=2;
-const defaultCfg=()=>({appName:'Nest',name:'Bebê',babyBirthDate:'',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
+const APP_NAME='Nest';
+const defaultCfg=()=>({name:'Bebê',babyBirthDate:'',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
 function babyAgeMonths(){if(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)){const b=new Date(cfg.babyBirthDate+'T12:00:00'),t=now();let m=(t.getFullYear()-b.getFullYear())*12+(t.getMonth()-b.getMonth());if(t.getDate()<b.getDate())m--;return Math.max(0,Math.min(48,Math.floor(m)));}return Math.max(0,Math.min(48,parseInt(cfg.months,10)||3));}
 function updateAgeBadgeUI(){const el=$('age-badge');if(!el)return;const m=babyAgeMonths();el.textContent=m+' meses';}
 let cfg={...defaultCfg()};
@@ -576,21 +618,24 @@ function currentProfileId(){return localStorage.getItem(CUR_PROFILE)||'default';
 function normalizeEntry(raw){if(!raw||typeof raw!=='object')return null;const safe={...raw};safe.id=typeof safe.id==='number'?safe.id:Date.now()+Math.floor(Math.random()*1000);safe.date=isValidDateStr(safe.date)?safe.date:todayStr();let typ=typeof safe.type==='string'?safe.type:'sleep';if(typ==='unknown'){if(safe.start&&safe.end!=null)typ='sleep';else if(safe.subtype==='wet'||safe.subtype==='dirty'||safe.subtype==='both')typ='diaper';else if(safe.subtype==='breast'||safe.subtype==='bottle')typ='feed';else typ='sleep';}safe.type=typ;if(safe.type==='mood'&&safe.subtype==='cry')safe.subtype='crying';safe.start=isValidTime(safe.start)?safe.start:fmtTime(now());if(safe.end!=null&&!isValidTime(safe.end))safe.end=null;if(safe.durationMins!=null&&(!Number.isFinite(safe.durationMins)||safe.durationMins<0))safe.durationMins=null;return safe;}
 function migrateDataModel(){
   cfg={...defaultCfg(),...(cfg||{})};
+  delete cfg.appName;
   if(!Array.isArray(entries))entries=[];
   entries=entries.map(normalizeEntry).filter(Boolean);
   if((cfg.dataSchemaVersion||0)<APP_SCHEMA_VERSION)cfg.dataSchemaVersion=APP_SCHEMA_VERSION;
 }
 function loadProfileIntoMemory(){migrateToProfiles();const id=currentProfileId(),blob=loadProfilesBlob();const slot=(blob&&blob[id])?blob[id]:{entries:[],cfg:defaultCfg()};entries=Array.isArray(slot.entries)?slot.entries:[];cfg={...defaultCfg(),...(slot.cfg||{})};migrateDataModel();}
-function persistAll(){const id=currentProfileId();let blob=loadProfilesBlob()||{};blob[id]={entries:JSON.parse(JSON.stringify(entries)),cfg:{...defaultCfg(),...cfg}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}
+function persistAll(){const id=currentProfileId();let blob=loadProfilesBlob()||{};const c={...defaultCfg(),...cfg};delete c.appName;blob[id]={entries:JSON.parse(JSON.stringify(entries)),cfg:c};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}
 function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${(blob[i].cfg&&blob[i].cfg.name)||i}</option>`).join('');sel.value=currentProfileId();}
 function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();migrateEntriesOnLoad();applyTheme();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil ativo');}
 function addNewProfile(){const n=prompt('Nome do bebê para o novo perfil:');if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim()}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil criado');}
 function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados dele?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();renderHome();showToast('Perfil excluído');}
-function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#1a1512':'#E07A5F');}
+function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#292524':'#E07A5F');}
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
 function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=!!$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();renderCopilot();showToast(cfg.premiumUnlockLocal?'🔓 Premium liberado (local)':'Plano gratuito');}
-function applyAppName(){const n=(cfg.appName||'Nest').trim()||'Nest';document.title=n;const h=$('header-app-name');if(h)h.textContent=n;}
-function syncSettingsForm(){const an=$('cfg-app-name');if(an)an.value=cfg.appName||'Nest';applyAppName();$('cfg-name').value=cfg.name||'';const bd=$('cfg-birth-date');if(bd)bd.value=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?cfg.babyBirthDate:'';const mh=$('months-auto-hint');if(mh)mh.textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático pela data)':'(manual)';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';updateAgeBadgeUI();$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
+function applyAppName(){document.title=APP_NAME;const h=$('header-app-name');if(h)h.textContent=APP_NAME;}
+function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
+function parseBirthDisplayToIso(s){const p=/^(\d{2})-(\d{2})-(\d{4})$/.exec((s||'').trim());if(!p)return null;const dd=+p[1],mm=+p[2],yy=+p[3];if(mm<1||mm>12||dd<1||dd>31)return null;const iso=yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');return isValidDateStr(iso)?iso:null;}
+function syncSettingsForm(){applyAppName();$('cfg-name').value=cfg.name||'';const bd=$('cfg-birth-date');if(bd)bd.value=isoToBirthDisplay(cfg.babyBirthDate);const mh=$('months-auto-hint');if(mh)mh.textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático pela data)':'(manual)';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';updateAgeBadgeUI();$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -884,20 +929,20 @@ function renderCopilot(){
   fill.style.width=conf.score+'%';
   hero.textContent=conf.label==='Início'?'Vamos construir o seu painel':'Seu painel Copiloto';
   sub.textContent=conf.hint;
-  foot.textContent=entries.length?(conf.label==='Firme'?'As próximas sugestões usam bem o histórico deste bebê.':'Cada registro melhora o próximo conselho.'):'Toque nos atalhos do Início ou em “Dormiu agora” para começar.';
+  foot.textContent=entries.length?(conf.label==='Firme'?'Histórico forte — sugestões mais certeiras.':'Cada registro ajuda.'):'Use os atalhos ou “Dormiu agora”.';
   const prios=buildCopilotPriority();
-  prio.innerHTML=prios.map(p=>`<div class="cop-card cop-card-prio"><h4>${p.icon} ${p.title}</h4><p>${p.body}</p><div class="cop-meta">${p.meta}</div></div>`).join('')||'<div class="cop-card"><p>Sem prioridades por agora.</p></div>';
+  prio.innerHTML=prios.map(p=>`<div class="cop-card cop-card-prio" style="padding:12px"><div style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:20px;line-height:1;flex-shrink:0">${p.icon}</span><div style="min-width:0"><strong style="font-size:14px;display:block;margin-bottom:4px;line-height:1.25">${p.title}</strong><p style="font-size:12px;color:var(--muted);line-height:1.45;margin:0">${p.body}</p></div></div></div>`).join('')||'<div class="cop-card"><p style="font-size:12px;margin:0">Sem prioridades por agora.</p></div>';
   const wins=buildCopilotWindows();
   if(!canUsePremiumFeatures()){win.innerHTML='<div class="cop-teaser">Janelas em tempo real e faixas de horário completas no <strong>Premium</strong>.<br><button type="button" class="btn-save" style="margin-top:10px;padding:10px" onclick="startPremiumTrial()">Testar 7 dias grátis</button></div>';}
   else{win.innerHTML=wins.length?wins.map(w=>`<div class="cop-win-row"><span class="cop-win-icon">${w.icon}</span><div class="cop-win-mid"><strong>${w.name}</strong><span>${w.detail}</span></div><div class="cop-win-time"><div>${w.due}</div><span style="font-size:10px;color:var(--muted)">${w.range}</span></div></div>`).join(''):'<div class="cop-card"><p>Registre um sono completo para estimar próximas janelas.</p></div>';}
   const patterns=buildCopilotPatterns();
   pat.innerHTML=patterns.map(x=>`<div class="cop-pattern"><i>${x.icon}</i><p style="font-size:12px;line-height:1.5;color:var(--text)">${x.text}</p></div>`).join('');
   const c=moodCountToday('crying'),f=moodCountToday('fussy'),g=moodCountToday('gas');
-  mood.innerHTML=`<div class="cop-mood-pills"><span class="cop-mood-pill">Choro: <strong>${c}</strong></span><span class="cop-mood-pill">Irritação: <strong>${f}</strong></span><span class="cop-mood-pill">Gases: <strong>${g}</strong></span></div><p style="font-size:11px;color:var(--muted);margin-top:10px">Toque em <strong>Choro</strong>, <strong>Irritação</strong> ou <strong>Gases</strong> no Início — o Copiloto usa isso nas janelas e prioridades.</p>`;
+  mood.innerHTML=`<div class="cop-mood-pills"><span class="cop-mood-pill">Choro <strong>${c}</strong></span><span class="cop-mood-pill">Irritação <strong>${f}</strong></span><span class="cop-mood-pill">Gases <strong>${g}</strong></span></div>`;
   const premium=canUsePremiumFeatures();
   if(!premium){parent.innerHTML='<div class="cop-card cop-blur"><h4>Leitura emocional para os pais</h4><p>Frases curtas para reduzir culpa e dar perspectiva — desbloqueie com Premium ou teste grátis.</p><button type="button" class="btn-save" onclick="startPremiumTrial()">Ativar teste grátis</button></div>';renderCopilotRealtimePanels();return;}
   const emo=buildEmotionalMessages(),ins=buildDailyInsights();
-  parent.innerHTML=emo.map(i=>`<div class="cop-card"><h4>${i.title}</h4><p>${i.body}</p></div>`).join('')+ins.map(i=>`<div class="cop-card cop-card-prio"><h4>${i.title}</h4><p>${i.body}</p></div>`).join('');
+  parent.innerHTML=emo.map(i=>`<div class="cop-card" style="padding:12px"><strong style="font-size:13px;display:block;margin-bottom:4px">${i.title}</strong><p style="font-size:12px;color:var(--muted);margin:0;line-height:1.45">${i.body}</p></div>`).join('')+ins.map(i=>`<div class="cop-card cop-card-prio" style="padding:12px"><strong style="font-size:13px;display:block;margin-bottom:4px">${i.title}</strong><p style="font-size:12px;color:var(--muted);margin:0;line-height:1.45">${i.body}</p></div>`).join('');
   renderCopilotRealtimePanels();
 }
 function lastFeedEntry(){const feeds=entries.filter(e=>e.type==='feed'&&e.date).sort((a,b)=>{const da=new Date(a.date+'T12:00:00'),db=new Date(b.date+'T12:00:00');if(da-db)return db-da;return timeToMins(b.start)-timeToMins(a.start);});return feeds[0]||null;}
@@ -966,9 +1011,9 @@ function renderCopilotRealtimePanels(){
 
 function renderTodayStrip(){const el=$('today-strip-block');if(!el)return;const ymd=todayStr();const td=calendarDayEntries(ymd);let napM=td.filter(e=>e.type==='sleep'&&e.durationMins&&!isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);let nightM=td.filter(e=>e.type==='sleep'&&e.durationMins&&isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);const a=getActiveSleep();if(a&&a.type==='sleep'&&!a.end){const st=parseTimeOnDate(a.start,a.date);const cur=Math.max(0,Math.round((now()-st)/60000));if(isNight(a)){if(ymd===todayStr())nightM+=cur;}else if(a.date===ymd)napM+=cur;}const totalM2=totalSleepMinsCalendarDay(ymd);
 el.innerHTML=`<div class="today-strip"><div class="today-strip-title">Hoje em um olhar</div><div class="today-metrics"><div class="tm-cell sleep"><div class="tm-val">${fmtDur(totalM2)}</div><div class="tm-lbl">Sono total</div></div><div class="tm-cell feed"><div class="tm-val">${td.filter(e=>e.type==='feed').length}</div><div class="tm-lbl">Mamadas</div></div><div class="tm-cell diaper"><div class="tm-val">${td.filter(e=>e.type==='diaper').length}</div><div class="tm-lbl">Fraldas</div></div><div class="tm-cell night-m"><div class="tm-val">${nightWakeCountBetweenSegments(ymd)}</div><div class="tm-lbl">Despertares</div></div></div><p style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.4">Sonecas <strong>${fmtDur(napM)}</strong> · Noturno <strong>${fmtDur(nightM)}</strong> (trechos que terminam ao acordar de manhã)</p></div>`;}
-function renderHome(){renderTimeline();renderTodayStrip();renderContextBanner();updateWW();renderNightSummary();if($('sec-copilot')&&$('sec-copilot').classList.contains('active'))renderCopilot();}
-function renderLearnBar(){const p=getLearningPhase();$('learn-fill').style.width=p.pct+'%';$('learn-phase').textContent=p.label;if(p.phase===3)$('learn-bar-wrap').style.display='none'}
-function renderPredictions(){const today=calendarDayEntries(todayStr());const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const premium=canUsePremiumFeatures();if(!premium){$('pred-list').innerHTML='<div class="insight-item"><strong>Predição avançada é Premium</strong>Ative o teste grátis para ver próxima janela em tempo real e alertas de risco.</div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=wakeCountsAsDayForPredictions(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}else{preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name.includes('soneca')?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(babyAgeMonths())):null;return `<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail} · próxima janela em ${mins} min</div>${risk?`<span class="risk-chip ${risk.cls}">⚠️ ${risk.msg}</span>`:''}${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`}).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
+function renderHome(){renderTimeline();renderTodayStrip();renderContextBanner();updateWW();renderNightSummary();renderPredictions();if($('sec-copilot')&&$('sec-copilot').classList.contains('active'))renderCopilot();}
+function renderLearnBar(){const p=getLearningPhase();const el=$('learn-fill');if(el)el.style.width=p.pct+'%';const lp=$('learn-phase');if(lp)lp.textContent=p.label;const lw=$('learn-bar-wrap');if(lw&&p.phase===3)lw.style.display='none';}
+function renderPredictions(){const list=$('home-pred-list'),badge=$('home-conf-badge');if(!list)return;const today=calendarDayEntries(todayStr());const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};if(badge){badge.className='home-pred-badge '+cm[phase.conf];badge.textContent=cl[phase.conf];}const premium=canUsePremiumFeatures();if(!premium){list.innerHTML='<div class="home-pred-pay"><strong>Previsões em tempo real</strong> — Premium ou <button type="button" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;padding:0" onclick="startPremiumTrial()">teste 7 dias</button></div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=wakeCountsAsDayForPredictions(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Noite',sub:'Início do sono',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Soneca',sub:'Próxima janela',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',sub:'Janela típica',pred:nightStartPrediction()});}}else{preds.push({icon:'🌙',name:'Rotina da noite',sub:'Janela típica',pred:nightStartPrediction()});}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Mamada',sub:'Próxima janela',pred:p});}list.innerHTML=preds.length?preds.slice(0,4).map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name==='Soneca'?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(babyAgeMonths())):null;return `<div class="home-pred-item"><div class="home-pred-ico">${p.icon}</div><div class="home-pred-mid"><div class="home-pred-name">${escHtml(p.name)}</div><div class="home-pred-sub">${escHtml(p.sub)}</div>${risk?`<div style="margin-top:6px"><span class="risk-chip ${risk.cls}">${escHtml(risk.msg)}</span></div>`:''}</div><div class="home-pred-time"><div class="home-pred-clock">${escHtml(p.pred.center)}</div><div class="home-pred-range">~${mins} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}</div></div></div>`}).join(''):'<div class="home-pred-pay">Registre sono e mamada para ver horários.</div>'}
 function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()"><span class="ico">☀️</span>Acordou agora</button></div>';return;}const last=getLastCompletedSleep();if(!last){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()"><span class="ico">🌙</span>Dormiu agora</button></div>';return;}const wokeInDaytime=wakeCountsAsDayForPredictions(last.end);const isN=!wokeInDaytime&&nightNow;const months=babyAgeMonths();const cxAdj=Math.min(25,getContextAdjust().napAdj);const base=wwBaseTarget(months)+(!isN?cxAdj:0);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=sleepEndDate(last);const segsToday=nightSegmentsOnWakeDay(todayStr());const nc=segsToday.length;const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');function tick(){let diff;if(paused){diff=paused.elapsed;}else{diff=Math.floor((now()-endT)/60000);}if(diff<0)diff=0;const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min'+(paused?' ⏸️':'');if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc>1?(nc+'° trecho desta noite (despertar entre ciclos)'):'Primeiro trecho desta noite';const s=getSuggestion(diff,nc);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);actions.innerHTML=`<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()"><span class="ico">🌙</span>Dormiu</button><button class="abtn wake-btn" onclick="openModal('feed')"><span class="ico">🍼</span>Mamou</button></div><div class="action-row one" style="margin-top:6px"><button class="abtn pause-btn" onclick="togglePause()"><span class="ico">${paused?'▶️':'⏸️'}</span>${paused?'Retomar':'Pausar'} contagem</button></div>`;}
 
 function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
@@ -988,14 +1033,14 @@ function save(){persistAll();}
 function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());const td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
 function closeModal(){$('modal-overlay').classList.remove('open')}
 function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;const d=parseInt($('f-feed-dur').value)||null;e.durationMins=d;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Informe um horário de início válido');return;}e.date=date;e.type='sleep';e.subtype=isNightHour(s)?'night':'nap';e.start=s;e.end=isValidTime(en)?en:null;if(s&&e.end){let sm=parseTimeOnDate(s,date),em=parseTimeOnDate(e.end,date);if(em<sm)em.setDate(em.getDate()+1);e.durationMins=Math.round((em-sm)/60000);}localStorage.removeItem('nz3_paused');}entries.push(e);save();closeModal();showToast('Registro salvo!');renderHome()}
-function saveSettings(){if($('cfg-app-name'))cfg.appName=($('cfg-app-name').value||'Nest').trim()||'Nest';cfg.name=$('cfg-name').value||'Bebê';const bdv=$('cfg-birth-date')&&$('cfg-birth-date').value;if(bdv&&isValidDateStr(bdv))cfg.babyBirthDate=bdv;else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);if($('cfg-premium-local'))cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();applyAppName();save();updateAgeBadgeUI();refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
-function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
+function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';const bdv=$('cfg-birth-date')&&$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso)cfg.babyBirthDate=iso;else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);if($('cfg-premium-local'))cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();applyAppName();save();updateAgeBadgeUI();refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
+function exportData(){cfg={...defaultCfg(),...cfg};delete cfg.appName;const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
 function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
-function printReport(){const app=(cfg.appName||'Nest').trim()||'Nest';const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>'+escHtml(app)+' — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
-function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch(err){}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;if(x.date&&isValidDateStr(x.date))return x;return{...x,date:fb};});if(data.cfg)cfg={...defaultCfg(),...data.cfg};migrateEntriesOnLoad();save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
+function printReport(){const app=APP_NAME;const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>'+escHtml(app)+' — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
+function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch(err){}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;if(x.date&&isValidDateStr(x.date))return x;return{...x,date:fb};});if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}migrateEntriesOnLoad();save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
-function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length>=5)d=d.slice(0,4)+'-'+d.slice(4);if(d.length>=8)d=d.slice(0,7)+'-'+d.slice(7);el.value=d;}
+function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length<=2)el.value=d;else if(d.length<=4)el.value=d.slice(0,2)+'-'+d.slice(2);else el.value=d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4);}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 function dedupeNavCopilot(){const nav=document.querySelector('.nav');if(!nav)return;const dup=[...nav.querySelectorAll('#nav-copilot')];for(let i=1;i<dup.length;i++)dup[i].remove();const home=$('nav-home'),cop=$('nav-copilot'),stats=$('nav-stats');if(home&&cop&&stats&&home.nextElementSibling!==cop)nav.insertBefore(cop,stats);}
@@ -1005,7 +1050,7 @@ function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEac
 function migrateEntriesOnLoad(){let ch=0;entries.forEach(e=>{if(!e.date||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)){e.date=todayStr();ch++;}});if(ch)save();}
 async function requestNotify(){if(!('Notification' in window))return false;try{if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted';}catch(e){return false;}}
 function remindKey(k){return'nz_rm_'+todayStr()+'_'+k;}
-function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=calendarDayEntries(todayStr()).filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&wakeCountsAsDayForPredictions(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification((cfg.appName||'Nest').trim()||'Nest',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&wakeCountsAsDayForPredictions(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification((cfg.appName||'Nest').trim()||'Nest',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
+function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=calendarDayEntries(todayStr()).filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&wakeCountsAsDayForPredictions(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification(APP_NAME,{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&wakeCountsAsDayForPredictions(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification(APP_NAME,{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
 function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});}
 function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();applyAppName();dedupeNavCopilot();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();if($('sec-copilot')&&$('sec-copilot').classList.contains('active'))renderCopilot();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();}
 init();
