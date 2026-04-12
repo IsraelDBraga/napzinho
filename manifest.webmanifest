@@ -1,12 +1,12 @@
 {
   "name": "Nest",
   "short_name": "Nest",
-  "description": "Sono, mamadas e fraldas em um só lugar — rápido, claro, offline.",
+  "description": "Nest — acompanhamento de sono, mamadas e fraldas do bebê, offline e sem conta.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F4F0EB",
-  "theme_color": "#E07A5F",
+  "background_color": "#FFF8F2",
+  "theme_color": "#D85A30",
   "lang": "pt-BR",
   "orientation": "portrait-primary",
   "icons": [
