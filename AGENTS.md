@@ -2,7 +2,7 @@
 
 ## Cursor Cloud specific instructions
 
-**Ninho** (nome padrão no app; configurável em Configurações) is a single-file static web app (`index.html`) — no build step, no package manager, no backend. All data lives in browser `localStorage`.
+**Nest** (default app name; configurable in settings) is a single-file static web app (`index.html`) — no build step, no package manager, no backend. All data lives in browser `localStorage`.
 
 ### Running the app
 
