@@ -138,6 +138,18 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
 .legend-row span{display:inline-flex;align-items:center;gap:5px}
 .legend-dot{width:8px;height:8px;border-radius:50%}
 .legend-dot.nap{background:var(--sleep)}.legend-dot.night{background:var(--night)}
+.stats-analysis-card{background:linear-gradient(145deg,#1e1b4b 0%,#312E81 55%,#4338CA 100%);color:#fff;border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm);border:1px solid rgba(255,255,255,.1)}
+.stats-analysis-card.cal{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.stats-analysis-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.88;margin-bottom:4px}
+.stats-analysis-card.cal .stats-analysis-title{color:var(--muted);opacity:1}
+.stats-analysis-kicker{font-size:12px;font-weight:600;line-height:1.35;margin-bottom:12px;opacity:.92}
+.stats-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats-mini-cell{background:rgba(255,255,255,.1);border-radius:10px;padding:10px 8px;text-align:center}
+.stats-analysis-card.cal .stats-mini-cell{background:var(--card2)}
+.stats-mini-val{font-size:16px;font-weight:700;line-height:1.2}
+.stats-mini-lbl{font-size:9px;opacity:.75;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.stats-engine-note{font-size:11px;margin-top:12px;line-height:1.45;opacity:.88;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
+.stats-analysis-card.cal .stats-engine-note{border-top-color:var(--border);color:var(--muted)}
 .pred-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .pred-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .pred-card-title{font-size:14px;font-weight:700}
@@ -295,17 +307,19 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
     <div id="timeline"></div>
   </div>
   <div class="section" id="sec-stats">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.45">Tudo abaixo é o <strong>dia de hoje</strong> (meia-noite → meia-noite). Sono noturno que começou ontem à noite entra no total de <strong>hoje</strong> quando o bebê acorda de manhã.</p>
+    <div id="stats-night-primary"></div>
+    <div id="stats-calendar-secondary"></div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.45">A <strong>noite completa</strong> é a referência principal para sono noturno (do início ao despertar). O <strong>dia civil</strong> mostra sonecas e totais no relógio de 24h.</p>
     <div class="stats-row">
-      <div class="stat-card"><div class="slabel">Sono (24h do dia)</div><div class="sval" id="s-sleep">0m</div><div class="ssub">sonecas + trechos noturnos</div></div>
+      <div class="stat-card"><div class="slabel">Sono (dia civil)</div><div class="sval" id="s-sleep">0m</div><div class="ssub">meia-noite → meia-noite</div></div>
       <div class="stat-card"><div class="slabel">Mamadas</div><div class="sval" id="s-feed">0</div><div class="ssub">hoje</div></div>
       <div class="stat-card"><div class="slabel">Fraldas</div><div class="sval" id="s-diaper">0</div><div class="ssub">hoje</div></div>
-      <div class="stat-card"><div class="slabel">Despertares</div><div class="sval" id="s-wake">0</div><div class="ssub">entre trechos da noite</div></div>
+      <div class="stat-card"><div class="slabel">Despertares</div><div class="sval" id="s-wake">0</div><div class="ssub">última noite completa</div></div>
     </div>
     <div class="legend-row"><span><i class="legend-dot nap"></i> Soneca (dia)</span><span><i class="legend-dot night"></i> Sono noturno</span></div>
-    <div class="chart-wrap"><div class="chart-title">Sono por hora (últimas 8h)</div><div style="position:relative;height:110px"><canvas id="barChart"></canvas></div></div>
+    <div class="chart-wrap"><div class="chart-title">Sono por hora (últimas 8h, dia civil)</div><div style="position:relative;height:110px"><canvas id="barChart"></canvas></div></div>
     <div class="chart-wrap">
-      <div class="chart-title">Registros de hoje</div>
+      <div class="chart-title">Registros do dia civil (hoje)</div>
       <div style="position:relative;height:150px;max-width:150px;margin:0 auto"><canvas id="donutChart"></canvas></div>
       <div style="display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:11px;color:var(--muted)">
         <span style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:2px;background:#7F77DD;display:inline-block"></span>Sono</span>
@@ -584,6 +598,7 @@ const now=()=>new Date();
 const todayStr=()=>new Date().toLocaleDateString('sv-SE');
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m<0)m=0;const h=Math.floor(m/60),r=m%60;return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m')};
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const parseTime=s=>{const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d};
 function parseTimeOnDate(timeStr,dateStr){const[h,m]=timeStr.split(':').map(Number);const d=new Date(dateStr+'T12:00:00');d.setHours(h,m,0,0);return d;}
 const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m};
@@ -600,6 +615,70 @@ function totalSleepMinsCalendarDay(ymd){let sum=0;entries.forEach(e=>{if(e.type!
 function calendarDayEntries(ymd){return entries.filter(e=>{if(!e||!e.date)return false;if(e.type!=='sleep')return e.date===ymd;if(e.type==='sleep'&&!e.end){const act=getActiveSleep();if(!act||act.id!==e.id)return false;if(!isNight(e))return e.date===ymd;return ymd===todayStr();}if(e.end&&isNight(e))return sleepWakeCalendarDay(e)===ymd;return e.date===ymd;});}
 function nightSegmentsOnWakeDay(ymd){const segs=entries.filter(e=>e.type==='sleep'&&isNight(e)&&e.end&&sleepWakeCalendarDay(e)===ymd).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));return segs;}
 function nightWakeCountBetweenSegments(ymd){const segs=nightSegmentsOnWakeDay(ymd);return segs.length>1?segs.length-1:0;}
+function analyzeLastCompleteNight(){
+  const wakeDay=todayStr();
+  const segs=nightSegmentsOnWakeDay(wakeDay);
+  if(!segs.length)return null;
+  const first=segs[0],last=segs[segs.length-1];
+  const bedYmd=first.date,bedClock=first.start,wakeClock=last.end;
+  const totalSleep=segs.reduce((a,e)=>a+(e.durationMins||0),0);
+  const durs=segs.map(e=>e.durationMins||0).filter(x=>x>0);
+  const blocks=durs.length;
+  const maxBlock=blocks?Math.max(...durs):0;
+  const minBlock=blocks>1?Math.min(...durs):(durs[0]||0);
+  const wakes=Math.max(0,blocks-1);
+  const gaps=[];
+  for(let i=0;i<segs.length-1;i++){
+    const a=segs[i],b=segs[i+1];
+    if(a.end&&b.start){
+      let g=timeToMins(b.start)-timeToMins(a.end);
+      if(g<0)g+=1440;
+      if(g>0&&g<600)gaps.push(g);
+    }
+  }
+  const avgGap=gaps.length?Math.round(gaps.reduce((x,y)=>x+y,0)/gaps.length):0;
+  return{bedYmd,bedClock,wakeYmd:wakeDay,wakeClock,totalSleep,blocks,wakes,maxBlock,minBlock,avgGap,segs};
+}
+function getSleepEngineAdjustmentFromLastNight(){
+  const an=analyzeLastCompleteNight();
+  if(!an)return{napAdj:0,feedAdj:0,rangeAdj:0,label:''};
+  let napAdj=0,feedAdj=0,rangeAdj=0;const bits=[];
+  const months=babyAgeMonths();
+  const tgtMin=(months<=3?8:months<=9?9:9.5)*60;
+  if(an.totalSleep<tgtMin*0.78){napAdj+=8;feedAdj+=4;rangeAdj+=3;bits.push('débito de sono');}
+  if(an.wakes>=3){napAdj+=10;feedAdj+=5;rangeAdj+=5;bits.push('muitos despertares');}
+  if(an.blocks>=2&&an.minBlock<40){napAdj+=6;bits.push('trechos muito curtos');}
+  return{napAdj:Math.min(28,napAdj),feedAdj:Math.min(18,feedAdj),rangeAdj:Math.min(14,rangeAdj),label:bits.join(' · ')};
+}
+function sleepDebtNapAdjustment(){
+  const an=analyzeLastCompleteNight();
+  if(!an||!an.totalSleep)return 0;
+  const months=babyAgeMonths();
+  const tgtMin=(months<=3?8:months<=9?9:9.5)*60;
+  const shortfall=Math.max(0,tgtMin-an.totalSleep);
+  if(shortfall<90)return 0;
+  return-Math.min(18,Math.floor(shortfall/90));
+}
+function renderStatsAnalysisBlocks(){
+  const np=$('stats-night-primary'),sc=$('stats-calendar-secondary');
+  if(!np||!sc)return;
+  const an=analyzeLastCompleteNight();
+  const ymd=todayStr();
+  const td=calendarDayEntries(ymd);
+  const napM=td.filter(e=>e.type==='sleep'&&e.durationMins&&!isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);
+  const nightCal=td.filter(e=>e.type==='sleep'&&e.durationMins&&isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);
+  const totalCal=totalSleepMinsCalendarDay(ymd);
+  const eng=getSleepEngineAdjustmentFromLastNight();
+  if(!an){
+    np.innerHTML='<div class="stats-analysis-card"><div class="stats-analysis-title">Noite completa (principal)</div><div class="stats-analysis-kicker">Sem noite noturna concluída ainda hoje.</div><p style="font-size:11px;opacity:.85;line-height:1.45;margin:0">Quando o bebê dormir à noite e acordar de manhã, este bloco mostra do <strong>início do sono noturno</strong> até o <strong>despertar</strong>: total, blocos, maior/menor trecho e despertares.</p></div>';
+  }else{
+    const span=an.bedYmd===an.wakeYmd?formatShortDate(an.bedYmd):formatShortDate(an.bedYmd)+' → '+formatShortDate(an.wakeYmd);
+    const minLbl=an.blocks>1?fmtDur(an.minBlock):'—';
+    const engLine=eng.label?'<div class="stats-engine-note"><strong>Motor:</strong> '+escHtml(eng.label)+' — janelas um pouco mais tolerantes hoje.</div>':'';
+    np.innerHTML='<div class="stats-analysis-card"><div class="stats-analysis-title">Noite completa (referência principal)</div><div class="stats-analysis-kicker">'+escHtml(span)+' · '+escHtml(an.bedClock)+' → '+escHtml(an.wakeClock)+'</div><div class="stats-mini-grid"><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(fmtDur(an.totalSleep))+'</div><div class="stats-mini-lbl">Total dormido</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+an.blocks+'</div><div class="stats-mini-lbl">Blocos</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+an.wakes+'</div><div class="stats-mini-lbl">Despertares</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(fmtDur(an.maxBlock))+'</div><div class="stats-mini-lbl">Maior bloco</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(minLbl)+'</div><div class="stats-mini-lbl">Menor bloco</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+(an.avgGap?escHtml(fmtDur(an.avgGap)):'—')+'</div><div class="stats-mini-lbl">Média entre blocos</div></div></div>'+engLine+'</div>';
+  }
+  sc.innerHTML='<div class="stats-analysis-card cal"><div class="stats-analysis-title">Dia civil (hoje)</div><div class="stats-analysis-kicker">00:00–24:00 — sonecas + trechos contabilizados neste dia.</div><div class="stats-mini-grid"><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(fmtDur(totalCal))+'</div><div class="stats-mini-lbl">Sono total</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(fmtDur(napM))+'</div><div class="stats-mini-lbl">Sonecas</div></div><div class="stats-mini-cell"><div class="stats-mini-val">'+escHtml(fmtDur(nightCal))+'</div><div class="stats-mini-lbl">Noturno no dia</div></div></div></div>';
+}
 const wwBaseTarget=m=>{if(m<=2)return 60;if(m<=4)return 90;if(m<=6)return 120;if(m<=9)return 150;if(m<=12)return 180;return 210};
 function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.end.split(':').map(Number);d.setHours(h,m,0,0);if(timeToMins(e.end)<timeToMins(e.start)){d.setDate(d.getDate()+1);}return d;}
 function getLastCompletedSleep(){const recent=entries.filter(e=>e.type==='sleep'&&e.end);recent.sort((a,b)=>sleepEndDate(b)-sleepEndDate(a));return recent[0]||null;}
@@ -609,10 +688,10 @@ function getDaysWithData(){return[...new Set(entries.filter(e=>e.type==='sleep'&
 function getLearningPhase(){const days=getDaysWithData().length;if(days<4)return{phase:1,label:'Fase 1 — aprendendo',pct:Math.min(100,days/3*33),conf:'low'};if(days<8)return{phase:2,label:'Fase 2 — ajustando',pct:33+Math.min(33,(days-3)/4*33),conf:'mid'};return{phase:3,label:'Fase 3 — preciso',pct:Math.min(100,66+(days-7)/7*34),conf:'high'}}
 function getHistoricalWakeWindows(limit=10){const sleeps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&e.end).sort((a,b)=>a.date>b.date?1:a.date<b.date?-1:(timeToMins(a.end)-timeToMins(b.end)));const w=[];for(let i=0;i<sleeps.length-1;i++){const a=sleeps[i],b=sleeps[i+1];if(a.end){let gap;if(a.date===b.date){gap=timeToMins(b.start)-timeToMins(a.end);}else{const nextDay=new Date(a.date+'T12:00:00');nextDay.setDate(nextDay.getDate()+1);if(b.date===nextDay.toISOString().split('T')[0]&&isNightHour(a.end)){gap=(1440-timeToMins(a.end))+timeToMins(b.start);}else{continue;}}if(gap>0&&gap<300)w.push(gap);}}return w.slice(-limit)}
 function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&&e.durationMins&&!isNightHour(e.start)).slice(-limit).map(e=>timeToMins(e.start))}
-function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}na=Math.min(40,na);fa=Math.min(30,fa);ra=Math.min(20,ra);return{napAdj:na,feedAdj:fa,rangeAdj:ra};}
+function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const night=getSleepEngineAdjustmentFromLastNight();na+=night.napAdj;fa+=night.feedAdj;ra+=night.rangeAdj;na=Math.min(45,na);fa=Math.min(35,fa);ra=Math.min(26,ra);return{napAdj:na,feedAdj:fa,rangeAdj:ra};}
 function getRecentSignalCount(windowMin){const cutoff=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{const t=parseTimeOnDate(e.start,e.date).getTime();return t>=cutoff;}catch(err){return false;}}).length;}
 function getSignalPressure(){const s30=getRecentSignalCount(30),s90=getRecentSignalCount(90);const gasToday=calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype==='gas').length;const gasBias=Math.min(8,gasToday*2);return{napBias:Math.min(20,s30*5+s90*2+gasBias),feedBias:Math.min(15,s30*4),rangeBias:Math.min(10,s90*2),label:(s90>0||gasToday>0)?'sinais recentes (humor/gases)':'sem sinais relevantes'};}
-function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const phase=getLearningPhase();const hw=getHistoricalWakeWindows();const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;let pw,range;if(phase.phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase.phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw=Math.max(30,pw)+cx.napAdj-sp.napBias;range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=endM+pw;return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:(phase.phase===1?'tabela da idade':phase.phase===2?'dados + tabela':'padrão do bebê')+' + '+sp.label,phase:phase.phase}}
+function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const phase=getLearningPhase();const hw=getHistoricalWakeWindows();const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase.phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase.phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw=Math.max(30,pw)+cx.napAdj-sp.napBias;range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=endM+pw;return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:(phase.phase===1?'tabela da idade':phase.phase===2?'dados + tabela':'padrão do bebê')+' + '+sp.label,phase:phase.phase}}
 function smartPredictNextFeed(last){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);const phase=getLearningPhase();if(rf.length<4||phase.phase===1){const t=timeToMins(last)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20-cx.rangeAdj-sp.rangeBias),to:minsToTime(t+20+cx.rangeAdj+sp.rangeBias),basis:'tabela da idade + '+sp.label}}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=timeToMins(last)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20-cx.rangeAdj-sp.rangeBias),to:minsToTime(t+20+cx.rangeAdj+sp.rangeBias),basis:'tabela da idade + '+sp.label}}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=phase.phase===2?Math.round(ai*0.6+base*0.4):Math.round(ai*0.8+base*0.2);const t=timeToMins(last)+bl+cx.feedAdj-sp.feedBias;const r=(phase.phase===3?12:18)+cx.rangeAdj+sp.rangeBias;return{center:minsToTime(t),from:minsToTime(t-r),to:minsToTime(t+r),basis:(phase.phase===2?'dados + tabela':'padrão do bebê')+' + '+sp.label}}
 function getTypicalNightStartMins(){const ns=entries.filter(e=>e.type==='sleep'&&e.durationMins&&isNight(e));if(!ns.length)return timeToMins(cfg.nightStart||'18:00');const mins=ns.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}
 function nightStartPrediction(){const m=getTypicalNightStartMins(),cx=getContextAdjust(),r=Math.min(50,25+cx.rangeAdj),fromM=Math.max(0,m-r),toM=Math.min(1439,m+r);return{center:minsToTime(m),from:minsToTime(fromM),to:minsToTime(toM),basis:entries.filter(e=>e.type==='sleep'&&isNight(e)&&e.durationMins).length>=2?'padrão do bebê':'início da noite (config.)',phase:1}}
@@ -780,6 +859,8 @@ function buildCopilotWindows(){
 }
 function buildCopilotPatterns(){
   const p=[];const hw=getHistoricalWakeWindows();const phase=getLearningPhase();
+  const an=analyzeLastCompleteNight();
+  if(an){p.push({icon:'🌌',text:'Última <strong>noite completa</strong>: '+fmtDur(an.totalSleep)+' em <strong>'+an.blocks+'</strong> trecho(s), maior bloco '+fmtDur(an.maxBlock)+(an.wakes>=2?' — noite fragmentada influencia as janelas de hoje.':' — base estável para o dia.')});}
   if(hw.length>=3){const avg=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);p.push({icon:'📈',text:'Seu bebê costuma ficar <strong>'+avg+' min</strong> acordado entre sonecas (últimos registros).'});}
   if(phase.phase>=2){p.push({icon:'🎯',text:'O app já está <strong>ajustando</strong> previsões com o histórico, não só com a tabela da idade.'});}
   const ns=entries.filter(e=>e.type==='sleep'&&isNight(e)&&e.durationMins).length;
@@ -901,7 +982,7 @@ function renderNightSummary(){const block=$('night-summary-block');const ymd=tod
 function entryHTML(e){const moodIcon=e.subtype==='crying'?'😢':e.subtype==='gas'?'💨':'😣';const moodLab=e.subtype==='crying'?'Choro':e.subtype==='gas'?'Gases':'Irritação';const icons={sleep:'🌙',feed:'🍼',diaper:'💧',mood:moodIcon};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',mood:moodLab};const cls={sleep:'s',feed:'f',diaper:'d',mood:e.subtype==='gas'?'g':'m'};const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);const sleepTag=e.type==='sleep'?(isNight(e)?'<span class="entry-badge badge-night">Noite</span>':'<span class="entry-badge badge-nap">Soneca</span>'):'';let detail='';if(e.type==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(e.type==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else if(e.type==='mood')detail='Toque rápido';else detail=e.start;const ic=e.type==='mood'?icons.mood:icons[e.type];const lb=labels[e.type];return`<div class="entry"><div class="edot ${cls[e.type]||'d'}"></div><div class="ebody"><div class="eheader"><span class="etype">${ic} ${lb}${sleepTag}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
 function renderTimeline(){const t=calendarDayEntries(todayStr()).slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
 function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
-function renderCharts(){const ymd=todayStr();const today=calendarDayEntries(ymd);const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=nightWakeCountBetweenSegments(ymd);const totalM=totalSleepMinsCalendarDay(ymd);$('s-sleep').textContent=fmtDur(totalM)||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7C6FD6',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7C6FD6','#0D9488','#EA580C'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
+function renderCharts(){renderStatsAnalysisBlocks();const ymd=todayStr();const today=calendarDayEntries(ymd);const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const anWake=analyzeLastCompleteNight();const nw=anWake!=null?anWake.wakes:nightWakeCountBetweenSegments(ymd);const totalM=totalSleepMinsCalendarDay(ymd);$('s-sleep').textContent=fmtDur(totalM)||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7C6FD6',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7C6FD6','#0D9488','#EA580C'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
 function deleteEntry(id){entries=entries.filter(e=>e.id!==id);save();renderHome();showToast('Removido')}
 function save(){persistAll();}
 function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());const td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
@@ -911,7 +992,6 @@ function saveSettings(){if($('cfg-app-name'))cfg.appName=($('cfg-app-name').valu
 function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
 function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
-function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function printReport(){const app=(cfg.appName||'Nest').trim()||'Nest';const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>'+escHtml(app)+' — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
 function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch(err){}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;if(x.date&&isValidDateStr(x.date))return x;return{...x,date:fb};});if(data.cfg)cfg={...defaultCfg(),...data.cfg};migrateEntriesOnLoad();save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
