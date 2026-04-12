@@ -450,6 +450,11 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-
     </div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses <span id="months-auto-hint" style="font-weight:600;color:var(--accent)"></span></div><input class="finput" id="cfg-months" type="number" min="0" max="36" title="Usado quando não há data de nascimento"></div>
     <div class="stat-card" style="margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Data de nascimento</div>
+      <input class="finput" id="cfg-birthdate" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" maxlength="10" oninput="maskDateBR(this)">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Formato: dia-mês-ano. Se preencher, a idade em meses é recalculada automaticamente.</div>
+    </div>
+    <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Início da noite</div>
       <input class="finput" id="cfg-night-start" type="text" inputmode="numeric" placeholder="18:00" maxlength="5" oninput="maskTime(this)">
       <div style="font-size:11px;color:var(--muted);margin-top:5px">Registros após este horário = sono noturno</div>
@@ -684,6 +689,10 @@ function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:tod
 function getLastCompletedSleep(){const recent=entries.filter(e=>e.type==='sleep'&&e.end);recent.sort((a,b)=>sleepEndDate(b)-sleepEndDate(a));return recent[0]||null;}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1]}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3]}
+function isoToBrDate(s){if(!isValidDateStr(s))return'';const[a,b,c]=s.split('-');return`${c}-${b}-${a}`;}
+function brToIsoDate(s){const m=/^(\d{2})-(\d{2})-(\d{4})$/.exec((s||'').trim());if(!m)return'';const iso=`${m[3]}-${m[2]}-${m[1]}`;return isValidDateStr(iso)?iso:'';}
+function maskDateBR(el){let v=el.value.replace(/[^\d]/g,'').slice(0,8);if(v.length>=5)el.value=v.slice(0,2)+'-'+v.slice(2,4)+'-'+v.slice(4);else if(v.length>=3)el.value=v.slice(0,2)+'-'+v.slice(2);else el.value=v;}
+function monthsFromBirth(iso){if(!isValidDateStr(iso))return null;const b=new Date(iso+'T12:00:00'),n=new Date();let m=(n.getFullYear()-b.getFullYear())*12+(n.getMonth()-b.getMonth());if(n.getDate()<b.getDate())m--;return Math.max(0,m);}
 function getDaysWithData(){return[...new Set(entries.filter(e=>e.type==='sleep'&&e.durationMins).map(e=>e.date))].sort()}
 function getLearningPhase(){const days=getDaysWithData().length;if(days<4)return{phase:1,label:'Fase 1 — aprendendo',pct:Math.min(100,days/3*33),conf:'low'};if(days<8)return{phase:2,label:'Fase 2 — ajustando',pct:33+Math.min(33,(days-3)/4*33),conf:'mid'};return{phase:3,label:'Fase 3 — preciso',pct:Math.min(100,66+(days-7)/7*34),conf:'high'}}
 function getHistoricalWakeWindows(limit=10){const sleeps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&e.end).sort((a,b)=>a.date>b.date?1:a.date<b.date?-1:(timeToMins(a.end)-timeToMins(b.end)));const w=[];for(let i=0;i<sleeps.length-1;i++){const a=sleeps[i],b=sleeps[i+1];if(a.end){let gap;if(a.date===b.date){gap=timeToMins(b.start)-timeToMins(a.end);}else{const nextDay=new Date(a.date+'T12:00:00');nextDay.setDate(nextDay.getDate()+1);if(b.date===nextDay.toISOString().split('T')[0]&&isNightHour(a.end)){gap=(1440-timeToMins(a.end))+timeToMins(b.start);}else{continue;}}if(gap>0&&gap<300)w.push(gap);}}return w.slice(-limit)}
