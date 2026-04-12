@@ -2,7 +2,7 @@
 
 ## Cursor Cloud specific instructions
 
-Napzinho is a single-file static web app (`index.html`) — no build step, no package manager, no backend. All data lives in browser `localStorage`.
+**Nest** (default app name; configurable in settings) is a single-file static web app (`index.html`) — no build step, no package manager, no backend. All data lives in browser `localStorage`.
 
 ### Running the app
 
@@ -16,7 +16,7 @@ Then open `http://localhost:8080/index.html` in Chrome.
 
 ### External CDN dependencies
 
-Chart.js 4.4.1 and Google Fonts (Nunito, Fraunces) are loaded from CDNs at runtime. Internet access is required on first page load.
+Chart.js 4.4.1 and Google Fonts (DM Sans, Fraunces) are loaded from CDNs at runtime. Internet access is required on first page load.
 
 ### PWA (install + offline)
 
@@ -25,7 +25,7 @@ Chart.js 4.4.1 and Google Fonts (Nunito, Fraunces) are loaded from CDNs at runti
 
 ### Store deployment (Play / App Store)
 
-See `docs/STORE_DEPLOYMENT.md`. This repo is a static PWA; store listings need TWA (Android) or a native wrapper (iOS), plus HTTPS hosting.
+See `docs/STORE_DEPLOYMENT.md`. For **Play Billing / StoreKit** (in-app purchases), see `docs/IN_APP_PURCHASES.md`. This repo is a static PWA; store listings need TWA (Android) or a native wrapper (iOS), plus HTTPS hosting.
 
 ### Linting / Testing / Building
 
