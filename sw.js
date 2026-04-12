@@ -1,5 +1,5 @@
 /* Napzinho service worker — cache shell for offline PWA */
-const CACHE = 'napzinho-v2';
+const CACHE = 'nest-v3';
 const ASSETS = [
   './',
   './index.html',
