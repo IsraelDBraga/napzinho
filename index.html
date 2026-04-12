@@ -3,40 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="description" content="Napzinho — sono, mamadas e fraldas do bebê. Funciona offline após o primeiro acesso.">
-<meta name="theme-color" content="#D85A30">
+<meta name="description" content="Sono, mamadas e fraldas do bebê — rápido e claro. Funciona offline após o primeiro acesso.">
+<meta name="theme-color" content="#E07A5F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Napzinho</title>
+<title>Ninho</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Fraunces:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#FFF8F2;--card:#FFFFFF;--card2:#FFF3EA;--text:#2D1F14;--muted:#8A7060;--border:#EDD8C8;--sleep:#7F77DD;--feed:#1D9E75;--diaper:#D85A30;--accent:#D85A30;--pill-bg:#FAEEDA;--pill-text:#633806}
-[data-theme="dark"]{--bg:#1a1512;--card:#2a221c;--card2:#352a22;--text:#f5ebe3;--muted:#b8a99a;--border:#4a3d34;--sleep:#9b92e8;--feed:#3ecf9a;--diaper:#e87a52;--accent:#e87a52;--pill-bg:#4a3528;--pill-text:#f5d4b8}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:60px}
-button{font:inherit}
+:root{
+  --bg:#F4F0EB;--bg2:#EDE8E1;--card:#FFFFFF;--card2:#FAF7F3;--text:#1C1917;--muted:#78716C;--border:#E7E2DC;
+  --sleep:#7C6FD6;--sleep-soft:rgba(124,111,214,.12);--night:#312E81;--night-soft:rgba(49,46,129,.15);
+  --feed:#0D9488;--feed-soft:rgba(13,148,136,.12);--diaper:#C2410C;--diaper-soft:rgba(194,65,12,.1);
+  --accent:#E07A5F;--accent2:#D4A373;--pill-bg:#F5EDE4;--pill-text:#57534E;
+  --radius:16px;--radius-sm:12px;--shadow:0 4px 24px rgba(28,25,23,.06);--shadow-sm:0 1px 3px rgba(28,25,23,.06);
+  --nav-h:62px;--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+[data-theme="dark"]{
+  --bg:#12100E;--bg2:#1C1917;--card:#1f1b18;--card2:#292524;--text:#FAFAF9;--muted:#A8A29E;--border:#3F3A36;
+  --sleep:#A5B4FC;--sleep-soft:rgba(165,180,252,.12);--night:#818CF8;--night-soft:rgba(129,140,248,.12);
+  --feed:#2DD4BF;--feed-soft:rgba(45,212,191,.12);--diaper:#FB923C;--diaper-soft:rgba(251,146,60,.12);
+  --accent:#F4A698;--accent2:#E7BC91;--pill-bg:#3F3A36;--pill-text:#E7E5E4;
+  --shadow:0 8px 32px rgba(0,0,0,.35);--shadow-sm:0 2px 8px rgba(0,0,0,.25);
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -10%,var(--bg2),transparent);color:var(--text);min-height:100vh;max-width:440px;margin:0 auto;padding-bottom:calc(var(--nav-h) + 12px + var(--safe-bottom));-webkit-font-smoothing:antialiased}
 @media print{body{background:#fff;color:#000}.nav,.install-banner,.toast{display:none!important}.sections{padding:0}#print-area{display:block!important}}
 #print-area{display:none}
-.header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px 10px;position:sticky;top:0;z-index:10}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
-.app-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600}
-.age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:3px 10px;border-radius:20px;font-weight:700}
-.date-line{font-size:11px;color:var(--muted)}
-.nav{display:flex;background:var(--card);border-top:1px solid var(--border);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:10}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0;cursor:pointer;font-size:10px;color:var(--muted);gap:3px}
+.header{background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:12px 16px 10px;position:sticky;top:0;z-index:20}
+[data-theme="dark"] .header{background:rgba(31,27,24,.85)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:10px}
+.app-name{font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-.02em}
+.age-badge{font-size:11px;background:var(--pill-bg);color:var(--pill-text);padding:4px 11px;border-radius:999px;font-weight:600;border:1px solid var(--border)}
+.date-line{font-size:12px;color:var(--muted);font-weight:500}
+.nav{display:flex;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-top:1px solid var(--border);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;z-index:30;padding-bottom:var(--safe-bottom);box-shadow:0 -4px 24px rgba(28,25,23,.06)}
+[data-theme="dark"] .nav{background:rgba(28,25,23,.92);box-shadow:0 -8px 32px rgba(0,0,0,.35)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted);gap:2px;transition:color .2s;position:relative}
 .nav-item.active{color:var(--accent)}
-.nav-icon{font-size:18px}
-.sections{padding:14px 14px 10px}
+.nav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:var(--accent);border-radius:0 0 4px 4px}
+.nav-icon{font-size:20px;line-height:1}
+.sections{padding:12px 14px 8px}
 .section{display:none}.section.active{display:block}
-.ww-card{border-radius:14px;padding:18px;margin-bottom:14px}
-.ww-card.day{background:linear-gradient(135deg,#534AB7,#7F77DD);color:white}
-.ww-card.night{background:linear-gradient(135deg,#1a1035,#2d1f5e);color:white}
-.ww-card.sleeping-day{background:linear-gradient(135deg,#534AB7,#7F77DD);color:white}
-.ww-card.sleeping-night{background:linear-gradient(135deg,#0d0820,#1a1035);color:white}
+.ww-card{border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.2)}
+.ww-card.day{background:linear-gradient(145deg,#5B4FC9 0%,#7C6FD6 45%,#9D91E8 100%);color:#fff}
+.ww-card.night{background:linear-gradient(145deg,#1e1b4b 0%,#312E81 50%,#4338CA 100%);color:#fff}
+.ww-card.sleeping-day{background:linear-gradient(145deg,#5B4FC9 0%,#7C6FD6 100%);color:#fff}
+.ww-card.sleeping-night{background:linear-gradient(145deg,#0f172a 0%,#1e1b4b 55%,#312E81 100%);color:#fff}
 .ww-label{font-size:11px;opacity:.7;margin-bottom:3px}
 .ww-title{font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.3}
 .ww-bar-bg{background:rgba(255,255,255,.2);border-radius:8px;height:8px;margin-bottom:6px}
@@ -52,14 +67,28 @@ button{font:inherit}
 .abtn.sleep-btn{background:rgba(255,255,255,.18);color:white;border:1.5px solid rgba(255,255,255,.4)}
 .abtn.wake-btn{background:rgba(255,220,100,.2);color:#ffe97a;border:1.5px solid rgba(255,220,100,.35)}
 .abtn.primary-btn{background:rgba(255,255,255,.9);color:#2D1F14}
-.quick-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:10px;margin-bottom:14px}
-.qbtn{background:var(--card);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;transition:transform .15s}
-.qbtn:active{transform:scale(.94)}
-.qbtn.f{border:1.5px solid #5DCAA5;color:#0F6E56}
-.qbtn.d{border:1.5px solid #F0997B;color:#993C1D}
-.qbtn.m{border:1.5px solid #AFA9EC;color:#534AB7}
-.qbtn .qi{font-size:22px}
-.pred-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.quick-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.qbtn{background:var(--card);border-radius:var(--radius-sm);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:700;transition:transform .12s,box-shadow .2s;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.qbtn:active{transform:scale(.97)}
+.qbtn.f{border-color:var(--feed-soft);background:var(--feed-soft);color:#0F766E}
+.qbtn.d{border-color:var(--diaper-soft);background:var(--diaper-soft);color:#9A3412}
+.qbtn.m{border-color:var(--sleep-soft);background:var(--sleep-soft);color:#4C1D95}
+.qbtn .qi{font-size:24px}
+.today-strip{background:var(--card);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.today-strip-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+.today-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tm-cell{text-align:center;padding:8px 4px;border-radius:10px;background:var(--card2);min-width:0}
+.tm-val{font-size:15px;font-weight:700;line-height:1.2;word-break:break-word}
+.tm-lbl{font-size:9px;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.tm-cell.sleep{border-bottom:3px solid var(--sleep)}
+.tm-cell.feed{border-bottom:3px solid var(--feed)}
+.tm-cell.diaper{border-bottom:3px solid var(--diaper)}
+.tm-cell.night-m{border-bottom:3px solid var(--night)}
+.legend-row{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;font-size:10px;color:var(--muted);justify-content:center}
+.legend-row span{display:inline-flex;align-items:center;gap:5px}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.legend-dot.nap{background:var(--sleep)}.legend-dot.night{background:var(--night)}
+.pred-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .pred-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .pred-card-title{font-size:14px;font-weight:700}
 .confidence-badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700}
@@ -83,8 +112,9 @@ button{font:inherit}
 .learn-bg{background:var(--border);border-radius:8px;height:6px}
 .learn-fill{border-radius:8px;height:6px;background:linear-gradient(90deg,#7F77DD,#1D9E75);transition:width .6s ease}
 .learn-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
-.night-summary{background:linear-gradient(135deg,#1a1035,#2d1f5e);border-radius:12px;padding:14px;margin-bottom:14px;color:white}
-.ns-title{font-size:11px;opacity:.7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.night-summary{background:linear-gradient(145deg,#1e1b4b,#312E81);border-radius:var(--radius-sm);padding:16px;margin-bottom:14px;color:#fff;box-shadow:var(--shadow-sm)}
+.ns-title{font-size:10px;opacity:.85;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.night-hint{font-size:10px;opacity:.75;margin-top:12px;line-height:1.45}
 .night-stats{display:flex}
 .nstat{flex:1;text-align:center;padding:0 4px}
 .nstat-val{font-size:20px;font-weight:700}
@@ -106,8 +136,12 @@ button{font:inherit}
 .etime{font-size:12px;color:var(--muted)}
 .edel{background:none;border:none;color:#E24B4A;cursor:pointer;font-size:15px;padding:2px 4px;line-height:1}
 .edetail{font-size:12px;color:var(--muted);margin-top:2px}
+.entry-badge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;display:inline-block;margin-left:6px;vertical-align:middle;letter-spacing:.02em}
+.badge-nap{background:var(--sleep-soft);color:#5B21B6}
+.badge-night{background:var(--night-soft);color:#3730A3}
+[data-theme="dark"] .badge-nap{color:#C4B5FD}[data-theme="dark"] .badge-night{color:#A5B4FC}
 .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat-card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm)}
 .slabel{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .sval{font-size:20px;font-weight:700}
 .ssub{font-size:10px;color:var(--muted);margin-top:2px}
@@ -120,12 +154,12 @@ button{font:inherit}
 .fgroup{margin-bottom:14px}
 .flabel{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.finput{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;background:#fff;color:#2D1F14}
+.finput{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;background:var(--card);color:var(--text)}
 .seg{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
-.segopt{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:#fff;border:none;font-family:'Nunito',sans-serif;transition:background .15s,color .15s}
+.segopt{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:var(--card);border:none;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s}
 .segopt.sel{background:var(--accent);color:#fff}
-.btn-save{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:11px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px}
-.btn-cancel{width:100%;padding:11px;background:none;color:var(--muted);border:1.5px solid var(--border);border-radius:11px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:7px}
+.btn-save{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#D4654A);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;box-shadow:0 4px 14px rgba(224,122,95,.35)}
+.btn-cancel{width:100%;padding:12px;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:7px}
 .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2D1F14;color:white;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:700;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 .abtn.pause-btn{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.25);font-size:12px;padding:10px 8px}
@@ -179,9 +213,9 @@ button{font:inherit}
 </style>
 </head>
 <body>
-<div class="install-banner" id="install-banner"><span>Instale o Napzinho no celular para usar offline.</span><button type="button" class="btn-save" style="margin-top:0;padding:8px 14px;font-size:12px" id="install-btn">Instalar</button></div>
+<div class="install-banner" id="install-banner"><span>Instale o app no celular para usar offline.</span><button type="button" class="btn-save" style="margin-top:0;padding:8px 14px;font-size:12px" id="install-btn">Instalar</button></div>
 <div class="header">
-  <div class="header-top"><span class="app-name">Napzinho</span><span class="age-badge" id="age-badge">3 meses</span></div>
+  <div class="header-top"><span class="app-name" id="header-app-name">Ninho</span><span class="age-badge" id="age-badge">3 meses</span></div>
   <div class="date-line" id="date-line"></div>
 </div>
 <div class="sections">
@@ -201,6 +235,7 @@ button{font:inherit}
       <div class="qbtn m" onclick="logManualSignal('cry')"><span class="qi">😭</span><span>Choro</span></div>
       <div class="qbtn d" onclick="logManualSignal('fussy')"><span class="qi">😣</span><span>Irritação</span></div>
     </div>
+    <div id="today-strip-block"></div>
     <div id="context-banner-block"></div>
     <div id="night-summary-block"></div>
     <div class="pred-card">
@@ -216,12 +251,14 @@ button{font:inherit}
     <div id="timeline"></div>
   </div>
   <div class="section" id="sec-stats">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.45">Tudo abaixo é o <strong>dia de hoje</strong> (meia-noite → meia-noite). Sono noturno que começou ontem à noite entra no total de <strong>hoje</strong> quando o bebê acorda de manhã.</p>
     <div class="stats-row">
-      <div class="stat-card"><div class="slabel">Sono hoje</div><div class="sval" id="s-sleep">0m</div><div class="ssub">meta: ~14–16h</div></div>
-      <div class="stat-card"><div class="slabel">Mamadas</div><div class="sval" id="s-feed">0</div><div class="ssub">meta: 8–12/dia</div></div>
-      <div class="stat-card"><div class="slabel">Fraldas</div><div class="sval" id="s-diaper">0</div><div class="ssub">normal: 6–8/dia</div></div>
-      <div class="stat-card"><div class="slabel">Despertares</div><div class="sval" id="s-wake">0</div><div class="ssub">esta noite</div></div>
+      <div class="stat-card"><div class="slabel">Sono (24h do dia)</div><div class="sval" id="s-sleep">0m</div><div class="ssub">sonecas + trechos noturnos</div></div>
+      <div class="stat-card"><div class="slabel">Mamadas</div><div class="sval" id="s-feed">0</div><div class="ssub">hoje</div></div>
+      <div class="stat-card"><div class="slabel">Fraldas</div><div class="sval" id="s-diaper">0</div><div class="ssub">hoje</div></div>
+      <div class="stat-card"><div class="slabel">Despertares</div><div class="sval" id="s-wake">0</div><div class="ssub">entre trechos da noite</div></div>
     </div>
+    <div class="legend-row"><span><i class="legend-dot nap"></i> Soneca (dia)</span><span><i class="legend-dot night"></i> Sono noturno</span></div>
     <div class="chart-wrap"><div class="chart-title">Sono por hora (últimas 8h)</div><div style="position:relative;height:110px"><canvas id="barChart"></canvas></div></div>
     <div class="chart-wrap">
       <div class="chart-title">Registros de hoje</div>
@@ -329,6 +366,7 @@ button{font:inherit}
       </div>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">Cada perfil tem seus próprios registros e configurações (dados só neste aparelho).</p>
     </div>
+    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do app (aparece no topo)</div><input class="finput" id="cfg-app-name" placeholder="Ex: Ninho" maxlength="24"></div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
     <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses</div><input class="finput" id="cfg-months" type="number" min="0" max="24"></div>
     <div class="stat-card" style="margin-bottom:12px">
@@ -349,7 +387,7 @@ button{font:inherit}
       <p class="ctx-note">Isso ajuda o app a sugerir janelas um pouco mais tolerantes quando o bebê tende a precisar de mais conforto ou tem sono mais fragmentado.</p>
     </div>
     <div class="stat-card" style="margin-bottom:12px">
-      <div class="slabel" style="margin-bottom:8px">Plano Napzinho</div>
+      <div class="slabel" style="margin-bottom:8px">Plano Premium</div>
       <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Freemium: registro básico é gratuito. Premium pode vir de assinatura ou chave vitalícia assinada por você.</p>
       <label class="ctx-row"><input type="checkbox" id="cfg-premium-local" onchange="applyPremiumLocalToggle()"> <span>Liberar Premium neste aparelho <strong>sem servidor</strong> (até você subir o backend)</span></label>
       <input class="finput" id="cfg-license-key" placeholder="Cole sua chave (ex: NAPZ-VITALICIO-AMIGOS)" style="margin-bottom:8px">
@@ -443,9 +481,7 @@ button{font:inherit}
 <div id="print-area"></div>
 <script>
 let entries=[];
-const APP_SCHEMA_VERSION=2;
-const BUILD_VERSION='2026.04.10.3';
-const defaultCfg=()=>({name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,trialUsedAt:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,dataSchemaVersion:APP_SCHEMA_VERSION});
+const defaultCfg=()=>({appName:'Ninho',name:'Bebê',months:3,nightStart:'18:00',darkTheme:false,remindNap:false,remindNight:false,ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false});
 let cfg={...defaultCfg()};
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 let reminderTimer=null;
@@ -469,7 +505,8 @@ function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Obje
 function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#1a1512':'#D85A30');}
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;applyTheme();persistAll();}
 function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=!!$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?'🔓 Premium liberado (local)':'Plano gratuito');}
-function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
+function applyAppName(){const n=(cfg.appName||'Ninho').trim()||'Ninho';document.title=n;const h=$('header-app-name');if(h)h.textContent=n;}
+function syncSettingsForm(){const an=$('cfg-app-name');if(an)an.value=cfg.appName||'Ninho';applyAppName();$('cfg-name').value=cfg.name||'';$('cfg-months').value=cfg.months||3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('age-badge').textContent=(cfg.months||3)+' meses';$('cfg-license-key').value=cfg.licenseToken||'';const pl=$('cfg-premium-local');if(pl)pl.checked=!!cfg.premiumUnlockLocal;const api=$('cfg-license-api');if(api)api.value=localStorage.getItem('nz_license_api_base')||'http://localhost:8787';updatePremiumStatusText();}
 let curModal=null,state={feedType:'breast',diaperType:'wet'};
 let wwTimer=null,barChart=null,donutChart=null;
 const $=id=>document.getElementById(id);
@@ -483,11 +520,18 @@ const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m};
 const minsToTime=m=>{const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0')};
 const isNightHour=s=>{const h=parseInt(s.split(':')[0]);const nh=parseInt((cfg.nightStart||'18:00').split(':')[0]);return h>=nh||h<6};
 const isDayHour=s=>!isNightHour(s);
+const wakeCountsAsDayForPredictions=endStr=>{if(!endStr)return false;const m=timeToMins(endStr);return isDayHour(endStr)||m<360;};
 const isNight=e=>e.type==='sleep'&&isNightHour(e.start);
 const getActiveSleep=()=>entries.filter(e=>e.type==='sleep'&&!e.end).sort((a,b)=>b.id-a.id)[0]||null;
 const todayEntries=()=>entries.filter(e=>e.date===todayStr());
+const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
+function sleepWakeCalendarDay(e){if(!e||e.type!=='sleep'||!e.end)return null;return fmtDateSV(sleepEndDate(e));}
+function totalSleepMinsCalendarDay(ymd){let sum=0;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;if(isNight(e)){if(sleepWakeCalendarDay(e)===ymd)sum+=e.durationMins;}else{if(e.date===ymd)sum+=e.durationMins;}});const a=getActiveSleep();if(a&&a.type==='sleep'&&!a.end){const st=parseTimeOnDate(a.start,a.date);const cur=Math.max(0,Math.round((now()-st)/60000));if(isNight(a)){const wd=fmtDateSV(sleepEndDate({...a,end:fmtTime(now())}));if(wd===ymd)sum+=cur;}else if(a.date===ymd)sum+=cur;}return sum;}
+function calendarDayEntries(ymd){return entries.filter(e=>{if(!e||!e.date)return false;if(e.type!=='sleep')return e.date===ymd;if(e.type==='sleep'&&!e.end){const act=getActiveSleep();if(!act||act.id!==e.id)return false;if(!isNight(e))return e.date===ymd;return ymd===todayStr();}if(e.end&&isNight(e))return sleepWakeCalendarDay(e)===ymd;return e.date===ymd;});}
+function nightSegmentsOnWakeDay(ymd){const segs=entries.filter(e=>e.type==='sleep'&&isNight(e)&&e.end&&sleepWakeCalendarDay(e)===ymd).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));return segs;}
+function nightWakeCountBetweenSegments(ymd){const segs=nightSegmentsOnWakeDay(ymd);return segs.length>1?segs.length-1:0;}
 const wwBaseTarget=m=>{if(m<=2)return 60;if(m<=4)return 90;if(m<=6)return 120;if(m<=9)return 150;if(m<=12)return 180;return 210};
-function sleepEndDate(e){const d=new Date(e.date+'T12:00:00');const[h,m]=e.end.split(':').map(Number);d.setHours(h,m,0,0);if(timeToMins(e.end)<timeToMins(e.start)){d.setDate(d.getDate()+1);}return d;}
+function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.end.split(':').map(Number);d.setHours(h,m,0,0);if(timeToMins(e.end)<timeToMins(e.start)){d.setDate(d.getDate()+1);}return d;}
 function getLastCompletedSleep(){const recent=entries.filter(e=>e.type==='sleep'&&e.end);recent.sort((a,b)=>sleepEndDate(b)-sleepEndDate(a));return recent[0]||null;}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1]}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3]}
@@ -606,151 +650,27 @@ async function syncEntitlementFromBackend(){
 }
 function getWakeRisk(minutesAwake,target){const ratio=target?minutesAwake/target:0; if(ratio<0.85) return {label:'Baixo',cls:'risk-low',msg:'ainda dentro da janela esperada'}; if(ratio<1.1) return {label:'Moderado',cls:'risk-mid',msg:'atenção aos sinais de sono agora'}; return {label:'Alto',cls:'risk-high',msg:'probabilidade de supercansaço elevada'};}
 function formatTimeUntil(timeStr){const nowM=timeToMins(fmtTime(now()));let diff=timeToMins(timeStr)-nowM;if(diff<0)diff+=1440;return diff;}
-function getLastByType(type){return entries.filter(e=>e.type===type).sort((a,b)=>b.id-a.id)[0]||null;}
-function getRecentSignalCount(minutes=120){const cutoff=Date.now()-minutes*60000;return entries.filter(e=>e.type==='signal'&&e.atMs&&e.atMs>=cutoff).length;}
-function logManualSignal(kind){
-  const t=fmtTime(now());
-  entries.push({id:Date.now(),date:todayStr(),type:'signal',subtype:kind,start:t,atMs:Date.now()});
-  save();
-  showToast(kind==='cry'?'😭 Choro registrado':'😣 Irritação registrada');
-  renderHome();
-}
-function buildCopilotDecision(){
-  const lastSleep=getLastCompletedSleep();
-  const lastFeed=getLastByType('feed');
-  const awake=wwCurrentAwakeMinutes();
-  const wakeTarget=wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3);
-  const irrit=getRecentSignalCount(90);
-  if(!lastSleep||!lastFeed){
-    return {title:'Primeiros dados',body:'Faça 1 registro de sono e 1 mamada. Depois eu começo a antecipar decisões em tempo real.'};
-  }
-  const feedGap=Math.max(0,Math.floor((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000));
-  const wakeRatio=awake/Math.max(1,wakeTarget);
-  if(wakeRatio>1.05&&irrit>0)return{title:'Ação em 10 min',body:'Mais provável: supercansaço. Comece ritual curto de soneca agora para evitar colapso.'};
-  if(feedGap>170)return{title:'Ação agora',body:'Mais provável: fome. Ofereça mamada antes de tentar nova soneca.'};
-  if(wakeRatio>0.9)return{title:'Preparar ambiente',body:'Janela quase no limite. Reduza estímulos e planeje sono em ~15 minutos.'};
-  return{title:'Manter ritmo',body:'Tudo dentro da faixa esperada. Próximo passo: rotina calma e observação dos sinais.'};
-}
-function runCryDiagnosis(context){
-  const lastFeed=getLastByType('feed');
-  const lastSleep=getLastCompletedSleep();
-  const base={sleep:35,hunger:35,discomfort:30};
-  if(lastFeed){const gap=Math.max(0,Math.floor((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000));if(gap>150)base.hunger+=25;else if(gap<75)base.hunger-=8;}
-  if(lastSleep&&lastSleep.end){const awake=Math.max(0,Math.floor((now()-sleepEndDate(lastSleep))/60000));const target=wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3);if(awake>target)base.sleep+=30;else if(awake<target*0.55)base.sleep-=10;}
-  const irrit=getRecentSignalCount(60);base.discomfort+=Math.min(18,irrit*6);
-  if(context==='feed')base.hunger+=10;
-  if(context==='sleep')base.sleep+=10;
-  const sum=Math.max(1,base.sleep+base.hunger+base.discomfort);
-  const pct={sleep:Math.round(base.sleep/sum*100),hunger:Math.round(base.hunger/sum*100),discomfort:Math.round(base.discomfort/sum*100)};
-  const order=Object.entries(pct).sort((a,b)=>b[1]-a[1]);
-  const map={sleep:'sono',hunger:'fome',discomfort:'desconforto'};
-  $('cry-diagnosis').innerHTML=`<strong>Mais provável: ${map[order[0][0]]} (${order[0][1]}%)</strong>Alternativas: ${map[order[1][0]]} (${order[1][1]}%), ${map[order[2][0]]} (${order[2][1]}%).`;
-}
-async function maybeTriggerCollapseAlert(message){
-  if('vibrate' in navigator)navigator.vibrate([120,80,120]);
-  try{
-    const granted=await requestNotify();
-    if(granted)new Notification('Napzinho — Prevenção de colapso',{body:message});
-  }catch(e){}
-}
-function renderCollapsePrevention(){
-  const awake=wwCurrentAwakeMinutes();
-  const target=wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3);
-  const irrit=getRecentSignalCount(90);
-  const riskHigh=awake>target&&irrit>0;
-  const block=$('collapse-alert');
-  if(!block)return;
-  if(riskHigh){
-    const msg='Alto risco de irritação em 10–20 min. Reduza estímulos e inicie rotina de sono.';
-    block.innerHTML=`<strong>Risco alto detectado</strong>${msg}<div class="risk-alert">Sinais: acordado há ${awake} min + ${irrit} evento(s) de irritação.</div>`;
-    const key='nz_collapse_alert_'+Math.floor(Date.now()/600000);
-    if(!sessionStorage.getItem(key)){sessionStorage.setItem(key,'1');maybeTriggerCollapseAlert(msg);}
-    return;
-  }
-  block.innerHTML=`<strong>Sem risco alto agora</strong>Acordado há ${awake} min (limite estimado: ${target} min).`;
-}
-function runNightSurvival(mode){
-  const el=$('night-survival-flow');if(!el)return;
-  if(mode==='crying'){el.innerHTML='1) Tente acalmar no berço por 2 min.<br>2) Se persistir, pegue no colo por 3–5 min.<br>3) Se continuar, alimentar e recoloque sonolento.';return;}
-  el.innerHTML='1) Aguarde 60–90 segundos sem intervir.<br>2) Se voltar a dormir, não retire do berço.<br>3) Se escalar para choro, siga o fluxo “acordou chorando”.';
-}
-function renderDailyPlan(){
-  const box=$('daily-plan');if(!box)return;
-  const lastSleep=getLastCompletedSleep();
-  const lastFeed=getLastByType('feed');
-  if(!lastSleep||!lastSleep.end||!lastFeed){box.innerHTML='Aguardando mais registros para gerar previsão dinâmica.';return;}
-  const todaySleep=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
-  const nap=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,todaySleep);
-  const feed=smartPredictNextFeed(lastFeed.start);
-  const poorSleep=(lastSleep.durationMins||0)<35;
-  box.innerHTML=`<strong>Próximos passos</strong>Próxima soneca: ~${nap.center} · próxima mamada: ~${feed.center}.${poorSleep?' Última soneca curta: ajustei a janela para mais cedo.':''}`;
-}
-const DEV_RULES=[
-  {key:'rol',min:4,max:7,ok:'Muitos bebês rolam entre 4–7 meses.',warn:'Se não houver tentativa até 7 meses, vale discutir com o pediatra.'},
-  {key:'sent',min:6,max:9,ok:'Sentar sem apoio costuma surgir entre 6–9 meses.',warn:'Sem progresso após 9 meses: observar com pediatra.'},
-  {key:'balb',min:4,max:8,ok:'Balbucio costuma aparecer entre 4–8 meses.',warn:'Ausência total de sons após 8 meses merece avaliação.'}
-];
-function runDevelopmentTranslator(){
-  const text=(($('dev-input')||{}).value||'').toLowerCase();
-  const out=$('dev-output');if(!out)return;
-  if(!text.trim()){out.textContent='Escreva um comportamento para traduzir.';return;}
-  const months=parseInt(cfg.months)||3;
-  const rule=DEV_RULES.find(r=>text.includes(r.key))||DEV_RULES[0];
-  if(months<=rule.max){out.innerHTML=`<strong>Status: normal</strong>${rule.ok} Continue estimulando brincadeiras simples no chão.`;return;}
-  out.innerHTML=`<strong>Status: atenção</strong>${rule.warn} Procure médico se houver regressão, rigidez ou perda de habilidades.`;
-}
-function runConsequenceSimulation(type){
-  const map={
-    skipNap:'<strong>Risco de irritação: alto</strong>Impacto no sono noturno: médio/alto. Tente micro-soneca de resgate (15–25 min).',
-    lateNap:'<strong>Risco de irritação: médio</strong>Impacto no sono noturno: alto (demora para adormecer).',
-    feedDelay:'<strong>Risco de irritação: médio/alto</strong>Impacto no sono noturno: médio por fome acumulada.',
-    overtiredNight:'<strong>Risco de irritação: alto</strong>Impacto no sono noturno: alto com mais despertares.'
-  };
-  $('sim-output').innerHTML=map[type]||'Cenário não encontrado.';
-}
-function renderCopilotSuite(){
-  const c=$('copilot-now');
-  if(c){const d=buildCopilotDecision();c.innerHTML=`<strong>${d.title}</strong>${d.body}`;}
-  renderCollapsePrevention();
-  renderDailyPlan();
-}
-function runStoreReadinessCheck(){
-  const out=$('store-readiness-output');if(!out)return;
-  const checks=[
-    {ok:location.protocol==='https:'||location.hostname==='localhost',txt:'App em HTTPS (ou localhost para dev)'},
-    {ok:'serviceWorker' in navigator,txt:'Service Worker disponível (offline/install)'},
-    {ok:!!document.querySelector('link[rel=\"manifest\"]'),txt:'Manifest configurado'},
-    {ok:typeof cfg.licenseToken==='string',txt:'Camada de entitlement local existente'},
-    {ok:true,txt:'Android: falta wrapper TWA + Play Billing Library no app nativo'},
-    {ok:true,txt:'iOS: falta wrapper nativo + StoreKit (IAP) com validação de recibo'}
-  ];
-  out.innerHTML=checks.map(c=>`${c.ok?'✅':'❌'} ${c.txt}`).join('<br>');
-}
 function buildEmotionalMessages(){
-  const st=[];const months=parseInt(cfg.months)||3;const tday=todayEntries();const nightWakes=tday.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
-  const todaySleep=tday.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
-  const feeds=tday.filter(e=>e.type==='feed').length;
-  const signals=getRecentSignalCount(120);
-  const awake=wwCurrentAwakeMinutes(),target=wwCurrentTargetMinutes()||wwBaseTarget(months);
-  if(nightWakes>=2&&months<=6) st.push({title:'Isso é normal nesta fase',body:'Despertares noturnos são comuns até perto dos 6 meses. Você não está falhando, é desenvolvimento.'});
-  if(signals>=3) st.push({title:'Dia emocionalmente pesado',body:'Você registrou vários sinais de desconforto. Priorize previsibilidade, baixa luz e pausas sensoriais curtas.'});
-  if(awake>target&&signals>0) st.push({title:'Seu timing está salvando o fim do dia',body:'Você identificou sinais antes do pico. Uma rotina curta agora pode evitar espiral de irritação.'});
-  if(todaySleep>=600) st.push({title:'Bom acúmulo de sono hoje',body:'O total de sono está sólido para a idade. Isso tende a reduzir despertares por exaustão.'});
-  if(feeds>=6) st.push({title:'Base fisiológica bem cuidada',body:'Frequência de mamadas adequada ajuda humor e qualidade do sono.'});
-  if(!st.length) st.push({title:'Você está fazendo o suficiente',body:'Nem todo dia vai ser linear. Ajustes pequenos e repetidos funcionam melhor que perfeição.'});
+  const st=[];const months=parseInt(cfg.months)||3;const td=todayStr();const nightWakes=nightWakeCountBetweenSegments(td);
+  if(nightWakes>=2&&months<=6) st.push({title:'Isso é normal nesta fase',body:'Despertares noturnos são comuns até perto dos 6 meses. Você não está fazendo nada errado.'});
+  const todaySleep=totalSleepMinsCalendarDay(td);
+  if(todaySleep>=600) st.push({title:'Você está no caminho certo',body:'A rotina de hoje já acumulou boas horas de sono para a idade.'});
+  const feeds=calendarDayEntries(td).filter(e=>e.type==='feed').length;
+  if(feeds>=6) st.push({title:'Base fisiológica bem cuidada',body:'Boa frequência de mamadas ajuda a reduzir despertares por fome.'});
+  if(!st.length) st.push({title:'Consistência > perfeição',body:'Pequenos ajustes diários já fazem diferença no sono em poucos dias.'});
   return st.slice(0,3);
 }
 function buildDailyInsights(){
-  const list=[];const today=todayEntries();
+  const list=[];const td=todayStr();const today=calendarDayEntries(td);
   const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);
   const naps=sleeps.filter(e=>!isNight(e));
-  const wakes=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;
+  const wakes=nightWakeCountBetweenSegments(td);
   if(naps.length>=2){
     const lateNap=naps.some(e=>timeToMins(e.start)>timeToMins(cfg.nightStart||'18:00')-90);
     if(lateNap&&wakes>=2) list.push({title:'Diagnóstico',body:'Soneca tardia + mais despertares. Recomendação: antecipe a próxima soneca em 20 min.'});
   }
   const last=getLastCompletedSleep();
-  if(last&&isDayHour(last.end)){
+  if(last&&wakeCountsAsDayForPredictions(last.end)){
     const target=wwBaseTarget(parseInt(cfg.months)||3)+Math.min(25,getContextAdjust().napAdj);
     const awake=Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));
     if(awake>target) list.push({title:'Ação agora',body:'Janela extrapolada. Inicie rotina de soneca nos próximos 10 minutos.'});
@@ -773,10 +693,12 @@ function renderIntelligenceBlocks(){
   ins.innerHTML=buildDailyInsights().map(i=>`<div class="insight-item"><strong>${i.title}</strong>${i.body}</div>`).join('');
 }
 
-function renderHome(){renderTimeline();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary();renderIntelligenceBlocks();renderCopilotSuite();maybeEnforcePaywall()}
+function renderTodayStrip(){const el=$('today-strip-block');if(!el)return;const ymd=todayStr();const td=calendarDayEntries(ymd);let napM=td.filter(e=>e.type==='sleep'&&e.durationMins&&!isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);let nightM=td.filter(e=>e.type==='sleep'&&e.durationMins&&isNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);const a=getActiveSleep();if(a&&a.type==='sleep'&&!a.end){const st=parseTimeOnDate(a.start,a.date);const cur=Math.max(0,Math.round((now()-st)/60000));if(isNight(a)){if(ymd===todayStr())nightM+=cur;}else if(a.date===ymd)napM+=cur;}const totalM2=totalSleepMinsCalendarDay(ymd);
+el.innerHTML=`<div class="today-strip"><div class="today-strip-title">Hoje em um olhar</div><div class="today-metrics"><div class="tm-cell sleep"><div class="tm-val">${fmtDur(totalM2)}</div><div class="tm-lbl">Sono total</div></div><div class="tm-cell feed"><div class="tm-val">${td.filter(e=>e.type==='feed').length}</div><div class="tm-lbl">Mamadas</div></div><div class="tm-cell diaper"><div class="tm-val">${td.filter(e=>e.type==='diaper').length}</div><div class="tm-lbl">Fraldas</div></div><div class="tm-cell night-m"><div class="tm-val">${nightWakeCountBetweenSegments(ymd)}</div><div class="tm-lbl">Despertares</div></div></div><p style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.4">Sonecas <strong>${fmtDur(napM)}</strong> · Noturno <strong>${fmtDur(nightM)}</strong> (trechos que terminam ao acordar de manhã)</p></div>`;}
+function renderHome(){renderTimeline();renderTodayStrip();renderContextBanner();updateWW();renderPredictions();renderLearnBar();renderNightSummary();renderIntelligenceBlocks()}
 function renderLearnBar(){const p=getLearningPhase();$('learn-fill').style.width=p.pct+'%';$('learn-phase').textContent=p.label;if(p.phase===3)$('learn-bar-wrap').style.display='none'}
-function renderPredictions(){const today=todayEntries();const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const premium=canUsePremiumFeatures();if(!premium){$('pred-list').innerHTML='<div class="insight-item"><strong>Predição avançada é Premium</strong>Ative o teste grátis para ver próxima janela em tempo real e alertas de risco.</div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=isDayHour(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name.includes('soneca')?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3)):null;return `<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail} · próxima janela em ${mins} min</div>${risk?`<span class="risk-chip ${risk.cls}">⚠️ ${risk.msg}</span>`:''}${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`}).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
-function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()">☀️ Acordou agora</button></div>';return;}const last=getLastCompletedSleep();if(!last){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()">🌙 Dormiu agora</button></div>';return;}const wokeInDaytime=isDayHour(last.end);const isN=!wokeInDaytime&&nightNow;const months=parseInt(cfg.months)||3;const cxAdj=Math.min(25,getContextAdjust().napAdj);const base=wwBaseTarget(months)+(!isN?cxAdj:0);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=sleepEndDate(last);const nc=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');function tick(){let diff;if(paused){diff=paused.elapsed;}else{diff=Math.floor((now()-endT)/60000);}if(diff<0)diff=0;const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min'+(paused?' ⏸️':'');if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc.length>1?(nc.length+'° despertar desta noite'):'Primeiro despertar noturno';const s=getSuggestion(diff,nc.length);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);const pauseLabel=paused?'▶️ Retomar':'⏸️ Pausar';actions.innerHTML=`<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()">🌙 Dormiu</button><button class="abtn wake-btn" onclick="openModal('feed')">🍼 Mamou</button></div><div class="action-row one" style="margin-top:6px"><button class="abtn pause-btn" onclick="togglePause()">${pauseLabel} contagem</button></div>`;}
+function renderPredictions(){const today=calendarDayEntries(todayStr());const phase=getLearningPhase();const cm={low:'conf-low',mid:'conf-mid',high:'conf-high'};const cl={low:'aprendendo',mid:'ajustando',high:'preciso'};const b=$('conf-badge');b.className='confidence-badge '+cm[phase.conf];b.textContent=cl[phase.conf];const premium=canUsePremiumFeatures();if(!premium){$('pred-list').innerHTML='<div class="insight-item"><strong>Predição avançada é Premium</strong>Ative o teste grátis para ver próxima janela em tempo real e alertas de risco.</div>';return;}const preds=[];const lastSleep=getLastCompletedSleep();const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const nsM=timeToMins(cfg.nightStart||'18:00');if(lastSleep&&lastSleep.end){const wokeDay=wakeCountsAsDayForPredictions(lastSleep.end);if(wokeDay){const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);const fallsInNightWindow=timeToMins(p.center)>=nsM;if(fallsInNightWindow){preds.push({icon:'🌙',name:'Início do sono noturno',detail:'Janela para começar a dormir à noite',pred:nightStartPrediction()});}else{preds.push({icon:'☀️',name:'Próxima soneca',detail:'Janela estimada (sonecas do dia)',pred:p});preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}else{preds.push({icon:'🌙',name:'Rotina da noite',detail:'Quando pensar no sono noturno',pred:nightStartPrediction()});}}const lf=today.filter(e=>e.type==='feed').sort((a,b)=>a.start>b.start?-1:1)[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];if(lf){const p=smartPredictNextFeed(lf.start);preds.push({icon:'🍼',name:'Próxima mamada',detail:'Intervalo estimado',pred:p});}$('pred-list').innerHTML=preds.length?preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.name.includes('soneca')?getWakeRisk((wwCurrentAwakeMinutes()||0),wwCurrentTargetMinutes()||wwBaseTarget(parseInt(cfg.months)||3)):null;return `<div class="pred-item"><span class="pred-icon">${p.icon}</span><div class="pred-body"><div class="pred-name">${p.name}</div><div class="pred-detail">${p.detail} · próxima janela em ${mins} min</div>${risk?`<span class="risk-chip ${risk.cls}">⚠️ ${risk.msg}</span>`:''}${phase.phase>1?`<div class="pred-basis">baseado no ${p.pred.basis}</div>`:''}</div><div class="pred-time-block"><div class="pred-time-main">${p.pred.center}</div>${phase.phase>1?`<div class="pred-time-range">${p.pred.from} – ${p.pred.to}</div>`:''}</div></div>`}).join(''):'<div class="empty" style="padding:4px 0">Registre dados para ver previsões</div>'}
+function updateWW(){if(wwTimer)clearInterval(wwTimer);const active=getActiveSleep();const card=$('ww-card');const actions=$('ww-actions');const sugg=$('ww-suggestion');const nightNow=isNightHour(fmtTime(now()));if(active){card.className='ww-card '+(isNight(active)?'sleeping-night':'sleeping-day');$('ww-label').textContent=isNight(active)?'Noite em andamento':'Soneca em andamento';$('ww-title').textContent='Dormindo desde '+active.start+' 😴';$('ww-bar').style.cssText='width:100%;background:rgba(255,255,255,.5)';$('ww-sub').textContent='Toque em "Acordou" quando despertar';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn wake-btn" onclick="babyWoke()">☀️ Acordou agora</button></div>';return;}const last=getLastCompletedSleep();if(!last){card.className='ww-card '+(nightNow?'night':'day');$('ww-label').textContent='Pronto para registrar';$('ww-title').textContent=nightNow?'Boa noite 🌙':'Bom dia ☀️';$('ww-bar').style.cssText='width:0%';$('ww-sub').textContent='Toque em "Dormiu" quando adormecer';sugg.innerHTML='';actions.innerHTML='<div class="action-row one"><button class="abtn primary-btn" onclick="babySlept()">🌙 Dormiu agora</button></div>';return;}const wokeInDaytime=wakeCountsAsDayForPredictions(last.end);const isN=!wokeInDaytime&&nightNow;const months=parseInt(cfg.months)||3;const cxAdj=Math.min(25,getContextAdjust().napAdj);const base=wwBaseTarget(months)+(!isN?cxAdj:0);card.className='ww-card '+(isN?'night':'day');$('ww-label').textContent=isN?'Sono noturno — acordado':'Janela de sono';const endT=sleepEndDate(last);const segsToday=nightSegmentsOnWakeDay(todayStr());const nc=segsToday.length;const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');function tick(){let diff;if(paused){diff=paused.elapsed;}else{diff=Math.floor((now()-endT)/60000);}if(diff<0)diff=0;const h=Math.floor(diff/60),m=diff%60;$('ww-title').textContent='Acordado há '+(h>0?h+'h ':'')+m+'min'+(paused?' ⏸️':'');if(isN){$('ww-bar').style.width=Math.min(100,diff/45*100)+'%';$('ww-bar').style.background=diff<10?'rgba(255,255,255,.4)':diff<20?'#FAC775':'#F09595';$('ww-sub').textContent=nc>1?(nc+'° trecho desta noite (despertar entre ciclos)'):'Primeiro trecho desta noite';const s=getSuggestion(diff,nc);sugg.innerHTML=`<div class="suggestion"><strong>${s.title}</strong>${s.body}</div>`;}else{const pct=Math.min(100,Math.round(diff/base*100));$('ww-bar').style.width=pct+'%';const rem=base-diff;if(rem<=0){$('ww-sub').textContent='Hora da soneca! Janela atingida';$('ww-bar').style.background='#F09595';}else if(rem<=15){$('ww-sub').textContent='Faltam ~'+rem+'min — prepare o ambiente';$('ww-bar').style.background='#FAC775';}else{$('ww-sub').textContent='Janela: '+base+'min · faltam '+fmtDur(rem);$('ww-bar').style.background='rgba(255,255,255,.7)';}sugg.innerHTML='';}}tick();wwTimer=setInterval(tick,15000);const pauseLabel=paused?'▶️ Retomar':'⏸️ Pausar';actions.innerHTML=`<div class="action-row two"><button class="abtn sleep-btn" onclick="babySlept()">🌙 Dormiu</button><button class="abtn wake-btn" onclick="openModal('feed')">🍼 Mamou</button></div><div class="action-row one" style="margin-top:6px"><button class="abtn pause-btn" onclick="togglePause()">${pauseLabel} contagem</button></div>`;}
 
 function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
 function wwCurrentTargetMinutes(){const months=parseInt(cfg.months)||3;return wwBaseTarget(months)+Math.min(25,getContextAdjust().napAdj);}
@@ -785,23 +707,23 @@ function getSuggestion(d,c){if(d<5)return{title:'Acabou de acordar',body:'Aguard
 function togglePause(){const last=getLastCompletedSleep();if(!last)return;const endT=sleepEndDate(last);const paused=JSON.parse(localStorage.getItem('nz3_paused')||'null');if(paused){const pausedMs=paused.elapsed*60000;const newEnd=new Date(now().getTime()-pausedMs);const newEndStr=fmtTime(newEnd);entries.forEach(e=>{if(e.id===last.id)e.end=newEndStr;});save();localStorage.removeItem('nz3_paused');showToast('▶️ Contagem retomada');}else{const elapsed=Math.floor((now()-endT)/60000);localStorage.setItem('nz3_paused',JSON.stringify({elapsed,at:Date.now()}));showToast('⏸️ Contagem pausada');}renderHome();}
 function babySlept(){if(getActiveSleep()){showToast('Já tem sono em andamento!');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'sleep',subtype:isNightHour(t)?'night':'nap',start:t,end:null});save();showToast('😴 Dormiu às '+t);renderHome()}
 function babyWoke(){const active=getActiveSleep();if(!active){showToast('Nenhum sono ativo');return;}localStorage.removeItem('nz3_paused');const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const sm=parseTime(entries[idx].start),em=parseTime(t);if(em<sm)em.setDate(em.getDate()+1);entries[idx].durationMins=Math.round((em-sm)/60000);save();showToast('☀️ Acordou às '+t);renderHome()}
-function renderNightSummary(){const block=$('night-summary-block');const cycles=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)&&e.end);if(cycles.length<2){block.innerHTML='';return;}const total=cycles.reduce((a,e)=>a+(e.durationMins||0),0);const allN=todayEntries().filter(e=>e.type==='sleep'&&isNight(e)).sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=0;i<allN.length-1;i++){if(allN[i].end&&allN[i+1].start){const d=timeToMins(allN[i+1].start)-timeToMins(allN[i].end);if(d>0)iv.push(d);}}const aw=iv.length?Math.round(iv.reduce((a,b)=>a+b,0)/iv.length):0;block.innerHTML=`<div class="night-summary"><div class="ns-title">Resumo noturno</div><div class="night-stats"><div class="nstat"><div class="nstat-val">${fmtDur(total)}</div><div class="nstat-label">dormido</div></div><div class="nstat"><div class="nstat-val">${cycles.length}</div><div class="nstat-label">ciclos</div></div><div class="nstat"><div class="nstat-val">${aw?fmtDur(aw):'—'}</div><div class="nstat-label">acord. médio</div></div></div><div class="cycle-pills">${cycles.map((e,i)=>`<span class="cpill sl">${fmtDur(e.durationMins)}</span>${i<cycles.length-1&&iv[i]?`<span class="cpill aw">↑${fmtDur(iv[i])}</span>`:''}`).join('')}</div></div>`}
-function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧',signal:'🚩',unknown:'📝'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos',signal:e.subtype==='cry'?'Choro manual':'Irritação manual',unknown:'Registro'};const cls={sleep:'s',feed:'f',diaper:'d',signal:'sg',unknown:'d'};const tp=icons[e.type]?e.type:'unknown';const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);let detail='';if(tp==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(tp==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start||'sem horário';return`<div class="entry"><div class="edot ${cls[tp]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[tp]} ${labels[tp]}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start||'--:--'}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
-function renderTimeline(){const t=todayEntries().slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
+function renderNightSummary(){const block=$('night-summary-block');const ymd=todayStr();const cycles=nightSegmentsOnWakeDay(ymd);if(cycles.length<2){block.innerHTML='';return;}const total=cycles.reduce((a,e)=>a+(e.durationMins||0),0);const iv=[];for(let i=0;i<cycles.length-1;i++){if(cycles[i].end&&cycles[i+1].start){const d=timeToMins(cycles[i+1].start)-timeToMins(cycles[i].end);if(d>0)iv.push(d);}}const aw=iv.length?Math.round(iv.reduce((a,b)=>a+b,0)/iv.length):0;block.innerHTML=`<div class="night-summary"><div class="ns-title">Noite (até acordar de manhã)</div><div class="night-stats"><div class="nstat"><div class="nstat-val">${fmtDur(total)}</div><div class="nstat-label">dormido</div></div><div class="nstat"><div class="nstat-val">${cycles.length}</div><div class="nstat-label">trechos</div></div><div class="nstat"><div class="nstat-val">${aw?fmtDur(aw):'—'}</div><div class="nstat-label">entre trechos</div></div></div><div class="cycle-pills">${cycles.map((e,i)=>`<span class="cpill sl">${fmtDur(e.durationMins)}</span>${i<cycles.length-1&&iv[i]?`<span class="cpill aw">↑${fmtDur(iv[i])}</span>`:''}`).join('')}</div><p class="night-hint">Sono noturno é o que termina ao acordar de manhã — pode começar no dia anterior.</p></div>`}
+function entryHTML(e){const icons={sleep:'🌙',feed:'🍼',diaper:'💧'};const labels={sleep:isNight(e)?'Sono noturno':'Soneca',feed:e.subtype==='breast'?'Seio':'Mamadeira',diaper:e.subtype==='wet'?'Fralda — xixi':e.subtype==='dirty'?'Fralda — cocô':'Fralda — ambos'};const cls={sleep:'s',feed:'f',diaper:'d'};const dateLbl=e.date===todayStr()?'Hoje':formatShortDate(e.date);const sleepTag=e.type==='sleep'?(isNight(e)?'<span class="entry-badge badge-night">Noite</span>':'<span class="entry-badge badge-nap">Soneca</span>'):'';let detail='';if(e.type==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento');if(e.durationMins)detail+=' ('+fmtDur(e.durationMins)+')';}else if(e.type==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+'min':'');}else detail=e.start;return`<div class="entry"><div class="edot ${cls[e.type]}"></div><div class="ebody"><div class="eheader"><span class="etype">${icons[e.type]} ${labels[e.type]}${sleepTag}</span><div class="eright"><span class="etime">${dateLbl} · ${e.start}</span><button class="edel" onclick="deleteEntry(${e.id})">×</button></div></div><div class="edetail">${detail}</div></div></div>`}
+function renderTimeline(){const t=calendarDayEntries(todayStr()).slice().reverse();$('timeline').innerHTML=t.length?t.map(entryHTML).join(''):'<div class="empty">Nenhum registro hoje ainda</div>'}
 function renderHistory(){const s=[...entries].sort((a,b)=>b.id-a.id);if(!s.length){$('history-list').innerHTML='<div class="empty">Nenhum registro ainda</div>';return;}let last='',html='';s.forEach(e=>{if(e.date!==last){last=e.date;const d=new Date(e.date+'T12:00:00');html+=`<div class="sec-title" style="margin-top:14px">${d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>`;}html+=entryHTML(e);});$('history-list').innerHTML=html}
-function renderCharts(){const today=todayEntries();const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=today.filter(e=>e.type==='sleep'&&isNight(e)&&e.end).length;$('s-sleep').textContent=fmtDur(sleeps.reduce((a,e)=>a+(e.durationMins||0),0))||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7F77DD',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7F77DD','#1D9E75','#D85A30'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
+function renderCharts(){const ymd=todayStr();const today=calendarDayEntries(ymd);const sleeps=today.filter(e=>e.type==='sleep'&&e.durationMins);const feeds=today.filter(e=>e.type==='feed');const diapers=today.filter(e=>e.type==='diaper');const nw=nightWakeCountBetweenSegments(ymd);const totalM=totalSleepMinsCalendarDay(ymd);$('s-sleep').textContent=fmtDur(totalM)||'0m';$('s-feed').textContent=feeds.length;$('s-diaper').textContent=diapers.length;$('s-wake').textContent=nw;const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+':00');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}if(barChart)barChart.destroy();barChart=new Chart($('barChart'),{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:'#7C6FD6',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{max:60,ticks:{callback:v=>v+'min',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});if(donutChart)donutChart.destroy();const sc=sleeps.length,fc=feeds.length,dc=diapers.length;if(sc+fc+dc>0)donutChart=new Chart($('donutChart'),{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#7C6FD6','#0D9488','#EA580C'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}})}
 function deleteEntry(id){entries=entries.filter(e=>e.id!==id);save();renderHome();showToast('Removido')}
 function save(){persistAll();}
 function openModal(type){curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).style.display=t===type?'block':'none');const titles={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Registrar sono manual'};$('modal-title').textContent=titles[type]||'Registrar';const t=fmtTime(now());const td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-overlay').classList.add('open')}
 function closeModal(){$('modal-overlay').classList.remove('open')}
 function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;const d=parseInt($('f-feed-dur').value)||null;e.durationMins=d;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Informe um horário válido (ex: 14:30)');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Informe uma data válida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Informe um horário de início válido');return;}e.date=date;e.type='sleep';e.subtype=isNightHour(s)?'night':'nap';e.start=s;e.end=isValidTime(en)?en:null;if(s&&e.end){let sm=parseTimeOnDate(s,date),em=parseTimeOnDate(e.end,date);if(em<sm)em.setDate(em.getDate()+1);e.durationMins=Math.round((em-sm)/60000);}localStorage.removeItem('nz3_paused');}entries.push(e);save();closeModal();showToast('Registro salvo!');renderHome()}
-function saveSettings(){cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);if($('cfg-premium-local'))cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();save();$('age-badge').textContent=cfg.months+' meses';refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
-function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
+function saveSettings(){if($('cfg-app-name'))cfg.appName=($('cfg-app-name').value||'Ninho').trim()||'Ninho';cfg.name=$('cfg-name').value||'Bebê';cfg.months=parseInt($('cfg-months').value)||3;const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);if($('cfg-premium-local'))cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u||'http://localhost:8787');}applyTheme();applyAppName();save();$('age-badge').textContent=cfg.months+' meses';refreshProfileSelect();scheduleReminders();showToast('Configurações salvas!');renderHome()}
+function exportData(){cfg={...defaultCfg(),...cfg};const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ninho-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📤 JSON exportado!');}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
-function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='napzinho-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
+function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>{rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(','));});const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ninho-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('📊 CSV exportado!');}
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function printReport(){const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>Napzinho — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
-function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;entries=data.entries;if(data.cfg)cfg={...defaultCfg(),...data.cfg};save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
+function printReport(){const app=(cfg.appName||'Ninho').trim()||'Ninho';const name=cfg.name||'Bebê';const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>'+escHtml(app)+' — relatório</h1><p><strong>'+escHtml(name)+'</strong> · gerado em '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><p style="font-size:12px">Ferramenta de apoio. Não substitui orientação médica.</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=e.date+' '+e.start;if(e.type==='sleep')d+=' → '+(e.end||'')+(e.durationMins?' ('+e.durationMins+'min)':'');else if(e.type==='feed')d+=' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':'');else d+=' '+(e.subtype||'');html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').style.display='block';window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').style.display='none';},300);}
+function importData(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch(err){}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;if(x.date&&isValidDateStr(x.date))return x;return{...x,date:fb};});if(data.cfg)cfg={...defaultCfg(),...data.cfg};migrateEntriesOnLoad();save();syncSettingsForm();showToast('📥 Importado!');renderHome();}catch(err){showToast('Erro ao importar arquivo');}};reader.readAsText(file);ev.target.value='';}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=parseInt(p[1],10),m=parseInt(p[2],10);return h>=0&&h<=23&&m>=0&&m<=59;}
 function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
@@ -831,22 +753,9 @@ function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEac
 function migrateEntriesOnLoad(){let ch=0;entries.forEach(e=>{if(!e.date||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)){e.date=todayStr();ch++;}});if(ch)save();}
 async function requestNotify(){if(!('Notification' in window))return false;try{if(Notification.permission==='granted')return true;if(Notification.permission==='denied')return false;const p=await Notification.requestPermission();return p==='granted';}catch(e){return false;}}
 function remindKey(k){return'nz_rm_'+todayStr()+'_'+k;}
-function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=todayEntries().filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&isDayHour(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification('Napzinho',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&isDayHour(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification('Napzinho',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
-function registerPWA(){
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js?v='+BUILD_VERSION).then((reg)=>{
-      if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
-      reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller){showToast('Atualização disponível. Recarregando...');}});});
-    }).catch(()=>{});
-    let reloaded=false;
-    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;window.location.reload();});
-  }
-  let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});
-}
-function init(){
-  if(localStorage.getItem('nz_build_version')!==BUILD_VERSION){localStorage.setItem('nz_build_version',BUILD_VERSION);}
-  sanitizeUiStructure();
-  migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});const pwo=$('paywall-overlay');if(pwo)pwo.addEventListener('click',function(e){if(e.target===this)closePaywall();});initSegs();}
+function scheduleReminders(){if(reminderTimer)clearInterval(reminderTimer);reminderTimer=null;if(!cfg.remindNap&&!cfg.remindNight)return;reminderTimer=setInterval(async()=>{if(document.hidden)return;if(!cfg.remindNap&&!cfg.remindNight)return;const last=getLastCompletedSleep();if(!last||!last.end)return;const granted=await requestNotify();if(!granted)return;const ts=calendarDayEntries(todayStr()).filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(cfg.remindNap&&wakeCountsAsDayForPredictions(last.end)){const p=smartPredictNextNap(last.end,last.durationMins||0,ts);const tM=timeToMins(p.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=8&&diff<=12&&!sessionStorage.getItem(remindKey('nap_'+p.center))){sessionStorage.setItem(remindKey('nap_'+p.center),'1');new Notification((cfg.appName||'Ninho').trim()||'Ninho',{body:'Em ~10 min: janela de soneca (~'+p.center+')'});}}if(cfg.remindNight&&wakeCountsAsDayForPredictions(last.end)){const np=nightStartPrediction();const tM=timeToMins(np.center);const nowM=timeToMins(fmtTime(now()));let diff=tM-nowM;if(diff<0)diff+=1440;if(diff>=12&&diff<=18&&!sessionStorage.getItem(remindKey('night_'+np.center))){sessionStorage.setItem(remindKey('night_'+np.center),'1');new Notification((cfg.appName||'Ninho').trim()||'Ninho',{body:'Em ~15 min: rotina da noite (~'+np.center+')'});}}},60000);}
+function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}let deferred=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferred=e;const b=$('install-banner');if(b)b.classList.add('show');});const btn=$('install-btn');if(btn)btn.addEventListener('click',async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('install-banner').classList.remove('show');});}
+function init(){migrateToProfiles();loadProfileIntoMemory();migrateEntriesOnLoad();cfg={...defaultCfg(),...cfg};applyTheme();applyAppName();refreshProfileSelect();syncSettingsForm();$('date-line').textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});registerPWA();updatePremiumStatusText();syncEntitlementFromBackend().then(()=>{syncSettingsForm();renderHome();});requestNotify().then(()=>scheduleReminders());$('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});initSegs();}
 init();
 </script>
 </body>
