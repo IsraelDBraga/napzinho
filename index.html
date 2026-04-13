@@ -511,13 +511,15 @@ body.onboarding-lock .nav{opacity:.35;pointer-events:none}
       </div>
       <p style="font-size:11px;color:var(--muted);margin-top:8px">Cada perfil tem seus próprios registros e configurações (dados só neste aparelho).</p>
     </div>
-    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Nome do bebê</div><input class="finput" id="cfg-name" placeholder="Ex: Maria"></div>
     <div class="stat-card" style="margin-bottom:12px">
-      <div class="slabel" style="margin-bottom:8px">Data de nascimento</div>
+      <div class="slabel" style="margin-bottom:8px">Nome do bebê</div>
+      <input class="finput" id="cfg-name" placeholder="Ex: Maria">
+      <div class="slabel" style="margin-bottom:8px;margin-top:14px">Data de nascimento</div>
       <input class="finput finput-date" type="text" inputmode="numeric" id="cfg-birth-date" placeholder="DD-MM-AAAA" maxlength="10" autocomplete="bday" autocorrect="off" spellcheck="false" oninput="maskDateBirth(this)">
-      <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">Com a data preenchida, a <strong>idade em meses</strong> é calculada sozinha (não precisa atualizar todo mês). Deixe em branco se preferir informar só a idade manualmente.</p>
+      <div class="slabel" style="margin-bottom:8px;margin-top:14px">Idade em meses <span id="months-auto-hint" style="font-weight:600;color:var(--accent)"></span></div>
+      <input class="finput" id="cfg-months" type="number" min="0" max="36" title="Usado quando não há data de nascimento">
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45"><strong>Formato:</strong> dia-mês-ano (DD-MM-AAAA). Com a data preenchida, a idade em meses é calculada automaticamente. Se deixar a data em branco, use o número acima como idade manual.</p>
     </div>
-    <div class="stat-card" style="margin-bottom:12px"><div class="slabel" style="margin-bottom:8px">Idade em meses <span id="months-auto-hint" style="font-weight:600;color:var(--accent)"></span></div><input class="finput" id="cfg-months" type="number" min="0" max="36" title="Usado quando não há data de nascimento"></div>
     <div class="stat-card" style="margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Início da noite</div>
       <input class="finput" id="cfg-night-start" type="text" inputmode="numeric" placeholder="18:00" maxlength="5" oninput="maskTime(this)">
