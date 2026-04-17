@@ -541,7 +541,7 @@ body.onboarding-lock .nav{opacity:.35;pointer-events:none}
       <div class="slabel" style="margin-bottom:8px">Plano Premium</div>
       <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Freemium: registro básico é gratuito. Premium pode vir de assinatura ou chave vitalícia assinada por você.</p>
       <label class="ctx-row"><input type="checkbox" id="cfg-premium-local" onchange="applyPremiumLocalToggle()"> <span>Liberar Premium neste aparelho <strong>sem servidor</strong> (até você subir o backend)</span></label>
-      <input class="finput" id="cfg-license-key" placeholder="Cole sua chave (ex: NAPZ-VITALICIO-AMIGOS)" style="margin-bottom:8px">
+      <input class="finput" id="cfg-license-key" style="margin-bottom:8px">
       <div class="data-buttons">
         <button class="btn-save" onclick="startPremiumTrial()">🎁 Testar 7 dias grátis</button>
         <button class="btn-cancel" onclick="activateLicenseKey()">🔐 Ativar chave</button>
@@ -576,6 +576,15 @@ body.onboarding-lock .nav{opacity:.35;pointer-events:none}
       <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Este app é PWA. Billing nativo exige wrapper (TWA/Android e app iOS nativo com StoreKit).</p>
       <button class="btn-save" style="margin-top:0" onclick="runStoreReadinessCheck()">Validar checklist da loja</button>
       <div id="store-readiness-output" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45">Toque para validar requisitos mínimos.</div>
+    </div>
+    <div class="stat-card" style="margin-top:12px;margin-bottom:12px">
+      <div class="slabel" style="margin-bottom:8px">Páginas legais e suporte</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Use estes links nas lojas (Privacidade, Termos e Suporte).</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <a class="btn-cancel" href="privacy.html" target="_blank" rel="noopener" style="margin-top:0;text-decoration:none;text-align:center;padding:10px 12px">Privacidade</a>
+        <a class="btn-cancel" href="terms.html" target="_blank" rel="noopener" style="margin-top:0;text-decoration:none;text-align:center;padding:10px 12px">Termos</a>
+        <a class="btn-cancel" href="support.html" target="_blank" rel="noopener" style="margin-top:0;text-decoration:none;text-align:center;padding:10px 12px">Suporte</a>
+      </div>
     </div>
     <div class="stat-card" style="margin-top:16px;margin-bottom:12px">
       <div class="slabel" style="margin-bottom:8px">Dados</div>
@@ -906,6 +915,32 @@ async function syncEntitlementFromBackend(){
     }
   }catch(e){/* backend opcional */}
 }
+async function submitStorePurchaseForValidation(payload){
+  const base=getLicenseApiBase();
+  const device_id=(payload&&payload.device_id)||getOrCreateDeviceId();
+  const body={...(payload||{}),device_id};
+  try{
+    const res=await fetch(base+'/api/purchase/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
+    cfg.licenseTier=data.tier||'premium';
+    cfg.licenseExpiresAt=data.expires_at||null;
+    cfg.premiumState='premium';
+    save();
+    syncSettingsForm();
+    renderHome();
+    if($('sec-copilot')&&$('sec-copilot').classList.contains('active'))renderCopilot();
+    showToast('✅ Compra validada no servidor');
+    return data;
+  }catch(err){
+    const msg=String(err&&err.message||err);
+    showToast('Falha na validação server-side: '+msg);
+    throw err;
+  }
+}
+window.NestBilling={
+  submitPurchase:submitStorePurchaseForValidation
+};
 function getWakeRisk(minutesAwake,target){const ratio=target?minutesAwake/target:0; if(ratio<0.85) return {label:'Baixo',cls:'risk-low',msg:'ainda dentro da janela esperada'}; if(ratio<1.1) return {label:'Moderado',cls:'risk-mid',msg:'atenção aos sinais de sono agora'}; return {label:'Alto',cls:'risk-high',msg:'probabilidade de supercansaço elevada'};}
 function formatTimeUntil(timeStr){const nowM=timeToMins(fmtTime(now()));let diff=timeToMins(timeStr)-nowM;if(diff<0)diff+=1440;return diff;}
 function buildEmotionalMessages(){
