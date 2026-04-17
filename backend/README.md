@@ -16,9 +16,7 @@ Servidor padrão: `http://localhost:8787`
 Edite `preprogrammed_keys.json` com os códigos que você quer distribuir manualmente.
 
 Exemplo já incluso:
-- `NAPZ-VITALICIO-AMIGOS` (lifetime)
 - `NAPZ-PREMIUM-30DIAS` (premium com expiração)
-- `NAPZ-VITALICIO-ESPOSA` (lifetime)
 
 **Importante:** essas chaves só existem **depois** de subir `python3 server.py`. O servidor cria `napzinho.db` e insere as chaves do JSON na primeira execução. Se o app abrir em outro dispositivo ou em `file://`, ele não alcança `localhost:8787` do seu PC — configure no app a URL pública do backend (HTTPS) ou use túnel (ngrok, etc.).
 
