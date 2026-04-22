@@ -1130,17 +1130,26 @@ function renderOrbit(){
     cta.onclick=()=>{babySlept();};
   }
 
-  // Orbit arc (progress of awake window)
+  // Orbit arc: progress around the ring (sleep = elapsed vs typical nap length; awake = vs wake window target). Always 0–100% of the circle so the SVG arc stays valid.
   const arc=$('orbit-arc');
   if(arc){
     const R=120,CX=150,CY=150;
     let pct=0;
-    if(active){pct=Math.min(1,Math.round((now()-parseTimeOnDate(active.start,active.date))/60000)/60);}
-    else if(last&&wakeCountsAsDayForPredictions(last)){const aw=wwCurrentAwakeMinutes();const tgt=wwCurrentTargetMinutes();pct=Math.min(1.1,aw/tgt);}
-    const theta=-Math.PI/2+pct*Math.PI*2;
-    const x=CX+R*Math.cos(theta),y=CY+R*Math.sin(theta);
-    const large=pct>0.5?1:0;
-    arc.setAttribute('d',pct>0.01?`M ${CX} ${CY-R} A ${R} ${R} 0 ${large} 1 ${x.toFixed(2)} ${y.toFixed(2)}`:'');
+    if(active){
+      const sleepM=Math.max(0,Math.round((now()-parseTimeOnDate(active.start,active.date))/60000));
+      if(sleepIsNight(active)){pct=Math.min(1,sleepM/(8*60));}else{const napTypical=Math.max(40,Math.min(130,15+wwBaseTarget(babyAgeMonths())));pct=Math.min(1,sleepM/Math.max(1,napTypical));}
+    }else if(last&&wakeCountsAsDayForPredictions(last)){
+      const aw=wwCurrentAwakeMinutes(),tgt=wwCurrentTargetMinutes();
+      pct=Math.min(1,aw/Math.max(1,tgt));
+    }
+    if(pct>=0.999){
+      arc.setAttribute('d',`M ${CX} ${CY-R} A ${R} ${R} 0 1 1 ${CX} ${CY+R} A ${R} ${R} 0 1 1 ${CX} ${CY-R}`);
+    }else if(pct>0.01){
+      const theta=-Math.PI/2+pct*Math.PI*2;
+      const x=CX+R*Math.cos(theta),y=CY+R*Math.sin(theta);
+      const large=pct>0.5?1:0;
+      arc.setAttribute('d',`M ${CX} ${CY-R} A ${R} ${R} 0 ${large} 1 ${x.toFixed(2)} ${y.toFixed(2)}`);
+    }else arc.setAttribute('d','');
   }
 
   // Orbit nodes (sleeps/feeds of today plotted on circle by time)
