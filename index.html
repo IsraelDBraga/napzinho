@@ -1031,7 +1031,9 @@ function nightStartPrediction(){const m=getTypicalNightStartMins();const cx=getC
 function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
 function wwCurrentTargetMinutes(){return wwBaseTarget(babyAgeMonths())+Math.min(25,getContextAdjust().napAdj);}
 function getWakeRisk(minutesAwake,target){const r=target?minutesAwake/target:0;if(r<0.85)return{lvl:'low',msg:'dentro da janela'};if(r<1.1)return{lvl:'mid',msg:'próximo do limite'};return{lvl:'high',msg:'janela estourada'};}
-function formatTimeUntil(timeStr){const nowM=timeToMins(fmtTime(now()));let diff=timeToMins(timeStr)-nowM;if(diff<0)diff+=1440;return diff;}
+/** Minutes until the next real-world occurrence of clock time `centerMin` (0–1439), crossing midnight when needed. */
+function minutesUntilNextClock(centerMin,refDate){const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();const nowM=timeToMins(fmtTime(d0));let diff=centerMin-nowM;if(diff>0)return diff;const t=new Date(d0);t.setHours(0,0,0,0);const h=Math.floor(centerMin/60)%24,mm=centerMin%60;t.setHours(h,mm,0,0);if(t.getTime()<=d0.getTime())t.setDate(t.getDate()+1);return Math.max(0,Math.round((t.getTime()-d0.getTime())/60000));}
+function formatTimeUntil(timeStr){return minutesUntilNextClock(timeToMins(timeStr),now());}
 function dataMaturity(){const days=getDaysWithData().length;const sl=entries.filter(e=>e.type==='sleep'&&e.durationMins).length;const fd=entries.filter(e=>e.type==='feed').length;const score=Math.min(96,8+Math.min(34,days*5)+Math.min(28,sl*2)+Math.min(18,fd));if(!sl&&!fd)return{conf:'low',label:'Começando',score,hint:'Registre sono e mamadas por 2–3 dias e as faixas ficam bem mais suas.'};if(days<3||sl<4)return{conf:'low',label:'Calibrando',score,hint:'Cada soneca e cada noite gravada afinam o modelo.'};if(days<7)return{conf:'mid',label:'Afinando',score,hint:'Histórico + idade — as faixas estão apertando.'};return{conf:'high',label:'Firme',score,hint:'Base sólida — leituras mais assertivas.'};}
 
 /* ==============================================
@@ -1101,14 +1103,24 @@ function renderOrbit(){
     ctaLbl.textContent='Dormiu agora';
     cta.onclick=()=>{babySlept();};
   }else if(last&&wakeCountsAsDayForPredictions(last)){
-    // Daytime — show next nap
+    // Daytime — show next nap (if manual end time pushed prediction into the past, don't fake a ~24h countdown)
     const p=smartPredictNextNap(last.end,last.durationMins||0,ts);
     const fallsNight=timeToMins(p.center)>=nightStartMinsVal();
     predObj=fallsNight?nightStartPrediction():p;
+    const nowM=timeToMins(fmtTime(now()));
+    const toM=predObj.to!=null?timeToMins(p.to):null;
+    const overdueNap=!fallsNight&&toM!=null&&nowM>toM;
     const mins=formatTimeUntil(predObj.center);
-    kicker.textContent=fallsNight?'Rotina da noite em':'Próxima soneca em';
-    main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
-    sub.textContent='Faixa provável '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
+    if(overdueNap){
+      const late=Math.min(24*60,nowM-toM);
+      kicker.textContent='Soneca em atraso';
+      main.innerHTML=late<60?`${late}<small>min</small>`:`${Math.floor(late/60)}<small>h</small> ${String(late%60).padStart(2,'0')}<small>min</small>`;
+      sub.textContent='Depois da faixa '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
+    }else{
+      kicker.textContent=fallsNight?'Rotina da noite em':'Próxima soneca em';
+      main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
+      sub.textContent='Faixa provável '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
+    }
     ctaLbl.textContent='Dormiu agora';
     cta.onclick=()=>{babySlept();};
   }else if(last){
@@ -1255,7 +1267,7 @@ function renderCopilot(){
   const now_=$('cop-now');if(now_){const active=getActiveSleep();const last=getLastCompletedSleep();let title,body,rule=[];if(active){title=sleepIsNight(active)?'Sono noturno em curso':'Soneca em curso';body=`Dormiu às <strong>${active.start}</strong>. Quando acordar, registre em Acordou — a noite lógica continua depois da meia-noite se for o caso.`;}else if(last&&wakeCountsAsDayForPredictions(last)){const aw=wwCurrentAwakeMinutes();const tgt=wwCurrentTargetMinutes();const r=getWakeRisk(aw,tgt);const p=smartPredictNextNap(last.end,last.durationMins||0,calendarDayEntries(todayStr()).filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0));title=r.lvl==='high'?'Janela estourando':r.lvl==='mid'?'Janela apertando':'Dentro da janela';body=`Acordado há <strong>${fmtDur(aw)}</strong>, referência ~${tgt} min para ${babyAgeMonths()} meses. Próxima soneca prevista em torno de <strong>${p.center}</strong>.`;rule=[['Acordado',fmtDur(aw)],['Alvo aprox.',tgt+' min'],['Risco',r.msg]];}else{title='Sem janela diurna agora';body='Ou o bebê está dormindo, ou ainda estamos no ritmo noturno.';}now_.innerHTML=`<div class="cop-block"><div class="cb-kicker">Agora</div><h4>${escHtml(title)}</h4><p>${body}</p>${rule.length?'<ul class="cb-rule">'+rule.map(r=>`<li><span>${escHtml(r[0])}</span><strong>${escHtml(r[1])}</strong></li>`).join('')+'</ul>':''}</div>`;}
 
   // Próxima janela
-  const winEl=$('cop-window');if(winEl){const last=getLastCompletedSleep();const today=calendarDayEntries(todayStr());const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(!last){winEl.innerHTML='';}else{let p,label;if(wakeCountsAsDayForPredictions(last)){const np=smartPredictNextNap(last.end,last.durationMins||0,ts);if(timeToMins(np.center)>=nightStartMinsVal()){p=nightStartPrediction();label='Entrada da noite';}else{p=np;label='Próxima soneca';}}else{p=nightStartPrediction();label='Rotina da noite';}const mins=formatTimeUntil(p.center);winEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Próxima janela</div><h4>${escHtml(label)} em ${mins} min</h4><p>Faixa provável <strong>${escHtml(p.from)}–${escHtml(p.to)}</strong>. Base: ${escHtml(p.basis)}.</p><ul class="cb-rule"><li><span>Hora central</span><strong>${escHtml(p.center)}</strong></li><li><span>Tolerância</span><strong>±${p.range||20} min</strong></li></ul><p style="margin-top:10px;font-size:11.5px;color:var(--ink-muted)">Se atrasar muito além da faixa, a próxima soneca tende a ficar curta e a noite pode fragmentar.</p></div>`;}}
+  const winEl=$('cop-window');if(winEl){const last=getLastCompletedSleep();const today=calendarDayEntries(todayStr());const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);if(!last){winEl.innerHTML='';}else{let p,label;if(wakeCountsAsDayForPredictions(last)){const np=smartPredictNextNap(last.end,last.durationMins||0,ts);if(timeToMins(np.center)>=nightStartMinsVal()){p=nightStartPrediction();label='Entrada da noite';}else{p=np;label='Próxima soneca';}}else{p=nightStartPrediction();label='Rotina da noite';}const nowM=timeToMins(fmtTime(now()));const napOver=label==='Próxima soneca'&&p.to!=null&&nowM>timeToMins(p.to);const mins=formatTimeUntil(p.center);const head=napOver?(`${escHtml(label)} · atrasada ~${fmtDur(nowM-timeToMins(p.to))}`):(`${escHtml(label)} em ${mins} min`);winEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Próxima janela</div><h4>${head}</h4><p>Faixa provável <strong>${escHtml(p.from)}–${escHtml(p.to)}</strong>. Base: ${escHtml(p.basis)}.</p><ul class="cb-rule"><li><span>Hora central</span><strong>${escHtml(p.center)}</strong></li><li><span>Tolerância</span><strong>±${p.range||20} min</strong></li></ul><p style="margin-top:10px;font-size:11.5px;color:var(--ink-muted)">Se atrasar muito além da faixa, a próxima soneca tende a ficar curta e a noite pode fragmentar.</p></div>`;}}
 
   // Leitura do dia
   const dayEl=$('cop-day');if(dayEl){const d=buildDayFlowRead();dayEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Leitura do dia</div><h4>${d.tone==='warn'?'Sinais de atenção':d.tone==='ok'?'Dia fluindo bem':'Dia sem muita sinalização'}</h4><p>${d.flow}</p><p style="margin-top:8px"><strong>Gargalo provável:</strong> ${escHtml(d.bot)}</p><ul class="cb-rule"><li><span>Sonecas</span><strong>${d.stats.naps}</strong></li><li><span>Sono diurno</span><strong>${fmtDur(d.stats.napMin)}</strong></li><li><span>Mamadas</span><strong>${d.stats.feeds}</strong></li><li><span>Sinais de humor</span><strong>${d.stats.mo}</strong></li></ul></div>`;}
