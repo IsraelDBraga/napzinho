@@ -1207,7 +1207,7 @@ function renderPredictions(){
     }else{const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Fim do dia se aproximando',pred:np,color:'#6366F1'});}
   }
   const lf=today.filter(e=>e.type==='feed').sort((a,b)=>timeToMins(b.start)-timeToMins(a.start))[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];
-  if(lf&&!insideNight){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
+  if(lf){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:insideNight?'Noturna — bebês pequenos ainda mamam de madrugada':'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
   if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   list.innerHTML=preds.map(p=>{
@@ -1217,8 +1217,13 @@ function renderPredictions(){
     if(p.kind==='night-now'){
       right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
     }else{
-      const mins=formatTimeUntil(p.pred.center);
-      right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">em ${mins} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}</div>`;
+      const nowM=timeToMins(fmtTime(now())),centerM=timeToMins(p.pred.center);
+      let diff=centerM-nowM;if(diff<0)diff+=1440;
+      // If predicted time lands more than 12h in the future, it's almost certainly stale (already passed today)
+      const isStale=diff>12*60;
+      const overdueMin=isStale?1440-diff:(diff<0?-diff:0);
+      const timeLbl=isStale?`<span style="color:var(--rose)">atrasada ~${overdueMin} min</span>`:`em ${diff} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}`;
+      right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">${timeLbl}</div>`;
     }
     return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime">${right}</div></div>`;
   }).join('');
