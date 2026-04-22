@@ -33,3 +33,22 @@ Plataformas como **RevenueCat** unificam Play Billing + StoreKit, gerenciam reci
 - Conta de desenvolvedor Google Play e Apple Developer.
 - Produtos de assinatura criados e aprovados nas lojas.
 - Backend HTTPS com endpoint que valida compras e devolve entitlement.
+
+
+## Status atual do projeto (17/04/2026)
+
+- ✅ Existe backend MVP de chave/licença (`/api/activate`, `/api/entitlement`).
+- ✅ Existe trial de 7 dias e bloqueio por paywall no cliente web.
+- ✅ Existe endpoint server-side para validar compra (`POST /api/purchase/validate`) com modos `live|mock`.
+- ⚠️ Ainda falta o app nativo enviar `purchaseToken` (Google) e `receipt/JWS` (Apple) no fluxo de produção.
+
+Em outras palavras: o backend de validação já está preparado; o que falta é concluir a integração nativa de compra no wrapper Android/iOS e credenciais de produção.
+
+## Ponte com app web (já integrado)
+
+O frontend expõe `window.NestBilling.submitPurchase(payload)` para wrappers nativos chamarem após uma compra:
+
+- Google: `{ platform: "google_play", purchase_token, subscription_id|product_id, package_name }`
+- Apple: `{ platform: "apple_app_store", receipt_data }` ou `{ signed_transaction_info }`
+
+Esse método envia para `POST /api/purchase/validate` e atualiza entitlement local ao receber sucesso.

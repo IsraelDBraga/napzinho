@@ -1,19 +1,19 @@
 {
   "keys": [
     {
-      "code": "NAPZ-VITALICIO-AMIGOS",
-      "tier": "lifetime",
-      "max_activations": 25,
-      "active": true,
-      "note": "Chave pré-programada para convites do fundador"
-    },
-    {
       "code": "NAPZ-PREMIUM-30DIAS",
       "tier": "premium",
       "expires_at": "2026-12-31T23:59:59+00:00",
       "max_activations": 100,
       "active": true,
       "note": "Campanha promocional"
+    },
+    {
+      "code": "NAPZ-VITALICIO-ESPOSA",
+      "tier": "lifetime",
+      "max_activations": 3,
+      "active": true,
+      "note": "Chave vitalícia pré-programada para esposa"
     }
   ]
 }
