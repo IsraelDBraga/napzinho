@@ -95,7 +95,7 @@ body{
   background-attachment:fixed;
   min-height:100svh;
   max-width:var(--max-w);margin:0 auto;
-  padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);
+  padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 40px);
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   overflow-x:hidden;
 }
@@ -140,7 +140,7 @@ a{color:inherit;text-decoration:none}
 .theme-toggle svg{width:18px;height:18px}
 
 /* ---- Sections ---- */
-.sections{padding:0 18px}
+.sections{padding:0 18px calc(var(--nav-h) + var(--safe-bottom) + 20px)}
 .section{display:none;animation:fadeUp .35s ease}
 .section.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -595,10 +595,10 @@ a{color:inherit;text-decoration:none}
 .set-row:first-of-type{border-top:none;padding-top:0}
 .set-row label{font-size:13.5px;color:var(--ink);flex:1;line-height:1.4}
 .set-row .set-hint{display:block;font-size:11.5px;color:var(--ink-muted);margin-top:3px;line-height:1.4}
-.switch{position:relative;width:44px;height:26px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.switch-slider{position:absolute;inset:0;background:var(--surface-2);border-radius:var(--r-pill);border:1px solid var(--hair-strong);transition:.24s;cursor:pointer}
-.switch-slider::before{content:'';position:absolute;left:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.24s;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.switch{position:relative;width:46px;min-width:46px;max-width:46px;height:28px;flex-shrink:0;flex-grow:0;flex-basis:46px;display:inline-block;margin-top:2px}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch-slider{position:absolute;inset:0;background:var(--surface-2);border-radius:var(--r-pill);border:1px solid var(--hair-strong);transition:.24s;cursor:pointer;box-sizing:border-box}
+.switch-slider::before{content:'';position:absolute;left:2px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .24s ease,background .24s;box-shadow:0 2px 6px rgba(0,0,0,.28)}
 .switch input:checked+.switch-slider{background:linear-gradient(135deg,var(--aurora),var(--indigo));border-color:transparent}
 .switch input:checked+.switch-slider::before{transform:translateX(18px)}
 
@@ -1088,6 +1088,14 @@ function renderOrbit(){
     ctaLbl.textContent='Acordou agora';
     cta.dataset.action='wake';
     cta.onclick=()=>{babyWoke();};
+  }else if(isNightContextForClock(fmtTime(now()))){
+    // Inside the physiological night window — suggest night sleep, don't predict it as far away
+    const mSinceLast=last?Math.max(0,Math.floor((now()-sleepEndDate(last))/60000)):null;
+    kicker.textContent='Janela noturna';
+    main.innerHTML='<span class="serif" style="font-size:36px;line-height:1.1">Hora de dormir</span>';
+    sub.textContent=mSinceLast!=null?'Desperto há '+fmtDur(mSinceLast)+'. Toque em Dormiu quando adormecer.':'Início da noite foi às '+(cfg.nightStart||'18:00')+'. Toque em Dormiu quando adormecer.';
+    ctaLbl.textContent='Dormiu agora';
+    cta.onclick=()=>{babySlept();};
   }else if(last&&wakeCountsAsDayForPredictions(last.end)){
     // Daytime — show next nap
     const p=smartPredictNextNap(last.end,last.durationMins||0,ts);
@@ -1100,11 +1108,11 @@ function renderOrbit(){
     ctaLbl.textContent='Dormiu agora';
     cta.onclick=()=>{babySlept();};
   }else if(last){
-    // Post-night / still in night band after wake
+    // Daytime (sleep ended during day) but outside active-nap logic — show night routine
     const p=nightStartPrediction();
     predObj=p;
     const mins=formatTimeUntil(p.center);
-    kicker.textContent='Entrada da noite em';
+    kicker.textContent='Rotina da noite em';
     main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
     sub.textContent='Janela típica '+p.from+'–'+p.to+' · '+p.basis;
     ctaLbl.textContent='Dormiu agora';
@@ -1187,18 +1195,33 @@ function renderPredictions(){
   const lastSleep=getLastCompletedSleep();
   const nsM=nightStartMinsVal();
   const preds=[];
-  if(lastSleep&&lastSleep.end){
+  const insideNight=isNightContextForClock(fmtTime(now()));
+  if(insideNight){
+    // Inside night window — "next window" is waking up in the morning, not a future night start
+    preds.push({kind:'night-now',name:'Janela noturna ativa',sub:'Toque em Dormiu quando adormecer',pred:{center:cfg.dayBoundary||'06:00',from:cfg.nightStart||'18:00',to:cfg.dayBoundary||'06:00',basis:'janela fisiológica configurada'},color:'#6366F1'});
+  }else if(lastSleep&&lastSleep.end){
     if(wakeCountsAsDayForPredictions(lastSleep.end)){
       const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);
-      if(timeToMins(p.center)>=nsM){const np=nightStartPrediction();preds.push({kind:'night',name:'Entrada da noite',sub:'Hoje, primeiro sono longo',pred:np,color:'#6366F1'});}
+      if(timeToMins(p.center)>=nsM){const np=nightStartPrediction();preds.push({kind:'night',name:'Entrada da noite',sub:'Primeiro sono longo',pred:np,color:'#6366F1'});}
       else{preds.push({kind:'nap',name:'Próxima soneca',sub:'A partir do último despertar',pred:p,color:'#A78BFA'});const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Hora de desacelerar',pred:np,color:'#6366F1'});}
-    }else{const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Ainda no ritmo noturno',pred:np,color:'#6366F1'});}
+    }else{const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Fim do dia se aproximando',pred:np,color:'#6366F1'});}
   }
   const lf=today.filter(e=>e.type==='feed').sort((a,b)=>timeToMins(b.start)-timeToMins(a.start))[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];
-  if(lf){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
+  if(lf&&!insideNight){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
   if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
-  list.innerHTML=preds.map(p=>{const mins=formatTimeUntil(p.pred.center);const risk=p.kind==='nap'?getWakeRisk(wwCurrentAwakeMinutes(),wwCurrentTargetMinutes()):null;return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${iconSvg[p.kind]||iconSvg.nap}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime"><div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">em ${mins} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}</div></div></div>`;}).join('');
+  list.innerHTML=preds.map(p=>{
+    const risk=p.kind==='nap'?getWakeRisk(wwCurrentAwakeMinutes(),wwCurrentTargetMinutes()):null;
+    const ico=iconSvg[p.kind==='night-now'?'night':p.kind]||iconSvg.nap;
+    let right;
+    if(p.kind==='night-now'){
+      right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
+    }else{
+      const mins=formatTimeUntil(p.pred.center);
+      right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">em ${mins} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}</div>`;
+    }
+    return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime">${right}</div></div>`;
+  }).join('');
 }
 
 /* ---- Glance ---- */
