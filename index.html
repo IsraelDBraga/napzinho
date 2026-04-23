@@ -1019,16 +1019,76 @@ const getActiveSleep=()=>entries.filter(e=>e.type==='sleep'&&!e.end).sort((a,b)=
 function sleepWakeCalendarDay(e){if(!e||e.type!=='sleep'||!e.end)return null;return fmtDateSV(sleepEndDate(e));}
 function totalSleepMinsCalendarDay(ymd){let sum=0;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;if(sleepIsNight(e)){if(sleepWakeCalendarDay(e)===ymd)sum+=e.durationMins;}else{if(e.date===ymd)sum+=e.durationMins;}});const a=getActiveSleep();if(a&&!a.end){const st=parseTimeOnDate(a.start,a.date);const cur=Math.max(0,Math.round((now()-st)/60000));if(sleepIsNight(a)){const wd=fmtDateSV(sleepEndDate({...a,end:fmtTime(now())}));if(wd===ymd)sum+=cur;}else if(a.date===ymd)sum+=cur;}return sum;}
 function calendarDayEntries(ymd){return entries.filter(e=>{if(!e||!e.date)return false;if(e.type!=='sleep')return e.date===ymd;if(!e.end){const act=getActiveSleep();if(!act||act.id!==e.id)return false;if(!sleepIsNight(act))return act.date===ymd;return fmtDateSV(sleepEndDate({...act,end:fmtTime(now())}))===ymd;}if(sleepIsNight(e))return sleepWakeCalendarDay(e)===ymd;return e.date===ymd;});}
-function nightSegmentsOnWakeDay(ymd){return entries.filter(e=>e.type==='sleep'&&sleepIsNight(e)&&e.end&&sleepWakeCalendarDay(e)===ymd).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));}
+function nightSegmentsOnWakeDay(ymd){
+  const prevYmd=addCalendarDaysStr(ymd,-1);
+  const wakeStart=new Date(ymd+'T00:00:00');
+  const ns=nightStartMinsVal();
+  const eveningStartOnPrev=new Date(prevYmd+'T00:00:00');
+  eveningStartOnPrev.setHours(Math.floor(ns/60),ns%60,0,0);
+  const nextMidnightFromPrev=new Date(prevYmd+'T00:00:00');
+  nextMidnightFromPrev.setDate(nextMidnightFromPrev.getDate()+1);
+  const seen=new Set(),out=[];
+  entries.forEach(e=>{
+    if(e.type!=='sleep'||!sleepIsNight(e)||!e.end)return;
+    const id=e.id!=null?String(e.id):null;
+    const wakeDay=sleepWakeCalendarDay(e);
+    if(wakeDay===ymd){
+      if(!id||!seen.has(id)){out.push(e);if(id)seen.add(id);}
+      return;
+    }
+    if(e.date!==prevYmd)return;
+    const st=sleepStartDate(e),en=sleepEndDate(e);
+    if(!st||!en)return;
+    if(en>=wakeStart)return;
+    const overlapsEvening=en>eveningStartOnPrev&&st<nextMidnightFromPrev;
+    if(!overlapsEvening)return;
+    if(!id||!seen.has(id)){out.push(e);if(id)seen.add(id);}
+  });
+  out.sort((a,b)=>{
+    const sa=sleepStartDate(a),sb=sleepStartDate(b);
+    const da=(sa?sa.getTime():0)-(sb?sb.getTime():0);
+    if(da!==0)return da;
+    return sleepEndDate(a)-sleepEndDate(b);
+  });
+  return out;
+}
 function addCalendarDaysStr(ymd,delta){const d=new Date(ymd+'T12:00:00');d.setDate(d.getDate()+delta);return fmtDateSV(d);}
+/** Normaliza cadeia de sono para métricas: une trechos sobrepostos/colados (sem criar despertar artificial). */
+function normalizeSleepChainForStats(segs){
+  if(!Array.isArray(segs)||!segs.length)return[];
+  const ord=segs.slice().sort((a,b)=>{
+    const sa=sleepStartDate(a),sb=sleepStartDate(b);
+    const da=(sa?sa.getTime():0)-(sb?sb.getTime():0);
+    if(da!==0)return da;
+    return sleepEndDate(a)-sleepEndDate(b);
+  });
+  const out=[];
+  ord.forEach(e=>{
+    const st=sleepStartDate(e),en=sleepEndDate(e);
+    if(!st||!en||en<=st)return;
+    if(!out.length){
+      out.push({...e,date:fmtDateSV(st),start:fmtTime(st),end:fmtTime(en),durationMins:Math.max(1,Math.round((en-st)/60000)),_st:st,_en:en});
+      return;
+    }
+    const last=out[out.length-1];
+    if(st.getTime()<=last._en.getTime()){
+      if(en>last._en)last._en=en;
+      last.end=fmtTime(last._en);
+      last.durationMins=Math.max(1,Math.round((last._en-last._st)/60000));
+      return;
+    }
+    out.push({...e,date:fmtDateSV(st),start:fmtTime(st),end:fmtTime(en),durationMins:Math.max(1,Math.round((en-st)/60000)),_st:st,_en:en});
+  });
+  return out.map(e=>{const x={...e};delete x._st;delete x._en;return x;});
+}
 /** Count gaps >0 between consecutive night segments (not including final morning wake). */
-function nightWakeCountBetweenSegments(ymd){const segs=nightSegmentsOnWakeDay(ymd);if(segs.length<2)return 0;let c=0;for(let i=0;i<segs.length-1;i++){const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);if(g>0)c++;}return c;}
+function nightWakeCountBetweenSegments(ymd){const segs=normalizeSleepChainForStats(nightSegmentsOnWakeDay(ymd));if(segs.length<2)return 0;let c=0;for(let i=0;i<segs.length-1;i++){const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);if(g>0)c++;}return c;}
 /** Soneca/sono diurno no mesmo dia civil que encadeia ao 1º trecho noturno (ex.: cochilo 18h antes da noite longa) — entra no total de sono da noite e no horário de "início". */
 function nightPrepSleepBeforeFirstSegment(segs){if(!segs||!segs.length)return null;const first=segs[0];const firstStart=sleepStartDate(first);if(!firstStart)return null;const firstDate=first.date&&isValidDateStr(first.date)?first.date:todayStr();let best=null;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;if(e.id===first.id)return;if(e.date!==firstDate)return;const en=sleepEndDate(e);if(en.getTime()>=firstStart.getTime())return;const gapMin=(firstStart.getTime()-en.getTime())/60000;if(gapMin<2||gapMin>12*60)return;if(!best||en.getTime()>sleepEndDate(best).getTime())best=e;});return best;}
 /** 1 if baby was likely awake meaningfully after prior sleep before first night block (e.g. after nap before long night stretch). */
 function nightWakeLeadInCount(wakeYmd,segs){if(!segs||!segs.length)return 0;if(nightPrepSleepBeforeFirstSegment(segs))return 0;const firstStart=sleepStartDate(segs[0]);const maxLook=16*3600000;let best=null,bestEnd=0;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;const en=sleepEndDate(e);if(en>=firstStart)return;if(firstStart.getTime()-en.getTime()>maxLook)return;const t=en.getTime();if(t>bestEnd){bestEnd=t;best=e;}});if(!best)return 0;const g=gapMinutesBetweenSleeps(best,segs[0]);return g>=10?1:0;}
 /** Full night stats for logical night ending on wake calendar day `wakeYmd`. Inclui sono diurno encadeado antes do 1º trecho noturno no total e no "início". */
-function analyzeNightOnWakeDay(wakeYmd){const segs=nightSegmentsOnWakeDay(wakeYmd);if(!segs.length)return null;const prep=nightPrepSleepBeforeFirstSegment(segs);const chain=prep?[prep,...segs]:segs.slice();const first=chain[0],last=segs[segs.length-1];const totalSleep=chain.reduce((a,e)=>a+(e.durationMins||0),0);const durs=chain.map(e=>e.durationMins||0).filter(x=>x>0);const blocks=durs.length;const maxBlock=blocks?Math.max(...durs):0;const minBlock=blocks>1?Math.min(...durs):(durs[0]||0);const wakesBetween=Math.max(0,blocks-1);const gaps=[];for(let i=0;i<chain.length-1;i++){const g=gapMinutesBetweenSleeps(chain[i],chain[i+1]);if(g>0&&g<600)gaps.push(g);}const avgGap=gaps.length?Math.round(gaps.reduce((x,y)=>x+y,0)/gaps.length):0;const leadIn=nightWakeLeadInCount(wakeYmd,segs);const wakes=wakesBetween+1+leadIn;return{bedYmd:first.date,bedClock:first.start,wakeYmd:wakeYmd,wakeClock:last.end,totalSleep,blocks,wakes,wakesBetween,wakesTotal:wakes,leadIn,hasPrep:!!prep,maxBlock,minBlock,avgGap,segs,chain};}
+function analyzeNightOnWakeDay(wakeYmd){const segsRaw=nightSegmentsOnWakeDay(wakeYmd);if(!segsRaw.length)return null;const prep=nightPrepSleepBeforeFirstSegment(segsRaw);const chainRaw=prep?[prep,...segsRaw]:segsRaw.slice();const chain=normalizeSleepChainForStats(chainRaw);const segs=normalizeSleepChainForStats(segsRaw);const first=chain[0],last=segs[segs.length-1];const totalSleep=chain.reduce((a,e)=>a+(e.durationMins||0),0);const durs=chain.map(e=>e.durationMins||0).filter(x=>x>0);const blocks=durs.length;const maxBlock=blocks?Math.max(...durs):0;const minBlock=blocks>1?Math.min(...durs):(durs[0]||0);let wakesBetween=0;const gaps=[];for(let i=0;i<chain.length-1;i++){const g=gapMinutesBetweenSleeps(chain[i],chain[i+1]);if(g>0){wakesBetween++;if(g<600)gaps.push(g);}}const avgGap=gaps.length?Math.round(gaps.reduce((x,y)=>x+y,0)/gaps.length):0;const leadIn=nightWakeLeadInCount(wakeYmd,segsRaw);const wakes=wakesBetween+1+leadIn;return{bedYmd:first.date,bedClock:first.start,wakeYmd:wakeYmd,wakeClock:last.end,totalSleep,blocks,wakes,wakesBetween,wakesTotal:wakes,leadIn,hasPrep:!!prep,maxBlock,minBlock,avgGap,segs,chain};}
 function analyzeLastCompleteNight(){return analyzeNightOnWakeDay(todayStr());}
 function getLastCompletedSleep(){const r=entries.filter(e=>e.type==='sleep'&&e.end);r.sort((a,b)=>sleepEndDate(b)-sleepEndDate(a));return r[0]||null;}
 function getDaysWithData(){return[...new Set(entries.filter(e=>e.type==='sleep'&&e.durationMins).map(e=>e.date))].sort();}
