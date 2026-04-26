@@ -327,6 +327,12 @@ a{color:inherit;text-decoration:none}
 .nseg-pill.sl{background:rgba(196,181,253,.25);color:var(--moon)}
 .nseg-pill.aw{background:rgba(252,211,77,.2);color:var(--sun)}
 .night-foot{font-size:11px;opacity:.78;line-height:1.45;margin-top:10px;position:relative}
+.day-panel{background:linear-gradient(150deg,color-mix(in srgb,var(--surface-1) 82%,var(--sun) 18%),var(--surface-0));color:var(--ink)}
+.day-panel .nh-kicker{color:var(--sun)}
+.day-panel .nh-range{color:var(--ink-dim)}
+.day-panel .night-metrics{grid-template-columns:repeat(4,1fr)}
+.day-panel .night-metric{background:rgba(255,255,255,.05);border-color:var(--hair)}
+.day-panel .night-foot{opacity:1;color:var(--ink-dim)}
 
 /* ---- Copilot CTA (home) ---- */
 .copilot-cta{
@@ -613,8 +619,21 @@ a{color:inherit;text-decoration:none}
 
 /* ---- Small helpers ---- */
 .hide{display:none!important}
+#print-area{display:none}
 .link{color:var(--lilac);font-weight:600;cursor:pointer}
 .link:hover{text-decoration:underline}
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block!important;padding:24px;color:#111;font:12px/1.45 Arial,sans-serif}
+  .pr-title{font-size:22px;font-weight:700;margin-bottom:8px}
+  .pr-meta{margin-bottom:12px}
+  .pr-section{margin:12px 0 14px;break-inside:avoid;page-break-inside:avoid}
+  .pr-section h3{font-size:13px;margin-bottom:6px}
+  .pr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .pr-cell{border:1px solid #bbb;border-radius:8px;padding:8px}
+  .pr-table{width:100%;border-collapse:collapse}
+  .pr-table th,.pr-table td{border:1px solid #bbb;padding:6px;vertical-align:top;word-break:break-word}
+}
 
 /* ---- Small screens ---- */
 @media (max-width:360px){
@@ -721,13 +740,9 @@ a{color:inherit;text-decoration:none}
   <div class="h-section"><h3>Próximas janelas</h3><span class="h-action" id="home-conf-badge">—</span></div>
   <div class="pred-list" id="pred-list"></div>
 
-  <!-- Glance (4 key numbers of the day) -->
-  <div class="h-section"><h3>Hoje em um olhar</h3><span class="h-action">dia civil</span></div>
-  <div class="glance" id="glance"></div>
-
-  <!-- Night panel (only if has night data for today) -->
-  <div id="night-panel-wrap"></div>
+  <!-- Day / night summary panels -->
   <div id="day-sleep-panel-wrap"></div>
+  <div id="night-panel-wrap"></div>
 
   <!-- Today rail (horizontal timeline) -->
   <div class="h-section"><h3>Linha do dia</h3><span class="h-action" id="today-rail-count">—</span></div>
@@ -748,6 +763,16 @@ a{color:inherit;text-decoration:none}
 <section class="section" id="sec-stats">
   <div class="stat-hero" id="stat-hero"></div>
   <div id="stats-charts"></div>
+  <div class="set-group" id="stats-export-box">
+    <h4 id="stats-export-title">Dados</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn-ghost" onclick="exportData()" style="margin-top:0" id="btn-export-json">Exportar JSON</button>
+      <button class="btn-ghost" onclick="exportCsv()" style="margin-top:0" id="btn-export-csv">Exportar CSV</button>
+      <button class="btn-ghost" onclick="printReport()" style="margin-top:0" id="btn-export-pdf">Relatório / PDF</button>
+      <button class="btn-ghost" onclick="document.getElementById('import-file').click()" style="margin-top:0" id="btn-import-json">Importar JSON</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" class="hide" onchange="importData(event)">
+  </div>
 </section>
 
 <!-- HISTORY -->
@@ -769,7 +794,7 @@ a{color:inherit;text-decoration:none}
 
 <!-- SETTINGS -->
 <section class="section" id="sec-settings">
-  <div class="h-section" style="margin-top:2px"><h3>Configurações</h3></div>
+  <div class="h-section" style="margin-top:2px"><h3 id="settings-title">Configurações</h3></div>
 
   <div class="set-group">
     <h4>Perfil do bebê</h4>
@@ -792,6 +817,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="set-group">
     <h4>Aparência</h4>
+    <div class="fgroup"><label class="flabel" for="cfg-language" id="cfg-language-label">Idioma</label><select class="fselect" id="cfg-language"><option value="pt-BR">Português</option><option value="en-US">English</option></select></div>
     <div class="set-row"><label for="cfg-dark-theme">Tema escuro<span class="set-hint">Noturno por padrão, com contraste alto e cores suaves.</span></label>
       <label class="switch"><input type="checkbox" id="cfg-dark-theme" onchange="applyThemeFromCheckbox()"><span class="switch-slider"></span></label>
     </div>
@@ -833,17 +859,6 @@ a{color:inherit;text-decoration:none}
     <div class="fgroup" style="margin-top:12px"><label class="flabel" for="cfg-license-api">URL do servidor de licenças</label><input class="finput" id="cfg-license-api" placeholder="https://seu-servidor.com"></div>
   </div>
 
-  <div class="set-group">
-    <h4>Dados</h4>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn-ghost" onclick="exportData()" style="margin-top:0">Exportar JSON</button>
-      <button class="btn-ghost" onclick="exportCsv()" style="margin-top:0">Exportar CSV</button>
-      <button class="btn-ghost" onclick="printReport()" style="margin-top:0">Relatório / PDF</button>
-      <button class="btn-ghost" onclick="document.getElementById('import-file').click()" style="margin-top:0">Importar JSON</button>
-    </div>
-    <input type="file" id="import-file" accept=".json" class="hide" onchange="importData(event)">
-  </div>
-
   <button class="btn-primary" onclick="saveSettings()" style="margin-top:12px">Salvar configurações</button>
 </section>
 </main>
@@ -852,22 +867,22 @@ a{color:inherit;text-decoration:none}
 <nav class="nav" aria-label="Navegação principal">
   <button type="button" class="nav-item active" id="nav-home" onclick="showSec('home')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1V11z"/></svg>
-    <span>Início</span>
+    <span id="nav-home-label">Início</span>
   </button>
   <button type="button" class="nav-item" id="nav-stats" onclick="showSec('stats')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10M9 20V4M15 20v-8M21 20v-4"/></svg>
-    <span>Dados</span>
+    <span id="nav-stats-label">Dados</span>
   </button>
   <button type="button" class="fab" onclick="openLogSheet()" aria-label="Registrar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
   </button>
   <button type="button" class="nav-item" id="nav-history" onclick="showSec('history')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <span>Histórico</span>
+    <span id="nav-history-label">Histórico</span>
   </button>
   <button type="button" class="nav-item" id="nav-copilot" onclick="showSec('copilot')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9"/><path d="M12 3v1M12 20v1M3 12h1M20 12h1"/></svg>
-    <span>Copiloto</span>
+    <span id="nav-copilot-label">Copiloto</span>
   </button>
 </nav>
 
@@ -946,6 +961,7 @@ const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 
 const defaultCfg=()=>({
   name:'Bebê',babyBirthDate:'',months:3,
+  lang:'pt-BR',
   nightStart:'18:00',dayBoundary:'06:00',
   lateNightMode:false,darkTheme:true,
   remindNap:false,remindNight:false,
@@ -960,6 +976,13 @@ let wwTimer=null,lnTimer=null,homeNightTimer=null,barChart=null,donutChart=null;
 /* ---- utils ---- */
 const $=id=>document.getElementById(id);
 const now=()=>new Date();
+const SUPPORTED_LANGS=['pt-BR','en-US'];
+const I18N={
+  'pt-BR':{home:'Início',data:'Dados',history:'Histórico',copilot:'Copiloto',settings:'Configurações',language:'Idioma',portuguese:'Português',english:'Inglês',daySummary:'Resumo do dia',nightOngoing:'Noite em andamento',totalSleep:'Sono total',periods:'Períodos',awakenings:'Despertares',feeds:'Mamadas',diapers:'Fraldas',daySleep:'Sono do dia',dayByType:'Dia em tipos',exportJson:'Exportar JSON',exportCsv:'Exportar CSV',reportPdf:'Relatório / PDF',importJson:'Importar JSON',noDataPeriod:'Sem dados suficientes para este período.',report:'Relatório',date:'Data',baby:'Bebê',events:'Eventos',sleep:'Sono',feed:'Mamada',diaper:'Fralda',awakening:'Despertar',morning:'Manhã',afternoon:'Tarde',night:'Noite',now:'Agora',statsDayCivil:'Dia civil (hoje)',dayRoutine:'Rotina diurna (hoje)'},
+  'en-US':{home:'Home',data:'Data',history:'History',copilot:'Copilot',settings:'Settings',language:'Language',portuguese:'Portuguese',english:'English',daySummary:'Day summary',nightOngoing:'Night in progress',totalSleep:'Total sleep',periods:'Periods',awakenings:'Awakenings',feeds:'Feeds',diapers:'Diapers',daySleep:'Day sleep',dayByType:'Day by type',exportJson:'Export JSON',exportCsv:'Export CSV',reportPdf:'Report / PDF',importJson:'Import JSON',noDataPeriod:'Not enough data for this period.',report:'Report',date:'Date',baby:'Baby',events:'Events',sleep:'Sleep',feed:'Feed',diaper:'Diaper',awakening:'Awakening',morning:'Morning',afternoon:'Afternoon',night:'Night',now:'Now',statsDayCivil:'Civil day (today)',dayRoutine:'Daytime routine (today)'}
+};
+function currentLang(){const l=cfg&&cfg.lang;return SUPPORTED_LANGS.includes(l)?l:'pt-BR';}
+function t(k){const l=currentLang();return(I18N[l]&&I18N[l][k])||I18N['pt-BR'][k]||k;}
 const todayStr=()=>new Date().toLocaleDateString('sv-SE');
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
@@ -979,6 +1002,11 @@ function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slic
 function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length<=2)el.value=d;else if(d.length<=4)el.value=d.slice(0,2)+'-'+d.slice(2);else el.value=d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4);}
 function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
 function parseBirthDisplayToIso(s){const p=/^(\d{2})-(\d{2})-(\d{4})$/.exec((s||'').trim());if(!p)return null;const dd=+p[1],mm=+p[2],yy=+p[3];if(mm<1||mm>12||dd<1||dd>31)return null;const iso=yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');return isValidDateStr(iso)?iso:null;}
+function applyI18nStatic(){
+  const map=[['nav-home-label','home'],['nav-stats-label','data'],['nav-history-label','history'],['nav-copilot-label','copilot'],['settings-title','settings'],['cfg-language-label','language'],['stats-export-title','data'],['btn-export-json','exportJson'],['btn-export-csv','exportCsv'],['btn-export-pdf','reportPdf'],['btn-import-json','importJson']];
+  map.forEach(([id,key])=>{const el=$(id);if(el)el.textContent=t(key);});
+  const langSel=$('cfg-language');if(langSel){const optPt=langSel.querySelector('option[value=\"pt-BR\"]');const optEn=langSel.querySelector('option[value=\"en-US\"]');if(optPt)optPt.textContent=t('portuguese');if(optEn)optEn.textContent=t('english');}
+}
 
 /* ---- storage ---- */
 function loadProfilesBlob(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}}
@@ -1058,8 +1086,34 @@ function parseYmdLocal(ymd){const[y,m,d]=ymd.split('-').map(Number);return new D
 function addDaysLocal(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
 function setClockLocal(baseDate,hhmm){const[h,m]=String(hhmm||'').split(':').map(Number);const d=new Date(baseDate);d.setHours(h||0,m||0,0,0);return d;}
 function getNightWindowForWakeDay(wakeYmd){const wakeDate=parseYmdLocal(wakeYmd);const prevDate=addDaysLocal(wakeDate,-1);return{start:setClockLocal(prevDate,cfg.nightStart||'18:00'),end:setClockLocal(wakeDate,cfg.dayBoundary||'06:00')};}
+function getNightWindowForDate(ymd){return getNightWindowForWakeDay(ymd);}
 function sleepIntervalDateTimes(e,nowDt=new Date()){const startBase=parseYmdLocal(e.date);const start=setClockLocal(startBase,e.start);let end=null;if(e.end){end=setClockLocal(startBase,e.end);if(end<=start)end=addDaysLocal(end,1);}else if(e.type==='sleep'){end=nowDt;}return{start,end};}
 function intervalsOverlap(aStart,aEnd,bStart,bEnd){if(!aStart||!aEnd||!bStart||!bEnd)return false;return aStart<bEnd&&aEnd>bStart;}
+function eventOverlapsInterval(aStart,aEnd,bStart,bEnd){return intervalsOverlap(aStart,aEnd,bStart,bEnd);}
+function getNightIntervalsAroundDate(ymd){
+  return [getNightWindowForWakeDay(ymd),getNightWindowForWakeDay(addCalendarDaysStr(ymd,1))];
+}
+function getActiveNightInterval(nowDt=new Date()){
+  const wakeYmd=getNightReferenceWakeYmd(nowDt);const sum=getNightSummaryForWakeDay(wakeYmd,nowDt);
+  if(!sum||!sum.hasActiveSleep||!sum.segs||!sum.segs.length)return null;
+  return {start:sum.segs[0]._startDt,end:nowDt};
+}
+function isNightRelatedEvent(e,nowDt=new Date()){
+  if(!e||!e.start)return false;
+  if(e.type==='sleep'){return sleepIsNight(e);}
+  const baseYmd=e.date&&isValidDateStr(e.date)?e.date:todayStr();
+  const point=parseTimeOnDate(e.start,baseYmd);
+  const intervals=getNightIntervalsAroundDate(baseYmd);
+  const active=getActiveNightInterval(nowDt);if(active)intervals.push(active);
+  return intervals.some(iv=>point>=iv.start&&point<=iv.end);
+}
+function getDaytimeEvents(ymd,nowDt=new Date()){return calendarDayEntries(ymd).filter(e=>!isNightRelatedEvent(e,nowDt));}
+function getDaySummary(ymd,nowDt=new Date()){
+  const dayEvents=getDaytimeEvents(ymd,nowDt);
+  const sleeps=dayEvents.filter(e=>e.type==='sleep');
+  const sleepTotal=sleeps.reduce((a,e)=>{if(e.durationMins)return a+e.durationMins;if(!e.end){const iv=sleepIntervalDateTimes(e,nowDt);return a+Math.max(0,Math.round((iv.end-iv.start)/60000));}return a;},0);
+  return{events:dayEvents,sleepTotal,sleepPeriods:sleeps.length,feeds:dayEvents.filter(e=>e.type==='feed').length,diapers:dayEvents.filter(e=>e.type==='diaper').length,awakenings:dayEvents.filter(e=>e.type==='wake').length};
+}
 function getNightSleepSegmentsForWakeDay(wakeYmd,nowDt=new Date()){const win=getNightWindowForWakeDay(wakeYmd);return entries.filter(e=>e.type==='sleep'&&e.start).map(e=>{const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start||!iv.end)return null;const computedDuration=Math.max(0,Math.round((iv.end-iv.start)/60000));return{...e,_startDt:iv.start,_endDt:iv.end,_computedDurationMins:e.durationMins||computedDuration,_isActive:!e.end};}).filter(Boolean).filter(e=>intervalsOverlap(e._startDt,e._endDt,win.start,win.end)).sort((a,b)=>a._startDt-b._startDt);}
 function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){const segs=getNightSleepSegmentsForWakeDay(wakeYmd,nowDt);if(!segs.length)return null;const hasActiveSleep=segs.some(e=>e._isActive);let wakesBetween=0;const gaps=[];for(let i=0;i<segs.length-1;i++){const gap=Math.round((segs[i+1]._startDt-segs[i]._endDt)/60000);if(gap>0){wakesBetween++;gaps.push(gap);}}const totalSleep=segs.reduce((acc,e)=>{if(e._isActive)return acc+Math.max(0,Math.round((nowDt-e._startDt)/60000));return acc+(e.durationMins||e._computedDurationMins||0);},0);const wakes=hasActiveSleep?wakesBetween:wakesBetween+1;return{wakeYmd,segs,hasActiveSleep,totalSleep,blocks:segs.length,wakes,wakesBetween,firstStart:segs[0].start,lastEnd:hasActiveSleep?'agora':segs[segs.length-1].end,gaps};}
 /** Normaliza cadeia de sono para métricas: une trechos sobrepostos/colados (sem criar despertar artificial). */
@@ -1163,8 +1217,8 @@ function addNewProfile(){const n=prompt('Nome do novo bebê:');if(!n||!n.trim())
 function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil excluído');}
 
 /* ---- Settings form ---- */
-function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-birth-date').value=isoToBirthDisplay(cfg.babyBirthDate);$('months-auto-hint').textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático)':'';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-day-boundary').value=cfg.dayBoundary||'06:00';$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-late-night').checked=!!cfg.lateNightMode;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('cfg-license-key').value=cfg.licenseToken||'';$('cfg-premium-local').checked=!!cfg.premiumUnlockLocal;$('cfg-license-api').value=localStorage.getItem('nz_license_api_base')||'';refreshProfileSelect();updatePremiumStatusText();}
-function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();showToast('Salvo');renderHome();}
+function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-birth-date').value=isoToBirthDisplay(cfg.babyBirthDate);$('months-auto-hint').textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático)':'';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-day-boundary').value=cfg.dayBoundary||'06:00';$('cfg-language').value=currentLang();$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-late-night').checked=!!cfg.lateNightMode;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('cfg-license-key').value=cfg.licenseToken||'';$('cfg-premium-local').checked=!!cfg.premiumUnlockLocal;$('cfg-license-api').value=localStorage.getItem('nz_license_api_base')||'';refreshProfileSelect();updatePremiumStatusText();applyI18nStatic();}
+function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast('Salvo');renderHome();}
 function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?'Premium liberado neste aparelho':'Gratuito');}
 
 /* ---- Premium ---- */
@@ -1370,8 +1424,8 @@ function renderGlance(){const host=$('glance');if(!host)return;const ymd=todaySt
 function getNightReferenceWakeYmd(nowDt=new Date()){const ymd=todayStr();if(timeToMins(fmtTime(nowDt))>=nightStartMinsVal())return fmtDateSV(addDaysLocal(parseYmdLocal(ymd),1));return ymd;}
 function nightCardHasActiveSleep(nowDt=new Date()){const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);return !!(an&&an.hasActiveSleep);}
 function ensureNightCardAutoRefresh(nowDt=new Date()){const needs=nightCardHasActiveSleep(nowDt);if(needs&&!homeNightTimer){homeNightTimer=setInterval(()=>{if(document.hidden)return;renderHome();},60000);}else if(!needs&&homeNightTimer){clearInterval(homeNightTimer);homeNightTimer=null;}}
-function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const nowDt=new Date();const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);if(!an){host.innerHTML='';return;}const waves=[];for(let i=0;i<an.segs.length;i++){const seg=an.segs[i];const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);if(i<an.segs.length-1){const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);}}const kicker=an.hasActiveSleep?'Noite em andamento':'Noite — referência principal';const nightFoot=an.hasActiveSleep?`Noite em andamento: o sono ativo está sendo contado em tempo real. O despertar final só será contado quando você registrar Acordou.`:`<strong>Períodos</strong> = sonos que cruzaram a janela noturna configurada (${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}). Se o sono começou antes da noite, mas entrou na janela, ele conta desde o horário real de início. <strong>Despertares (${an.wakes})</strong> = ${an.wakesBetween} entre períodos + 1 ao acordar.`;host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">Sono total</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">Períodos</div></div><div class="night-metric"><div class="night-metric-val">${an.wakes}</div><div class="night-metric-lbl">Despertares</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;}
-function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sleeps=calendarDayEntries(ymd).filter(e=>e.type==='sleep'&&e.durationMins);const total=sleeps.reduce((a,e)=>a+(e.durationMins||0),0);if(!sleeps.length){host.innerHTML='';return;}const win=getNightWindowForWakeDay(ymd);const naps=sleeps.filter(e=>{const iv=sleepIntervalDateTimes(e);return !intervalsOverlap(iv.start,iv.end,win.start,win.end);});host.innerHTML=`<div class="insight"><div class="insight-kicker">Sono do dia</div><div class="insight-title">${fmtDurShort(total)} de sono registrado hoje</div><div class="insight-body">${sleeps.length} período(s) no dia civil, sendo ${naps.length} soneca(s) fora da janela noturna.</div></div>`;}
+function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const nowDt=new Date();const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);if(!an){host.innerHTML='';return;}const waves=[];for(let i=0;i<an.segs.length;i++){const seg=an.segs[i];const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);if(i<an.segs.length-1){const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);}}const kicker=t('nightOngoing');const nightFoot=an.hasActiveSleep?`${t('nightOngoing')}: ${t('sleep').toLowerCase()} ativo em tempo real.`:`${t('periods')} = janela ${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}.`;host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.wakes}</div><div class="night-metric-lbl">${escHtml(t('awakenings'))}</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;}
+function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary(ymd,new Date());host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(ymd)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;}
 
 /* ---- Today rail (horizontal timeline) ---- */
 function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';if(!ev.length){host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
@@ -1437,28 +1491,30 @@ function renderStats(){
   const an=analyzeLastCompleteNight();
   const ymd=todayStr();
   const td=calendarDayEntries(ymd);
-  const napM=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);
+  const daySummary=getDaySummary(ymd,new Date());
+  const napM=daySummary.sleepTotal;
   const nightCal=td.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);
   const totalCal=totalSleepMinsCalendarDay(ymd);
   if(!an){hero.innerHTML=`<div class="stat-hero-kicker">Última noite</div><h2 class="stat-hero-title">Nenhuma noite fechada ainda</h2><p class="stat-hero-sub">Quando o bebê dormir à noite e você registrar o despertar da manhã, aparece aqui o resumo completo — do início do sono noturno até o acordar.</p>`;}
   else{const bedLbl=an.bedYmd===an.wakeYmd?formatShortDate(an.bedYmd):formatShortDate(an.bedYmd)+' → '+formatShortDate(an.wakeYmd);hero.innerHTML=`<div class="stat-hero-kicker">Última noite (referência)</div><h2 class="stat-hero-title">${fmtDur(an.totalSleep)} em ${an.blocks} trecho${an.blocks>1?'s':''}</h2><p class="stat-hero-sub">${escHtml(bedLbl)} · ${escHtml(an.bedClock)} → ${escHtml(an.wakeClock)}</p><div class="stat-grid"><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.totalSleep)}</div><div class="stat-cell-lbl">Total</div></div><div class="stat-cell"><div class="stat-cell-val">${an.wakes}</div><div class="stat-cell-lbl">Despertares</div></div><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.maxBlock)}</div><div class="stat-cell-lbl">Maior bloco</div></div><div class="stat-cell"><div class="stat-cell-val">${an.blocks>1?fmtDur(an.minBlock):'—'}</div><div class="stat-cell-lbl">Menor bloco</div></div><div class="stat-cell"><div class="stat-cell-val">${an.avgGap?fmtDur(an.avgGap):'—'}</div><div class="stat-cell-lbl">Entre blocos</div></div><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.totalSleep-an.maxBlock)}</div><div class="stat-cell-lbl">Outros</div></div></div>`;}
 
-  // Dia civil
-  charts.innerHTML=`<div class="chart-card"><h4>Dia civil (hoje)</h4><div class="ch-title">${fmtDur(totalCal)} de sono no relógio</div><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${fmtDur(napM)}</div><div class="stat-cell-lbl">Sonecas</div></div><div class="stat-cell"><div class="stat-cell-val">${fmtDur(nightCal)}</div><div class="stat-cell-lbl">Noturno no dia</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='feed').length}</div><div class="stat-cell-lbl">Mamadas</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='diaper').length}</div><div class="stat-cell-lbl">Fraldas</div></div></div><p class="ch-ctx">A meia-noite não interrompe a <strong>noite lógica</strong> — ela fecha quando o bebê acorda de manhã.</p></div><div class="chart-card"><h4>Distribuição de sono (últimas 8h)</h4><div style="position:relative;height:140px;margin-top:12px"><canvas id="barChart"></canvas></div></div><div class="chart-card"><h4>Dia em tipos</h4><div style="position:relative;height:160px;max-width:170px;margin:12px auto 0"><canvas id="donutChart"></canvas></div><p class="ch-ctx">Proporção de cada tipo de evento no dia civil (hoje).</p></div>`;
+  charts.innerHTML=`<div class="chart-card"><h4>${escHtml(t('dayRoutine'))}</h4><div class="ch-title">${fmtDur(napM)} ${escHtml(t('daySleep').toLowerCase())}</div><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${daySummary.sleepPeriods}</div><div class="stat-cell-lbl">${escHtml(t('periods'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.feeds}</div><div class="stat-cell-lbl">${escHtml(t('feeds'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.diapers}</div><div class="stat-cell-lbl">${escHtml(t('diapers'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.awakenings}</div><div class="stat-cell-lbl">${escHtml(t('awakenings'))}</div></div></div></div><div class="chart-card"><h4>${escHtml(t('statsDayCivil'))}</h4><div class="ch-title">${fmtDur(totalCal)} ${escHtml(t('sleep').toLowerCase())}</div><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${fmtDur(nightCal)}</div><div class="stat-cell-lbl">${escHtml(t('night'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='feed').length}</div><div class="stat-cell-lbl">${escHtml(t('feeds'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='diaper').length}</div><div class="stat-cell-lbl">${escHtml(t('diapers'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.length}</div><div class="stat-cell-lbl">${escHtml(t('events'))}</div></div></div></div><div class="chart-card"><h4>${escHtml(t('dayByType'))}</h4><div id="donut-wrap" style="position:relative;height:160px;max-width:170px;margin:12px auto 0"><canvas id="donutChart"></canvas></div><p class="ch-ctx">${escHtml(t('statsDayCivil'))}</p></div>`;
 
   // Charts
   const sleeps=td.filter(e=>e.type==='sleep'&&e.durationMins);
   const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+'h');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}
   if(barChart)barChart.destroy();const ctxBar=$('barChart');if(ctxBar){barChart=new Chart(ctxBar,{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:(c)=>{const grad=c.chart.ctx.createLinearGradient(0,0,0,150);grad.addColorStop(0,'#A78BFA');grad.addColorStop(1,'rgba(167,139,250,.15)');return grad;},borderRadius:8,borderSkipped:false,barThickness:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C1940',titleFont:{size:11},bodyFont:{size:11},callbacks:{label:c=>c.parsed.y+' min'}}},scales:{y:{max:60,ticks:{callback:v=>v+'m',color:'#8B87B8',font:{size:10}},grid:{color:'rgba(148,163,255,.08)'}},x:{ticks:{color:'#8B87B8',font:{size:10}},grid:{display:false}}}}});}
-  const fc=td.filter(e=>e.type==='feed').length,dc=td.filter(e=>e.type==='diaper').length,sc=sleeps.length;
-  if(donutChart)donutChart.destroy();const ctxD=$('donutChart');if(ctxD&&sc+fc+dc>0){donutChart=new Chart(ctxD,{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#A78BFA','#22D3EE','#F59E0B'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}});}
+  const fc=daySummary.feeds,dc=daySummary.diapers,sc=daySummary.sleepPeriods;
+  if(donutChart)donutChart.destroy();const ctxD=$('donutChart');
+  if(ctxD&&sc+fc+dc>0){donutChart=new Chart(ctxD,{type:'doughnut',data:{labels:[t('sleep'),t('feed'),t('diaper')],datasets:[{data:[sc,fc,dc],backgroundColor:['#A78BFA','#22D3EE','#F59E0B'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}});}
+  else{const wrap=$('donut-wrap');if(wrap)wrap.innerHTML=`<div class="trail-empty">${escHtml(t('noDataPeriod'))}</div>`;}
 }
 
 /* ---- HISTORY ---- */
 function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!host)return;if(!entries.length){host.innerHTML='<div class="empty-pretty"><h4>Histórico vazio</h4><p>Os eventos registrados aparecem aqui agrupados por dia e por tipo.</p></div>';if(count)count.textContent='';return;}const byDay={};entries.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});const days=Object.keys(byDay).sort().reverse();if(count)count.textContent=entries.length+' eventos em '+days.length+' dias';const tone={sleep:'var(--c-sleep)',feed:'var(--c-feed)',diaper:'var(--c-diaper)',mood:'var(--c-mood)'};const lanes=[['sleep','Sono','var(--c-sleep)'],['feed','Mamadas','var(--c-feed)'],['diaper','Fraldas','var(--c-diaper)'],['mood','Humor / sinais','var(--c-mood)']];const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 15c1 1 4 1 6 0"/></svg>'};let html='';days.forEach(day=>{const ev=byDay[day].slice().sort((a,b)=>timeToMins(b.start||'00:00')-timeToMins(a.start||'00:00'));const dayD=new Date(day+'T12:00:00');const dayLbl=dayD.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});const sleepMins=ev.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);html+=`<div class="hgroup"><div class="hgroup-head"><div class="hgroup-day">${escHtml(dayLbl)}</div><div class="hgroup-total">${ev.length} eventos · ${fmtDur(sleepMins)} sono</div></div>`;lanes.forEach(([k,lbl,col])=>{const items=ev.filter(e=>e.type===k);if(!items.length)return;html+=`<div class="hlane"><div class="hlane-label" style="--lane:${col}">${escHtml(lbl)}</div>`;items.forEach(e=>{let name=k==='sleep'?(sleepIsNight(e)?'Sono noturno':'Soneca'):k==='feed'?(e.subtype==='breast'?'Seio':'Mamadeira'):k==='diaper'?(e.subtype==='wet'?'Xixi':e.subtype==='dirty'?'Cocô':'Ambos'):(e.subtype==='crying'?'Choro':e.subtype==='gas'?'Gases':'Irritação');let detail='';if(k==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento')+(e.durationMins?' · '+fmtDur(e.durationMins):'');}else if(k==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+' min':'');}else{detail=e.start;}html+=`<div class="hitem"><div class="hdot" style="--tone:${col}">${icon[k]}</div><div class="hmain"><div class="hname">${escHtml(name)}</div><div class="hdetail">${escHtml(detail)}</div></div><button class="hdel" onclick="deleteEntry(${e.id})" aria-label="Excluir">×</button></div>`;});html+='</div>';});html+='</div>';});host.innerHTML=html;}
 
 /* ---- MASTER RENDER ---- */
-function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderGlance();renderNightPanel();renderDaySleepPanel();renderTodayRail();ensureNightCardAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
+function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderDaySleepPanel();renderNightPanel();renderTodayRail();ensureNightCardAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
 function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')renderStats();if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
 
 /* ---- actions ---- */
@@ -1497,10 +1553,16 @@ function dismissLateNight(){const o=$('lateNight');if(o){o.classList.remove('ope
 function updateLateNight(){const c=$('ln-clock'),s=$('ln-since');if(!c)return;c.textContent=fmtTime(now());const active=getActiveSleep();const last=getLastCompletedSleep();if(active){const mins=Math.round((now()-parseTimeOnDate(active.start,active.date))/60000);s.textContent='Dormindo há '+fmtDur(mins)+' (desde '+active.start+')';}else if(last){const mins=Math.round((now()-sleepEndDate(last))/60000);s.textContent='Acordado há '+fmtDur(mins);}else s.textContent='Registre o primeiro sono para começar.';}
 
 /* ---- Export / Import ---- */
-function exportData(){const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('JSON exportado');}
+function eventTypeLabel(e){if(!e)return'';if(e.type==='sleep')return t('sleep');if(e.type==='feed')return t('feed');if(e.type==='diaper')return t('diaper');if(e.type==='wake')return t('awakening');return e.type||'';}
+function exportData(){const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME,display:{reportTitle:t('report'),generatedAt:new Date().toLocaleString(currentLang()),language:currentLang(),eventLabels:{sleep:t('sleep'),feed:t('feed'),diaper:t('diaper'),wake:t('awakening')}}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('JSON exportado');}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
-function exportCsv(){const rows=[['id','date','type','subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>rows.push([e.id,e.date||'',e.type||'',e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('CSV exportado');}
-function printReport(){const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,200);let html='<h1>Nest — relatório</h1><p><strong>'+escHtml(cfg.name||'Bebê')+'</strong> · '+escHtml(new Date().toLocaleString('pt-BR'))+'</p><table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:11px"><tr><th>Data</th><th>Tipo</th><th>Detalhe</th></tr>';lines.forEach(e=>{let d=(e.start||'')+(e.type==='sleep'?' → '+(e.end||'')+(e.durationMins?' ('+fmtDur(e.durationMins)+')':''):e.type==='feed'?' '+(e.subtype||'')+(e.durationMins?' '+e.durationMins+'min':''):' '+(e.subtype||''));html+='<tr><td>'+escHtml(e.date)+'</td><td>'+escHtml(e.type)+'</td><td>'+escHtml(d)+'</td></tr>';});html+='</table>';$('print-area').innerHTML=html;$('print-area').classList.remove('hide');window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').classList.add('hide');},300);}
+function exportCsv(){const rows=[[t('date'),t('events'),'subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>rows.push([e.date?new Date(e.date+'T12:00:00').toLocaleDateString(currentLang()):'',eventTypeLabel(e),e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('CSV exportado');}
+function printReport(){const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,300);const daySum=getDaySummary(todayStr(),new Date());const nightSum=getNightSummaryForWakeDay(getNightReferenceWakeYmd(new Date()),new Date());let html=`<div class="pr-title">${escHtml(t('report'))}</div><div class="pr-meta"><strong>${escHtml(t('date'))}:</strong> ${escHtml(new Date().toLocaleString(currentLang()))}<br><strong>${escHtml(t('baby'))}:</strong> ${escHtml(cfg.name||'—')}</div><div class="pr-section"><h3>${escHtml(t('daySummary'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(daySum.sleepTotal))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${daySum.sleepPeriods}</div><div class="pr-cell">${escHtml(t('feeds'))}: ${daySum.feeds}</div><div class="pr-cell">${escHtml(t('diapers'))}: ${daySum.diapers}</div></div></div>`;
+  if(nightSum){html+=`<div class="pr-section"><h3>${escHtml(t('nightOngoing'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(nightSum.totalSleep))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${nightSum.blocks}</div><div class="pr-cell">${escHtml(t('awakenings'))}: ${nightSum.wakes}</div></div></div>`;}
+  html+=`<div class="pr-section"><h3>${escHtml(t('events'))}</h3><table class="pr-table"><thead><tr><th>${escHtml(t('date'))}</th><th>${escHtml(t('events'))}</th><th>Detalhe</th></tr></thead><tbody>`;
+  lines.forEach(e=>{const detail=[e.start||'',e.end?('→ '+e.end):'',e.durationMins!=null?fmtDur(e.durationMins):'',e.subtype||''].filter(Boolean).join(' ');html+=`<tr><td>${escHtml(e.date||'')}</td><td>${escHtml(eventTypeLabel(e))}</td><td>${escHtml(detail)}</td></tr>`;});
+  html+='</tbody></table></div>';
+  $('print-area').innerHTML=html;$('print-area').classList.remove('hide');window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').classList.add('hide');},300);}
 function importData(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch{}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;return x.date&&isValidDateStr(x.date)?x:{...x,date:fb};});if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}migrateDataModel();if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;save();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Importado');}catch(err){showToast('Erro ao importar');}};r.readAsText(f);ev.target.value='';}
 
 /* ---- PWA ---- */
@@ -1509,6 +1571,7 @@ function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.
 /* ---- init ---- */
 function init(){
   migrateToProfiles();loadProfileIntoMemory();applyTheme();syncSettingsForm();updateHeader();syncOnboardingUI();initSegs();
+  applyI18nStatic();
   registerPWA();
   renderHome();
   // Refresh orbit every 30s so timers "tick"
