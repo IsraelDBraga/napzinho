@@ -1200,6 +1200,40 @@ function minutesUntilNextClock(centerMin,refDate){const c=normClockMin(centerMin
 function minutesUntilDaytimeNap(centerMin,refDate){const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();const nowM=timeToMins(fmtTime(d0)),c=normClockMin(centerMin);const db=dayBoundaryMins(),ns=nightStartMinsVal();const inDay=m=>m>=db&&m<ns;if(inDay(c)&&inDay(nowM)){if(c>nowM)return c-nowM;return 0;}return minutesUntilNextClock(c,d0);}
 function formatTimeUntil(timeStr){return minutesUntilNextClock(timeToMins(timeStr),now());}
 function formatTimeUntilNapIfDay(timeStr){return minutesUntilDaytimeNap(timeToMins(timeStr),now());}
+/** Temporal status for a concrete target datetime (never auto-add 24h). */
+function getTemporalStatus(targetDt,nowDt=new Date(),opt={}){
+  const tol=Number.isFinite(opt.toleranceMin)?opt.toleranceMin:1;
+  const diffMs=targetDt-nowDt;
+  const absMin=Math.max(0,Math.round(Math.abs(diffMs)/60000));
+  if(Math.abs(diffMs)<=tol*60000)return{state:'now',minutesAbs:0,label:'agora'};
+  if(diffMs>0)return{state:'future',minutesAbs:absMin,label:`em ${absMin} min`};
+  return{state:'late',minutesAbs:absMin,label:`${absMin} min em atraso`};
+}
+/** Window status for a concrete window (start/end datetimes). */
+function getWindowStatus(winStartDt,winEndDt,nowDt=new Date()){
+  if(nowDt<winStartDt){
+    const m=Math.max(0,Math.round((winStartDt-nowDt)/60000));
+    return{state:'before',minutesAbs:m,label:`em ${m} min`};
+  }
+  if(nowDt>winEndDt){
+    const m=Math.max(0,Math.round((nowDt-winEndDt)/60000));
+    return{state:'after',minutesAbs:m,label:`janela encerrada há ${m} min`};
+  }
+  return{state:'within',minutesAbs:0,label:'dentro da janela'};
+}
+/**
+ * Build concrete datetimes for center/from/to clocks on a base day.
+ * Handles windows that cross midnight (end < start) without "pushing" overdue targets to tomorrow.
+ */
+function resolvePredictionDates(pred,baseYmd,nowDt=new Date()){
+  const startM=timeToMins(pred.from),endM=timeToMins(pred.to),centerM=timeToMins(pred.center);
+  const crosses=endM<startM;
+  const winStart=parseTimeOnDate(pred.from,baseYmd);
+  const winEnd=crosses?addMinutesLocal(parseTimeOnDate(pred.to,baseYmd),24*60):parseTimeOnDate(pred.to,baseYmd);
+  let center=parseTimeOnDate(pred.center,baseYmd);
+  if(crosses&&centerM<startM)center=addMinutesLocal(center,24*60);
+  return{centerDt:center,winStartDt:winStart,winEndDt:winEnd,crosses};
+}
 function napTransitionHelp(){const nowM=timeToMins(fmtTime(now()));if(nowM>=nightStartMinsVal()-45)return'';const td=calendarDayEntries(todayStr());const done=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length;const exp=expectedNapCountToday();if(exp<=1||done>=exp)return'';const m=babyAgeMonths();const ageCap=m<=2?5:m<=5?4:m<=8?3:2;const med=medianDaytimeNapCountRecent(8);const learningDown=med!=null&&med<ageCap&&exp>done;return learningDown?' O histórico recente está com menos sonecas que a tabela da idade — transição comum. Se recusar este cochilo, não force por muito tempo (ambiente calmo, ~20–30 min), aceite e espere novo cansaço.':' Ainda faltam sonecas no “plano” do dia ('+done+'/'+exp+'). Se recusar, não force por muito tempo (ambiente calmo, ~20–30 min); observe sinais e ajuste a próxima janela.';}
 function dataMaturity(){const days=getDaysWithData().length;const sl=entries.filter(e=>e.type==='sleep'&&e.durationMins).length;const fd=entries.filter(e=>e.type==='feed').length;const score=Math.min(96,8+Math.min(34,days*5)+Math.min(28,sl*2)+Math.min(18,fd));if(!sl&&!fd)return{conf:'low',label:'Começando',score,hint:'Registre sono e mamadas por 2–3 dias e as faixas ficam bem mais suas.'};if(days<3||sl<4)return{conf:'low',label:'Calibrando',score,hint:'Cada soneca e cada noite gravada afinam o modelo.'};if(days<7)return{conf:'mid',label:'Afinando',score,hint:'Histórico + idade — as faixas estão apertando.'};return{conf:'high',label:'Firme',score,hint:'Base sólida — leituras mais assertivas.'};}
 
@@ -1412,12 +1446,21 @@ function renderPredictions(){
     if(p.kind==='night-now'||p.kind==='sleep-now'){
       right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
     }else{
-      const nowM=timeToMins(fmtTime(now())),centerM=normClockMin(timeToMins(p.pred.center));
-      const nowDay=nowM>=dayBoundaryMins()&&nowM<nightStartMinsVal();
-      const centerDay=centerM>=dayBoundaryMins()&&centerM<nightStartMinsVal();
-      const overdueMin=(p.kind==='nap'&&nowDay&&centerDay&&centerM<nowM)?(nowM-centerM):0;
-      const diffMin=p.kind==='nap'&&nowDay&&centerDay?minutesUntilDaytimeNap(centerM,now()):(centerM>=nowM?centerM-nowM:centerM-nowM+1440);
-      const timeLbl=overdueMin>0?`<span style="color:var(--rose)">atrasada ~${overdueMin} min</span>`:`em ${diffMin} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}`;
+      const nowDt=now();
+      const baseYmd=todayStr();
+      const r=resolvePredictionDates(p.pred,baseYmd,nowDt);
+      const tStatus=getTemporalStatus(r.centerDt,nowDt,{toleranceMin:1});
+      const wStatus=getWindowStatus(r.winStartDt,r.winEndDt,nowDt);
+      // Display rules (formatter only):
+      // - before window: count down to the *predicted center* (not window start)
+      // - within window: show "dentro da janela"
+      // - after window: show "janela encerrada há X min"
+      // - late target (center passed) while window not ended: show "X min em atraso"
+      let effectiveLbl=tStatus.label;
+      if(wStatus.state==='within') effectiveLbl=wStatus.label;
+      else if(wStatus.state==='after') effectiveLbl=wStatus.label;
+      else if(tStatus.state==='late') effectiveLbl=tStatus.label;
+      const timeLbl=`${effectiveLbl} · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}`;
       right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">${timeLbl}</div>`;
     }
     return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime">${right}</div></div>`;
