@@ -651,38 +651,38 @@ a{color:inherit;text-decoration:none}
 
 <!-- ============ ONBOARDING ============ -->
 <div class="onboard" id="onboard" role="dialog" aria-modal="true" aria-hidden="true">
-  <span class="onboard-kicker">Bem-vindo ao Nest</span>
-  <h1 class="onboard-title">Quem é o bebê que vamos cuidar?</h1>
-  <p class="onboard-lead">O nome e a data de nascimento calibram idade, janelas e previsões. Tudo fica salvo só neste aparelho.</p>
+  <span class="onboard-kicker" id="onb-kicker">Bem-vindo ao Nest</span>
+  <h1 class="onboard-title" id="onb-title">Quem é o bebê que vamos cuidar?</h1>
+  <p class="onboard-lead" id="onb-lead">O nome e a data de nascimento calibram idade, janelas e previsões. Tudo fica salvo só neste aparelho.</p>
   <form onsubmit="event.preventDefault();submitBabyOnboarding()">
     <div class="fgroup">
-      <label class="flabel" for="onb-name">Nome do bebê</label>
-      <input class="finput" id="onb-name" type="text" autocomplete="nickname" maxlength="48" placeholder="Ex.: Maria">
+      <label class="flabel" for="onb-name" id="onb-name-label">Nome do bebê</label>
+      <input class="finput" id="onb-name" type="text" autocomplete="nickname" maxlength="48" placeholder="Ex.: Maria" data-i18n-placeholder="onbNamePh">
     </div>
     <div class="fgroup">
-      <label class="flabel" for="onb-birth">Data de nascimento</label>
-      <input class="finput" id="onb-birth" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" maxlength="10" autocomplete="bday" oninput="maskDateBirth(this)">
-      <p class="onboard-hint">Opcional — pode completar depois em Configurações.</p>
+      <label class="flabel" for="onb-birth" id="onb-birth-label">Data de nascimento</label>
+      <input class="finput" id="onb-birth" type="text" inputmode="numeric" placeholder="DD-MM-AAAA" maxlength="10" autocomplete="bday" oninput="maskDateBirth(this)" data-i18n-placeholder="onbBirthPh">
+      <p class="onboard-hint" id="onb-hint">Opcional — pode completar depois em Configurações.</p>
     </div>
-    <button type="submit" class="btn-primary">Começar</button>
-    <button type="button" class="btn-ghost" onclick="skipBabyOnboarding()">Pular por enquanto</button>
+    <button type="submit" class="btn-primary" id="onb-start-btn">Começar</button>
+    <button type="button" class="btn-ghost" onclick="skipBabyOnboarding()" id="onb-skip-btn">Pular por enquanto</button>
   </form>
 </div>
 
 <!-- ============ LATE NIGHT MODE ============ -->
 <div class="lateNight" id="lateNight" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="ln-top">
-    <div class="ln-kicker">Modo madrugada</div>
+    <div class="ln-kicker" id="ln-kicker">Modo madrugada</div>
     <div class="ln-clock" id="ln-clock">—</div>
     <div class="ln-since" id="ln-since">Luz baixa, decisões rápidas.</div>
   </div>
   <div>
     <div class="ln-actions">
-      <button type="button" class="primary" onclick="babySlept();dismissLateNight()">Dormiu</button>
-      <button type="button" onclick="babyWoke();dismissLateNight()">Acordou</button>
-      <button type="button" onclick="openLog('feed');dismissLateNight()">Mamada</button>
+      <button type="button" class="primary" onclick="babySlept();dismissLateNight()" id="ln-btn-slept">Dormiu</button>
+      <button type="button" onclick="babyWoke();dismissLateNight()" id="ln-btn-woke">Acordou</button>
+      <button type="button" onclick="openLog('feed');dismissLateNight()" id="ln-btn-feed">Mamada</button>
     </div>
-    <div class="ln-exit link" onclick="dismissLateNight()">Sair do modo madrugada →</div>
+    <div class="ln-exit link" onclick="dismissLateNight()" id="ln-exit">Sair do modo madrugada →</div>
   </div>
 </div>
 
@@ -690,7 +690,7 @@ a{color:inherit;text-decoration:none}
 <header class="app-header">
   <button type="button" class="avatar" id="avatar" onclick="showSec('settings')" aria-label="Perfil" title="Perfil"></button>
   <div class="app-head-center">
-    <div class="app-head-greet" id="head-greet">Olá 👋</div>
+    <div class="app-head-greet" id="head-greet">Olá</div>
     <div class="app-head-baby" id="head-baby">—</div>
     <div class="app-head-age" id="head-age">—</div>
   </div>
@@ -738,7 +738,7 @@ a{color:inherit;text-decoration:none}
   <div id="home-insight"></div>
 
   <!-- Predictions -->
-  <div class="h-section"><h3>Próximas janelas</h3><span class="h-action" id="home-conf-badge">—</span></div>
+  <div class="h-section"><h3 id="home-preds-title">Próximas janelas</h3><span class="h-action" id="home-conf-badge">—</span></div>
   <div class="pred-list" id="pred-list"></div>
 
   <!-- Day / night summary panels -->
@@ -746,7 +746,7 @@ a{color:inherit;text-decoration:none}
   <div id="night-panel-wrap"></div>
 
   <!-- Today rail (horizontal timeline) -->
-  <div class="h-section"><h3>Linha do dia</h3><span class="h-action" id="today-rail-count">—</span></div>
+  <div class="h-section"><h3 id="home-timeline-title">Linha do dia</h3><span class="h-action" id="today-rail-count">—</span></div>
   <div class="today-rail" id="today-rail"></div>
 
   <!-- Copilot CTA -->
@@ -892,7 +892,7 @@ a{color:inherit;text-decoration:none}
 <div class="sheet" id="log-sheet" role="dialog" aria-modal="true" aria-labelledby="log-sheet-title">
   <div class="sheet-grab"></div>
   <h3 class="sheet-title" id="log-sheet-title">Registrar</h3>
-  <p class="sheet-sub">Toque no que aconteceu agora.</p>
+  <p class="sheet-sub" id="log-sheet-sub">Toque no que aconteceu agora.</p>
   <div class="log-grid">
     <button class="log-tile" style="--tile:#A78BFA" onclick="quickSleep();closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg></span>
@@ -900,27 +900,27 @@ a{color:inherit;text-decoration:none}
     </button>
     <button class="log-tile" style="--tile:#22D3EE" onclick="openLog('feed');closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg></span>
-      <span class="lt-lbl">Mamada</span>
+      <span class="lt-lbl" id="tile-feed-lbl">Mamada</span>
     </button>
     <button class="log-tile" style="--tile:#F59E0B" onclick="openLog('diaper');closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg></span>
-      <span class="lt-lbl">Fralda</span>
+      <span class="lt-lbl" id="tile-diaper-lbl">Fralda</span>
     </button>
     <button class="log-tile" style="--tile:#F472B6" onclick="logMoodQuick('crying');closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 15c1 1 4 1 6 0M9 10h.01M15 10h.01"/></svg></span>
-      <span class="lt-lbl">Choro</span>
+      <span class="lt-lbl" id="tile-cry-lbl">Choro</span>
     </button>
     <button class="log-tile" style="--tile:#FB923C" onclick="logMoodQuick('fussy');closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 15h8M9 10l-1-1M15 10l1-1"/></svg></span>
-      <span class="lt-lbl">Irritação</span>
+      <span class="lt-lbl" id="tile-fussy-lbl">Irritação</span>
     </button>
     <button class="log-tile" style="--tile:#34D399" onclick="logMoodQuick('gas');closeLogSheet()">
       <span class="lt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9c2 0 3-3 5-3s3 3 5 3 3-3 5-3M4 14c2 0 3-3 5-3s3 3 5 3 3-3 5-3M4 19c2 0 3-3 5-3s3 3 5 3 3-3 5-3"/></svg></span>
-      <span class="lt-lbl">Gases</span>
+      <span class="lt-lbl" id="tile-gas-lbl">Gases</span>
     </button>
     <button class="log-tile" style="--tile:#818CF8;grid-column:span 3" onclick="openLog('sleep-manual');closeLogSheet()">
       <span class="lt-ico" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4zM14 5l4 4"/></svg></span>
-      <span class="lt-lbl">Registrar sono manual (início → fim)</span>
+      <span class="lt-lbl" id="tile-manual-sleep-lbl">Registrar sono manual (início → fim)</span>
     </button>
   </div>
 </div>
@@ -979,11 +979,414 @@ const $=id=>document.getElementById(id);
 const now=()=>new Date();
 const SUPPORTED_LANGS=['pt-BR','en-US'];
 const I18N={
-  'pt-BR':{home:'Início',data:'Dados',history:'Histórico',copilot:'Copiloto',settings:'Configurações',language:'Idioma',portuguese:'Português',english:'Inglês',daySummary:'Resumo do dia',nightOngoing:'Noite em andamento',totalSleep:'Sono total',periods:'Períodos',awakenings:'Despertares',feeds:'Mamadas',diapers:'Fraldas',daySleep:'Sono do dia',dayByType:'Dia em tipos',exportJson:'Exportar JSON',exportCsv:'Exportar CSV',reportPdf:'Relatório / PDF',importJson:'Importar JSON',noDataPeriod:'Sem dados suficientes para este período.',report:'Relatório',date:'Data',baby:'Bebê',events:'Eventos',sleep:'Sono',feed:'Mamada',diaper:'Fralda',awakening:'Despertar',morning:'Manhã',afternoon:'Tarde',night:'Noite',now:'Agora',statsDayCivil:'Dia civil (hoje)',dayRoutine:'Rotina diurna (hoje)'},
-  'en-US':{home:'Home',data:'Data',history:'History',copilot:'Copilot',settings:'Settings',language:'Language',portuguese:'Portuguese',english:'English',daySummary:'Day summary',nightOngoing:'Night in progress',totalSleep:'Total sleep',periods:'Periods',awakenings:'Awakenings',feeds:'Feeds',diapers:'Diapers',daySleep:'Day sleep',dayByType:'Day by type',exportJson:'Export JSON',exportCsv:'Export CSV',reportPdf:'Report / PDF',importJson:'Import JSON',noDataPeriod:'Not enough data for this period.',report:'Report',date:'Date',baby:'Baby',events:'Events',sleep:'Sleep',feed:'Feed',diaper:'Diaper',awakening:'Awakening',morning:'Morning',afternoon:'Afternoon',night:'Night',now:'Now',statsDayCivil:'Civil day (today)',dayRoutine:'Daytime routine (today)'}
+  'pt-BR':{
+    home:'Início',data:'Dados',history:'Histórico',copilot:'Copiloto',settings:'Configurações',
+    language:'Idioma',portuguese:'Português',english:'Inglês',
+    daySummary:'Resumo do dia',nightOngoing:'Noite em andamento',
+    totalSleep:'Sono total',periods:'Períodos',awakenings:'Despertares',feeds:'Mamadas',diapers:'Fraldas',
+    daySleep:'Sono do dia',dayByType:'Dia em tipos',
+    exportJson:'Exportar JSON',exportCsv:'Exportar CSV',reportPdf:'Relatório / PDF',importJson:'Importar JSON',
+    noDataPeriod:'Sem dados suficientes para este período.',
+    report:'Relatório',date:'Data',baby:'Bebê',events:'Eventos',
+    sleep:'Sono',feed:'Mamada',diaper:'Fralda',awakening:'Despertar',
+    morning:'Manhã',afternoon:'Tarde',night:'Noite',now:'Agora',
+    statsDayCivil:'Dia civil (hoje)',dayRoutine:'Rotina diurna (hoje)',
+
+    // General UI
+    appWelcome:'Bem-vindo ao Nest',
+    onboardingTitle:'Quem é o bebê que vamos cuidar?',
+    onboardingLead:'O nome e a data de nascimento calibram idade, janelas e previsões. Tudo fica salvo só neste aparelho.',
+    babyName:'Nome do bebê',
+    babyNamePlaceholder:'Ex.: Maria',
+    birthDate:'Data de nascimento',
+    birthDatePlaceholder:'DD-MM-AAAA',
+    optionalCompleteLater:'Opcional — pode completar depois em Configurações.',
+    start:'Começar',
+    skipForNow:'Pular por enquanto',
+    hello:'Olá',
+    greetDawn:'Boa madrugada',
+    greetMorning:'Bom dia',
+    greetAfternoon:'Boa tarde',
+    greetEvening:'Boa noite',
+    monthsSingular:'{count} mês',
+    monthsPlural:'{count} meses',
+    profile:'Perfil',
+    changeTheme:'Mudar tema',
+    nextWindow:'Próxima janela',
+    registerNow:'Registrar agora',
+    openCopilot:'Abrir o Copiloto',
+    copilotSub:'Leitura do dia, da noite e o que fazer agora',
+    upcomingWindows:'Próximas janelas',
+    dayLine:'Linha do dia',
+    noRecordsToday:'Nenhum registro hoje ainda — toque em + para começar.',
+    eventsCount:'{count} eventos',
+
+    // Late night
+    lateNightMode:'Modo madrugada',
+    lateNightHint:'Luz baixa, decisões rápidas.',
+    exitLateNight:'Sair do modo madrugada →',
+    slept:'Dormiu',
+    woke:'Acordou',
+    feedSingular:'Mamada',
+
+    // Temporal/status
+    temporalNow:'agora',
+    temporalInMin:'em {min} min',
+    temporalLateMin:'{min} min em atraso',
+    temporalWithinWindow:'dentro da janela',
+    temporalWindowEnded:'janela encerrada há {min} min',
+
+    // Predictions
+    predNightOngoing:'Noite em andamento',
+    predNapOngoing:'Soneca em andamento',
+    predRegisterWake:'Registre Acordou quando despertar',
+    predNightWindowActive:'Janela noturna ativa',
+    predTapSlept:'Toque em Dormiu quando adormecer',
+    predWindowConfigured:'janela fisiológica configurada',
+    predNightEntry:'Entrada da noite',
+    predNightRoutine:'Rotina da noite',
+    predNextNap:'Próxima soneca',
+    predNextFeed:'Próxima mamada',
+    predBasedOnDayHistory:'Com base no dia + histórico',
+    predFromLastWake:'A partir do último despertar',
+    predIntervalsRhythm:'Ritmo dos últimos intervalos',
+    emptyStartMeasuringTitle:'Vamos começar a medir',
+    emptyStartMeasuringBody:'Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.',
+
+    // Maturity badges
+    maturityStarting:'Começando',
+    maturityCalibrating:'Calibrando',
+    maturityTuning:'Afinando',
+    maturitySteady:'Firme',
+
+    // Toasts/validation
+    errNeedBabyName:'Preciso do nome do bebê',
+    errInvalidBirthDate:'Data inválida — use DD-MM-AAAA',
+    saved:'Salvo',
+    ready:'Tudo pronto, {name}',
+    canCompleteInSettings:'Você pode completar em Configurações',
+    profileSwitched:'Perfil trocado',
+    newProfileCreated:'Novo perfil criado',
+    onlyOneProfile:'Só há um perfil',
+    confirmDeleteProfile:'Excluir este perfil e todos os dados?',
+    profileDeleted:'Perfil excluído',
+    needCompleteProfileFirst:'Complete o perfil do bebê primeiro',
+    alreadySleeping:'Já tem sono em andamento',
+    needRegisterBabyFirst:'Cadastre o bebê primeiro',
+    sleepAlreadyLogged:'Sono já registrado',
+    sleepStartedAt:'{kind} iniciada às {time}',
+    noActiveSleep:'Nenhum sono em andamento',
+    wokeAt:'Acordou às {time} · {dur}',
+    confirmDeleteEntry:'Excluir este registro?',
+    entryDeleted:'Registro excluído',
+    invalidDate:'Data inválida',
+    invalidTime:'Horário inválido',
+    invalidStart:'Início inválido',
+    imported:'Importado',
+    importError:'Erro ao importar',
+    invalidFile:'Arquivo inválido',
+    confirmReplaceData:'Isso vai substituir os dados deste perfil. Continuar?',
+    jsonExported:'JSON exportado',
+    csvExported:'CSV exportado',
+
+    // Premium
+    premiumUnlockedLocal:'Premium liberado neste aparelho',
+    premiumFree:'Gratuito',
+    premiumStatusLocal:'Liberado localmente neste aparelho.',
+    premiumStatusLifetime:'Vitalício ativo por chave.',
+    premiumStatusPremium:'Premium ativo.',
+    premiumStatusTrial:'Teste grátis: {days} dia(s) restante(s).',
+    premiumStatusTrialUsed:'Teste grátis já utilizado.',
+    premiumStatusFree:'Plano gratuito.',
+    premiumPlanAlreadyActive:'Plano ativo já existente',
+    premiumTrialAlreadyUsed:'Teste já utilizado',
+    premiumTrialStarted:'7 dias liberados',
+
+    // History
+    historyEmptyTitle:'Histórico vazio',
+    historyEmptyBody:'Os eventos registrados aparecem aqui agrupados por dia e por tipo.',
+    eventsInDays:'{events} eventos em {days} dias',
+    sleepNight:'Sono noturno',
+
+  // Home / status cards
+  lastSleep:'Último sono',
+  lastNight:'Última noite',
+  lastNap:'Última soneca',
+  noRecordsYet:'Sem registros ainda.',
+  tapPlusToLog:'Toque no + para registrar.',
+  lastFeed:'Última mamada',
+  wokeAgo:'Acordou há {dur} · {start} → {end}',
+
+  // Log sheet / modal
+  sheetSub:'Toque no que aconteceu agora.',
+  logFeed:'Mamada',
+  logDiaper:'Fralda',
+  logManualSleep:'Sono manual',
+  logTitle:'Registrar',
+  logFeedTitle:'Registrar mamada',
+  logDiaperTitle:'Registrar fralda',
+  logManualSleepTitle:'Sono manual',
+  type:'Tipo',
+  content:'Conteúdo',
+  date:'Data',
+  time:'Horário',
+  durationMin:'Duração (min)',
+  startTime:'Início',
+  endTime:'Fim',
+  startDate:'Data (início)',
+  manualSleepHint:'Se o fim for antes do início (ex.: 22:00 → 06:00), ele conta como o dia seguinte automaticamente.',
+  save:'Salvar',
+  cancel:'Cancelar',
+
+  // Misc toasts/errors
+  entrySaved:'Registro salvo',
+  duplicateSleep:'Sono duplicado',
+  alreadySleepingModal:'Já tem sono em andamento',
+  needRegisterBabyFirstShort:'Cadastre o bebê primeiro',
+  jsonExported:'JSON exportado',
+  csvExported:'CSV exportado',
+  imported:'Importado',
+  importError:'Erro ao importar',
+  invalidFile:'Arquivo inválido',
+  invalidDate:'Data inválida',
+  invalidTime:'Horário inválido',
+  invalidStart:'Início inválido',
+  confirmReplaceData:'Isso vai substituir os dados deste perfil. Continuar?',
+  confirmDeleteProfile:'Excluir este perfil e todos os dados?',
+  confirmDeleteEntry:'Excluir este registro?',
+  entryDeleted:'Registro excluído',
+  saved:'Salvo',
+
+  // Premium
+  premiumUnlockedLocal:'Premium liberado neste aparelho',
+  premiumFree:'Gratuito',
+  premiumStatusLocal:'Liberado localmente neste aparelho.',
+  premiumStatusLifetime:'Vitalício ativo por chave.',
+  premiumStatusPremium:'Premium ativo.',
+  premiumStatusTrial:'Teste grátis: {days} dia(s) restante(s).',
+  premiumStatusTrialUsed:'Teste grátis já utilizado.',
+  premiumStatusFree:'Plano gratuito.',
+  premiumPlanAlreadyActive:'Plano ativo já existente',
+  premiumTrialAlreadyUsed:'Teste já utilizado',
+  premiumTrialStarted:'7 dias liberados',
+  premiumActivatedLifetime:'Vitalício ativado',
+  premiumActivated:'Premium ativado',
+  licensePasteFirst:'Cole a chave primeiro',
+  licenseConfigureServerFirst:'Configure a URL do servidor primeiro',
+  licenseFail:'Falha: {err}',
+
+    // Settings
+    saveSettings:'Salvar configurações'
+  },
+  'en-US':{
+    home:'Home',data:'Data',history:'History',copilot:'Copilot',settings:'Settings',
+    language:'Language',portuguese:'Portuguese',english:'English',
+    daySummary:'Day summary',nightOngoing:'Night in progress',
+    totalSleep:'Total sleep',periods:'Periods',awakenings:'Wake-ups',feeds:'Feeds',diapers:'Diapers',
+    daySleep:'Day sleep',dayByType:'Day by type',
+    exportJson:'Export JSON',exportCsv:'Export CSV',reportPdf:'Report / PDF',importJson:'Import JSON',
+    noDataPeriod:'Not enough data for this period.',
+    report:'Report',date:'Date',baby:'Baby',events:'Events',
+    sleep:'Sleep',feed:'Feed',diaper:'Diaper',awakening:'Wake-up',
+    morning:'Morning',afternoon:'Afternoon',night:'Night',now:'Now',
+    statsDayCivil:'Civil day (today)',dayRoutine:'Daytime routine (today)',
+
+    // General UI
+    appWelcome:'Welcome to Nest',
+    onboardingTitle:'Who is the baby we’re caring for?',
+    onboardingLead:'Name and birth date calibrate age, windows, and predictions. Everything is saved only on this device.',
+    babyName:'Baby name',
+    babyNamePlaceholder:'e.g., Maria',
+    birthDate:'Birth date',
+    birthDatePlaceholder:'DD-MM-YYYY',
+    optionalCompleteLater:'Optional — you can complete it later in Settings.',
+    start:'Start',
+    skipForNow:'Skip for now',
+    hello:'Hello',
+    greetDawn:'Good early morning',
+    greetMorning:'Good morning',
+    greetAfternoon:'Good afternoon',
+    greetEvening:'Good evening',
+    monthsSingular:'{count} month',
+    monthsPlural:'{count} months',
+    profile:'Profile',
+    changeTheme:'Change theme',
+    nextWindow:'Next window',
+    registerNow:'Log now',
+    openCopilot:'Open Copilot',
+    copilotSub:'Day/night reading and what to do now',
+    upcomingWindows:'Upcoming windows',
+    dayLine:'Today timeline',
+    noRecordsToday:'No records yet today — tap + to start.',
+    eventsCount:'{count} events',
+
+    // Late night
+    lateNightMode:'Late-night mode',
+    lateNightHint:'Dim light, quick decisions.',
+    exitLateNight:'Exit late-night mode →',
+    slept:'Slept',
+    woke:'Woke',
+    feedSingular:'Feed',
+
+    // Temporal/status
+    temporalNow:'now',
+    temporalInMin:'in {min} min',
+    temporalLateMin:'{min} min late',
+    temporalWithinWindow:'within window',
+    temporalWindowEnded:'window ended {min} min ago',
+
+    // Predictions
+    predNightOngoing:'Night in progress',
+    predNapOngoing:'Nap in progress',
+    predRegisterWake:'Log Woke when they wake up',
+    predNightWindowActive:'Active night window',
+    predTapSlept:'Tap Slept when they fall asleep',
+    predWindowConfigured:'configured physiological window',
+    predNightEntry:'Night entry',
+    predNightRoutine:'Night routine',
+    predNextNap:'Next nap',
+    predNextFeed:'Next feed',
+    predBasedOnDayHistory:'Based on today + history',
+    predFromLastWake:'From last wake',
+    predIntervalsRhythm:'Recent interval rhythm',
+    emptyStartMeasuringTitle:'Let’s start tracking',
+    emptyStartMeasuringBody:'Log a sleep with start and end, and a feed. The next window will show here with a range and basis.',
+
+    // Maturity badges
+    maturityStarting:'Starting',
+    maturityCalibrating:'Calibrating',
+    maturityTuning:'Tuning',
+    maturitySteady:'Steady',
+
+    // Toasts/validation
+    errNeedBabyName:'Please enter the baby’s name',
+    errInvalidBirthDate:'Invalid date — use DD-MM-YYYY',
+    saved:'Saved',
+    ready:'All set, {name}',
+    canCompleteInSettings:'You can complete it in Settings',
+    profileSwitched:'Profile switched',
+    newProfileCreated:'New profile created',
+    onlyOneProfile:'There is only one profile',
+    confirmDeleteProfile:'Delete this profile and all its data?',
+    profileDeleted:'Profile deleted',
+    needCompleteProfileFirst:'Complete the baby profile first',
+    alreadySleeping:'Sleep is already in progress',
+    needRegisterBabyFirst:'Register the baby first',
+    sleepAlreadyLogged:'Sleep already logged',
+    sleepStartedAt:'{kind} started at {time}',
+    noActiveSleep:'No sleep in progress',
+    wokeAt:'Woke at {time} · {dur}',
+    confirmDeleteEntry:'Delete this entry?',
+    entryDeleted:'Entry deleted',
+    invalidDate:'Invalid date',
+    invalidTime:'Invalid time',
+    invalidStart:'Invalid start time',
+    imported:'Imported',
+    importError:'Import error',
+    invalidFile:'Invalid file',
+    confirmReplaceData:'This will replace this profile’s data. Continue?',
+    jsonExported:'JSON exported',
+    csvExported:'CSV exported',
+
+    // Premium
+    premiumUnlockedLocal:'Premium unlocked on this device',
+    premiumFree:'Free',
+    premiumStatusLocal:'Unlocked locally on this device.',
+    premiumStatusLifetime:'Lifetime active via key.',
+    premiumStatusPremium:'Premium active.',
+    premiumStatusTrial:'Free trial: {days} day(s) left.',
+    premiumStatusTrialUsed:'Free trial already used.',
+    premiumStatusFree:'Free plan.',
+    premiumPlanAlreadyActive:'Plan already active',
+    premiumTrialAlreadyUsed:'Trial already used',
+    premiumTrialStarted:'7 days unlocked',
+
+    // History
+    historyEmptyTitle:'Empty history',
+    historyEmptyBody:'Logged events appear here grouped by day and type.',
+    eventsInDays:'{events} events across {days} days',
+    sleepNight:'Night sleep',
+
+  // Home / status cards
+  lastSleep:'Last sleep',
+  lastNight:'Last night',
+  lastNap:'Last nap',
+  noRecordsYet:'No records yet.',
+  tapPlusToLog:'Tap + to log.',
+  lastFeed:'Last feed',
+  wokeAgo:'Woke {dur} ago · {start} → {end}',
+
+  // Log sheet / modal
+  sheetSub:'Tap what happened now.',
+  logFeed:'Feed',
+  logDiaper:'Diaper',
+  logManualSleep:'Manual sleep',
+  logTitle:'Log',
+  logFeedTitle:'Log feed',
+  logDiaperTitle:'Log diaper',
+  logManualSleepTitle:'Manual sleep',
+  type:'Type',
+  content:'Content',
+  date:'Date',
+  time:'Time',
+  durationMin:'Duration (min)',
+  startTime:'Start',
+  endTime:'End',
+  startDate:'Start date',
+  manualSleepHint:'If end is before start (e.g., 22:00 → 06:00), it counts as the next day automatically.',
+  save:'Save',
+  cancel:'Cancel',
+
+  // Misc toasts/errors
+  entrySaved:'Saved',
+  duplicateSleep:'Duplicate sleep',
+  alreadySleepingModal:'A sleep is already in progress',
+  needRegisterBabyFirstShort:'Set up the baby first',
+  jsonExported:'JSON exported',
+  csvExported:'CSV exported',
+  imported:'Imported',
+  importError:'Import error',
+  invalidFile:'Invalid file',
+  invalidDate:'Invalid date',
+  invalidTime:'Invalid time',
+  invalidStart:'Invalid start',
+  confirmReplaceData:'This will replace this profile’s data. Continue?',
+  confirmDeleteProfile:'Delete this profile and all data?',
+  confirmDeleteEntry:'Delete this record?',
+  entryDeleted:'Deleted',
+  saved:'Saved',
+
+  // Premium
+  premiumUnlockedLocal:'Premium unlocked on this device',
+  premiumFree:'Free',
+  premiumStatusLocal:'Unlocked locally on this device.',
+  premiumStatusLifetime:'Lifetime active via key.',
+  premiumStatusPremium:'Premium active.',
+  premiumStatusTrial:'Free trial: {days} day(s) left.',
+  premiumStatusTrialUsed:'Free trial already used.',
+  premiumStatusFree:'Free plan.',
+  premiumPlanAlreadyActive:'Plan already active',
+  premiumTrialAlreadyUsed:'Trial already used',
+  premiumTrialStarted:'7 days unlocked',
+  premiumActivatedLifetime:'Lifetime activated',
+  premiumActivated:'Premium activated',
+  licensePasteFirst:'Paste the key first',
+  licenseConfigureServerFirst:'Configure the server URL first',
+  licenseFail:'Failed: {err}',
+
+    // Settings
+    saveSettings:'Save settings'
+  }
 };
 function currentLang(){const l=cfg&&cfg.lang;return SUPPORTED_LANGS.includes(l)?l:'pt-BR';}
 function t(k){const l=currentLang();return(I18N[l]&&I18N[l][k])||I18N['pt-BR'][k]||k;}
+function tFmt(k,vars){
+  let s=t(k);
+  if(!vars)return s;
+  Object.keys(vars).forEach(key=>{s=s.replaceAll('{'+key+'}',String(vars[key]));});
+  return s;
+}
+function pluralKey(base,count){return count===1?base+'One':base+'Many';}
 const todayStr=()=>new Date().toLocaleDateString('sv-SE');
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
@@ -999,6 +1402,19 @@ const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1];}
+function parseYmdLocal(ymd){if(!ymd||!isValidDateStr(ymd))return null;const [y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0);}
+function formatDateByLang(dateKeyOrDate,lang){
+  const l=SUPPORTED_LANGS.includes(lang)?lang:'pt-BR';
+  let dt=null;
+  if(typeof dateKeyOrDate==='string')dt=parseYmdLocal(dateKeyOrDate);
+  else if(dateKeyOrDate instanceof Date)dt=dateKeyOrDate;
+  if(!dt)return String(dateKeyOrDate||'');
+  // Use local components (no UTC shift). en-US: mm/dd/yyyy, pt-BR: dd/mm/yyyy
+  const dd=String(dt.getDate()).padStart(2,'0');
+  const mm=String(dt.getMonth()+1).padStart(2,'0');
+  const yyyy=dt.getFullYear();
+  return l==='en-US'?`${mm}/${dd}/${yyyy}`:`${dd}/${mm}/${yyyy}`;
+}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length<=2)el.value=d;else if(d.length<=4)el.value=d.slice(0,2)+'-'+d.slice(2);else el.value=d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4);}
 function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
@@ -1007,6 +1423,33 @@ function applyI18nStatic(){
   const map=[['nav-home-label','home'],['nav-stats-label','data'],['nav-history-label','history'],['nav-copilot-label','copilot'],['settings-title','settings'],['cfg-language-label','language'],['stats-export-title','data'],['btn-export-json','exportJson'],['btn-export-csv','exportCsv'],['btn-export-pdf','reportPdf'],['btn-import-json','importJson']];
   map.forEach(([id,key])=>{const el=$(id);if(el)el.textContent=t(key);});
   const langSel=$('cfg-language');if(langSel){const optPt=langSel.querySelector('option[value=\"pt-BR\"]');const optEn=langSel.querySelector('option[value=\"en-US\"]');if(optPt)optPt.textContent=t('portuguese');if(optEn)optEn.textContent=t('english');}
+
+  // Onboarding
+  const onb=[['onb-kicker','appWelcome'],['onb-title','onboardingTitle'],['onb-lead','onboardingLead'],['onb-name-label','babyName'],['onb-birth-label','birthDate'],['onb-hint','optionalCompleteLater'],['onb-start-btn','start'],['onb-skip-btn','skipForNow']];
+  onb.forEach(([id,key])=>{const el=$(id);if(el)el.textContent=t(key);});
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.getAttribute('data-i18n-placeholder');if(k)el.setAttribute('placeholder',t(k));});
+
+  // Late night
+  const ln=[['ln-kicker','lateNightMode'],['ln-exit','exitLateNight'],['ln-btn-slept','slept'],['ln-btn-woke','woke'],['ln-btn-feed','feedSingular']];
+  ln.forEach(([id,key])=>{const el=$(id);if(el)el.textContent=t(key);});
+
+  // Header aria labels
+  const av=$('avatar');if(av){av.setAttribute('aria-label',t('profile'));av.setAttribute('title',t('profile'));}
+  const th=$('theme-toggle');if(th)th.setAttribute('aria-label',t('changeTheme'));
+
+  // Home section headings
+  const pw=$('home-preds-title');if(pw)pw.textContent=t('upcomingWindows');
+  const tl=$('home-timeline-title');if(tl)tl.textContent=t('dayLine');
+
+  // Log sheet (FAB)
+  const lsTitle=$('log-sheet-title');if(lsTitle)lsTitle.textContent=t('logTitle');
+  const lsSub=$('log-sheet-sub');if(lsSub)lsSub.textContent=t('logSheetSub');
+  const lsFeed=$('tile-feed-lbl');if(lsFeed)lsFeed.textContent=t('feedSingular');
+  const lsDiaper=$('tile-diaper-lbl');if(lsDiaper)lsDiaper.textContent=t('diaper');
+  const lsCry=$('tile-cry-lbl');if(lsCry)lsCry.textContent=t('moodCrying');
+  const lsFussy=$('tile-fussy-lbl');if(lsFussy)lsFussy.textContent=t('moodIrritated');
+  const lsGas=$('tile-gas-lbl');if(lsGas)lsGas.textContent=t('moodGas');
+  const lsManual=$('tile-manual-lbl');if(lsManual)lsManual.textContent=t('logManualSleep');
 }
 
 /* ---- storage ---- */
@@ -1309,29 +1752,39 @@ function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.dar
 function toggleTheme(){cfg.darkTheme=!cfg.darkTheme;save();applyTheme();syncSettingsForm();}
 function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;save();applyTheme();}
 
-function updateHeader(){const name=cfg.name||'Bebê';const av=$('avatar');if(av)av.textContent=(name.charAt(0)||'N').toUpperCase();$('head-baby').textContent=name;const h=now().getHours();const greet=h<5?'Boa madrugada':h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';$('head-greet').textContent=greet;$('head-age').textContent=babyAgeMonths()+' meses';}
+function updateHeader(){
+  const name=cfg.name||t('baby');
+  const av=$('avatar');
+  if(av)av.textContent=(name.charAt(0)||'N').toUpperCase();
+  $('head-baby').textContent=name;
+  const h=now().getHours();
+  const greet=h<5?t('greetDawn'):h<12?t('greetMorning'):h<18?t('greetAfternoon'):t('greetEvening');
+  $('head-greet').textContent=greet;
+  const m=babyAgeMonths();
+  $('head-age').textContent=tFmt(m===1?'monthsSingular':'monthsPlural',{count:m});
+}
 
 /* ---- Onboarding ---- */
 function syncOnboardingUI(){const ov=$('onboard');if(!ov)return;if(profileNeedsSetup()){ov.classList.add('open');ov.setAttribute('aria-hidden','false');const n=$('onb-name'),b=$('onb-birth');if(n)n.value=(cfg.name&&cfg.name!=='Bebê')?cfg.name:'';if(b)b.value=isoToBirthDisplay(cfg.babyBirthDate);}else{ov.classList.remove('open');ov.setAttribute('aria-hidden','true');}}
-function submitBabyOnboarding(){const raw=($('onb-name')?.value||'').trim();if(!raw){showToast('Preciso do nome do bebê');return;}const bdv=$('onb-birth')?.value;if(bdv&&bdv.replace(/\D/g,'').length>0){const iso=parseBirthDisplayToIso(bdv);if(!iso){showToast('Data inválida — use DD-MM-AAAA');return;}cfg.babyBirthDate=iso;}else cfg.babyBirthDate='';cfg.name=raw.slice(0,48);cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast('Tudo pronto, '+raw.split(' ')[0]);}
-function skipBabyOnboarding(){cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast('Você pode completar em Configurações');}
+function submitBabyOnboarding(){const raw=($('onb-name')?.value||'').trim();if(!raw){showToast(t('errNeedBabyName'));return;}const bdv=$('onb-birth')?.value;if(bdv&&bdv.replace(/\D/g,'').length>0){const iso=parseBirthDisplayToIso(bdv);if(!iso){showToast(t('errInvalidBirthDate'));return;}cfg.babyBirthDate=iso;}else cfg.babyBirthDate='';cfg.name=raw.slice(0,48);cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast(tFmt('ready',{name:raw.split(' ')[0]}));}
+function skipBabyOnboarding(){cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast(t('canCompleteInSettings'));}
 
 /* ---- Profiles ---- */
 function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${escHtml((blob[i].cfg&&blob[i].cfg.name)||i)}</option>`).join('');sel.value=currentProfileId();}
-function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil trocado');}
-function addNewProfile(){const n=prompt('Nome do novo bebê:');if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim(),profileSetupDone:false}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showSec('home');showToast('Novo perfil criado');}
-function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil excluído');}
+function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast(t('profileSwitched'));}
+function addNewProfile(){const n=prompt(t('newProfilePrompt'));if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim(),profileSetupDone:false}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showSec('home');showToast(t('newProfileCreated'));}
+function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast(t('onlyOneProfile'));return;}if(!confirm(t('confirmDeleteProfile')))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast(t('profileDeleted'));}
 
 /* ---- Settings form ---- */
 function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-birth-date').value=isoToBirthDisplay(cfg.babyBirthDate);$('months-auto-hint').textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático)':'';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-day-boundary').value=cfg.dayBoundary||'06:00';$('cfg-language').value=currentLang();$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-late-night').checked=!!cfg.lateNightMode;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('cfg-license-key').value=cfg.licenseToken||'';$('cfg-premium-local').checked=!!cfg.premiumUnlockLocal;$('cfg-license-api').value=localStorage.getItem('nz_license_api_base')||'';refreshProfileSelect();updatePremiumStatusText();applyI18nStatic();}
-function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast('Salvo');renderHome();}
-function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?'Premium liberado neste aparelho':'Gratuito');}
+function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||t('baby');if(rawNm&&rawNm!==t('baby'))cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast(t('saved'));renderHome();}
+function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?t('premiumUnlockedLocal'):t('premiumFree'));}
 
 /* ---- Premium ---- */
 function getPremiumState(){if(cfg.premiumUnlockLocal)return{tier:'lifetime',source:'local'};const nowDt=new Date();if(cfg.licenseTier==='lifetime')return{tier:'lifetime',source:'license'};if(cfg.licenseExpiresAt&&new Date(cfg.licenseExpiresAt)>nowDt&&cfg.licenseTier)return{tier:'premium',source:'license'};if(cfg.premiumState==='trial'&&cfg.trialStart){const el=Math.floor((nowDt-new Date(cfg.trialStart))/(24*3600000));const left=Math.max(0,7-el);if(left>0)return{tier:'trial',source:'trial',trialDaysLeft:left};cfg.premiumState='locked';save();}if(cfg.premiumState==='locked'||cfg.trialUsedAt)return{tier:'free',source:'trial_ended'};return{tier:'free',source:'free'};}
 function canUsePremiumFeatures(){return getPremiumState().tier!=='free';}
-function updatePremiumStatusText(){const st=getPremiumState(),el=$('premium-status');if(!el)return;if(st.source==='local'){el.textContent='Liberado localmente neste aparelho.';return;}if(st.tier==='lifetime'){el.textContent='Vitalício ativo por chave.';return;}if(st.tier==='premium'){el.textContent='Premium ativo.';return;}if(st.tier==='trial'){el.textContent=`Teste grátis: ${st.trialDaysLeft} dia(s) restante(s).`;return;}if(st.source==='trial_ended'){el.textContent='Teste grátis já utilizado.';return;}el.textContent='Plano gratuito.';}
-function startPremiumTrial(){const st=getPremiumState();if(st.tier!=='free'){showToast('Plano ativo já existente');return;}if(cfg.trialUsedAt){showToast('Teste já utilizado');return;}cfg.premiumState='trial';cfg.trialStart=new Date().toISOString();cfg.trialUsedAt=cfg.trialStart;save();syncSettingsForm();renderHome();showToast('7 dias liberados');}
+function updatePremiumStatusText(){const st=getPremiumState(),el=$('premium-status');if(!el)return;if(st.source==='local'){el.textContent=t('premiumStatusLocal');return;}if(st.tier==='lifetime'){el.textContent=t('premiumStatusLifetime');return;}if(st.tier==='premium'){el.textContent=t('premiumStatusPremium');return;}if(st.tier==='trial'){el.textContent=tFmt('premiumStatusTrial',{days:st.trialDaysLeft});return;}if(st.source==='trial_ended'){el.textContent=t('premiumStatusTrialUsed');return;}el.textContent=t('premiumStatusFree');}
+function startPremiumTrial(){const st=getPremiumState();if(st.tier!=='free'){showToast(t('premiumPlanAlreadyActive'));return;}if(cfg.trialUsedAt){showToast(t('premiumTrialAlreadyUsed'));return;}cfg.premiumState='trial';cfg.trialStart=new Date().toISOString();cfg.trialUsedAt=cfg.trialStart;save();syncSettingsForm();renderHome();showToast(t('premiumTrialStarted'));}
 function getLicenseApiBase(){return(localStorage.getItem('nz_license_api_base')||'').replace(/\/$/,'');}
 function getOrCreateDeviceId(){const k='nz_device_id_v1';let id=localStorage.getItem(k);if(!id){id='dev-'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,id);}return id;}
 async function activateLicenseKey(){const code=($('cfg-license-key').value||'').trim();if(!code){showToast('Cole a chave primeiro');return;}const base=getLicenseApiBase();if(!base){showToast('Configure a URL do servidor primeiro');return;}try{const res=await fetch(base+'/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_id:getOrCreateDeviceId()})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('HTTP '+res.status));cfg.licenseToken=code;cfg.licenseTier=data.tier;cfg.licenseExpiresAt=data.expires_at||null;save();syncSettingsForm();renderHome();showToast(data.tier==='lifetime'?'Vitalício ativado':'Premium ativado');}catch(err){showToast('Falha: '+String(err.message||err));}}
@@ -1467,10 +1920,19 @@ function renderStatusRow(){
   const host=$('status-row');if(!host)return;
   const lastSleep=getLastCompletedSleep();
   const lastFeed=entries.filter(e=>e.type==='feed').sort((a,b)=>{const da=new Date(a.date+'T12:00:00'),db=new Date(b.date+'T12:00:00');return db-da||timeToMins(b.start)-timeToMins(a.start);})[0];
-  let sleepHtml='<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">Último sono</div><div class="sc-main">—</div><div class="sc-sub">Sem registros ainda.</div></div>';
-  if(lastSleep){const mSince=Math.max(0,Math.round((now()-sleepEndDate(lastSleep))/60000));sleepHtml=`<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">${sleepIsNight(lastSleep)?'Última noite':'Última soneca'}</div><div class="sc-main">${fmtDurShort(lastSleep.durationMins||0)}</div><div class="sc-sub">Acordou há ${fmtDur(mSince)} · ${lastSleep.start} → ${lastSleep.end||'—'}</div></div>`;}
-  let feedHtml='<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">Última mamada</div><div class="sc-main">—</div><div class="sc-sub">Toque no + para registrar.</div></div>';
-  if(lastFeed){const since=Math.max(0,Math.round((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000));feedHtml=`<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">Última mamada</div><div class="sc-main">${fmtDurShort(since)}</div><div class="sc-sub">${escHtml(lastFeed.subtype==='breast'?'Seio':'Mamadeira')} · ${lastFeed.start}${lastFeed.durationMins?' · '+lastFeed.durationMins+'min':''}</div></div>`;}
+  let sleepHtml=`<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">${escHtml(t('lastSleep'))}</div><div class="sc-main">—</div><div class="sc-sub">${escHtml(t('noLogsYet'))}</div></div>`;
+  if(lastSleep){
+    const mSince=Math.max(0,Math.round((now()-sleepEndDate(lastSleep))/60000));
+    const lbl=sleepIsNight(lastSleep)?t('lastNight'):t('lastNap');
+    sleepHtml=`<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">${escHtml(lbl)}</div><div class="sc-main">${fmtDurShort(lastSleep.durationMins||0)}</div><div class="sc-sub">${escHtml(tFmt('wokeAgo',{dur:fmtDur(mSince),start:lastSleep.start,end:lastSleep.end||'—'}))}</div></div>`;
+  }
+  let feedHtml=`<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">${escHtml(t('lastFeed'))}</div><div class="sc-main">—</div><div class="sc-sub">${escHtml(t('tapPlusToLog'))}</div></div>`;
+  if(lastFeed){
+    const since=Math.max(0,Math.round((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000));
+    const ft=lastFeed.subtype==='breast'?t('feedBreast'):t('feedBottle');
+    const dur=lastFeed.durationMins?(' · '+lastFeed.durationMins+t('minAbbr')):'';
+    feedHtml=`<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">${escHtml(t('lastFeed'))}</div><div class="sc-main">${fmtDurShort(since)}</div><div class="sc-sub">${escHtml(ft)} · ${escHtml(lastFeed.start)}${escHtml(dur)}</div></div>`;
+  }
   host.innerHTML=sleepHtml+feedHtml;
 }
 
@@ -1540,10 +2002,16 @@ function getNightReferenceWakeYmd(nowDt=new Date()){const ymd=todayStr();if(time
 function nightCardHasActiveSleep(nowDt=new Date()){const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);return !!(an&&an.hasActiveSleep);}
 function ensureNightCardAutoRefresh(nowDt=new Date()){const needs=nightCardHasActiveSleep(nowDt);if(needs&&!homeNightTimer){homeNightTimer=setInterval(()=>{if(document.hidden)return;renderHome();},60000);}else if(!needs&&homeNightTimer){clearInterval(homeNightTimer);homeNightTimer=null;}}
 function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const nowDt=new Date();const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);if(!an){host.innerHTML='';return;}const waves=[];for(let i=0;i<an.segs.length;i++){const seg=an.segs[i];const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);if(i<an.segs.length-1){const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);}}const kicker=t('nightOngoing');const wakeMetricVal=an.hasActiveSleep?an.wakesBetween:an.wakes;const wakeMetricLbl=an.hasActiveSleep?'Entre trechos':t('awakenings');const nightFoot=an.hasActiveSleep?`${t('nightOngoing')}: ${t('sleep').toLowerCase()} ativo em tempo real. ${wakeMetricLbl} = pausas entre trechos (despertar final entra ao fechar a noite).`:`${t('periods')} = janela ${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}.`;host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${wakeMetricVal}</div><div class="night-metric-lbl">${escHtml(wakeMetricLbl)}</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;}
-function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary(ymd,new Date());host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(ymd)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;}
+function renderDaySleepPanel(){
+  const host=$('day-sleep-panel-wrap');if(!host)return;
+  const ymd=todayStr();
+  const sum=getDaySummary(ymd,new Date());
+  const dateLbl=formatDateByLang(ymd,currentLang());
+  host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(dateLbl)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;
+}
 
 /* ---- Today rail (horizontal timeline) ---- */
-function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';if(!ev.length){host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
+function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=tFmt('eventsCount',{count:ev.length});if(!ev.length){host.innerHTML=`<div class="trail-empty">${escHtml(t('noRecordsToday'))}</div>`;return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
 
 /* ---- COPILOT ---- */
 function moodCountToday(sub){return calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype===sub).length;}
@@ -1628,31 +2096,92 @@ function renderStats(){
 /* ---- HISTORY ---- */
 function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!host)return;if(!entries.length){host.innerHTML='<div class="empty-pretty"><h4>Histórico vazio</h4><p>Os eventos registrados aparecem aqui agrupados por dia e por tipo.</p></div>';if(count)count.textContent='';return;}const byDay={};entries.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});const days=Object.keys(byDay).sort().reverse();if(count)count.textContent=entries.length+' eventos em '+days.length+' dias';const tone={sleep:'var(--c-sleep)',feed:'var(--c-feed)',diaper:'var(--c-diaper)',mood:'var(--c-mood)'};const lanes=[['sleep','Sono','var(--c-sleep)'],['feed','Mamadas','var(--c-feed)'],['diaper','Fraldas','var(--c-diaper)'],['mood','Humor / sinais','var(--c-mood)']];const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 15c1 1 4 1 6 0"/></svg>'};let html='';days.forEach(day=>{const ev=byDay[day].slice().sort((a,b)=>timeToMins(b.start||'00:00')-timeToMins(a.start||'00:00'));const dayD=new Date(day+'T12:00:00');const dayLbl=dayD.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});const sleepMins=ev.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);html+=`<div class="hgroup"><div class="hgroup-head"><div class="hgroup-day">${escHtml(dayLbl)}</div><div class="hgroup-total">${ev.length} eventos · ${fmtDur(sleepMins)} sono</div></div>`;lanes.forEach(([k,lbl,col])=>{const items=ev.filter(e=>e.type===k);if(!items.length)return;html+=`<div class="hlane"><div class="hlane-label" style="--lane:${col}">${escHtml(lbl)}</div>`;items.forEach(e=>{let name=k==='sleep'?(sleepIsNight(e)?'Sono noturno':'Soneca'):k==='feed'?(e.subtype==='breast'?'Seio':'Mamadeira'):k==='diaper'?(e.subtype==='wet'?'Xixi':e.subtype==='dirty'?'Cocô':'Ambos'):(e.subtype==='crying'?'Choro':e.subtype==='gas'?'Gases':'Irritação');let detail='';if(k==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento')+(e.durationMins?' · '+fmtDur(e.durationMins):'');}else if(k==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+' min':'');}else{detail=e.start;}html+=`<div class="hitem"><div class="hdot" style="--tone:${col}">${icon[k]}</div><div class="hmain"><div class="hname">${escHtml(name)}</div><div class="hdetail">${escHtml(detail)}</div></div><button class="hdel" onclick="deleteEntry(${e.id})" aria-label="Excluir">×</button></div>`;});html+='</div>';});html+='</div>';});host.innerHTML=html;}
 
+// i18n-safe History renderer (keeps same data logic; only text changes)
+function renderHistoryI18n(){
+  const host=$('history-list'),count=$('hist-count');
+  if(!host)return;
+  if(!entries.length){
+    host.innerHTML=`<div class="empty-pretty"><h4>${escHtml(t('historyEmptyTitle'))}</h4><p>${escHtml(t('historyEmptyBody'))}</p></div>`;
+    if(count)count.textContent='';
+    return;
+  }
+  const byDay={};
+  entries.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});
+  const days=Object.keys(byDay).sort().reverse();
+  if(count)count.textContent=tFmt('eventsInDays',{events:entries.length,days:days.length});
+
+  const tone={sleep:'var(--c-sleep)',feed:'var(--c-feed)',diaper:'var(--c-diaper)',mood:'var(--c-mood)'};
+  const lanes=[
+    ['sleep',t('sleep'),'var(--c-sleep)'],
+    ['feed',t('feeds'),'var(--c-feed)'],
+    ['diaper',t('diapers'),'var(--c-diaper)'],
+    ['mood',t('moodSignals'),'var(--c-mood)']
+  ];
+  const icon={
+    sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',
+    feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>',
+    diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',
+    mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 15c1 1 4 1 6 0"/></svg>'
+  };
+
+  let html='';
+  days.forEach(day=>{
+    const ev=byDay[day].slice().sort((a,b)=>timeToMins(b.start||'00:00')-timeToMins(a.start||'00:00'));
+    const dayD=new Date(day+'T12:00:00');
+    const dayLbl=dayD.toLocaleDateString(currentLang(),{weekday:'long',day:'numeric',month:'long'});
+    const sleepMins=ev.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
+    html+=`<div class="hgroup"><div class="hgroup-head"><div class="hgroup-day">${escHtml(dayLbl)}</div><div class="hgroup-total">${tFmt('eventsCount',{count:ev.length})} · ${fmtDur(sleepMins)} ${escHtml(t('sleep').toLowerCase())}</div></div>`;
+    lanes.forEach(([k,lbl,col])=>{
+      const items=ev.filter(e=>e.type===k);
+      if(!items.length)return;
+      html+=`<div class="hlane"><div class="hlane-label" style="--lane:${col}">${escHtml(lbl)}</div>`;
+      items.forEach(e=>{
+        let name='';
+        if(k==='sleep') name=sleepIsNight(e)?t('sleepNight'):t('predNextNap');
+        else if(k==='feed') name=e.subtype==='breast'?t('breast'):t('bottle');
+        else if(k==='diaper') name=e.subtype==='wet'?t('diaperWet'):e.subtype==='dirty'?t('diaperDirty'):t('diaperBoth');
+        else name=e.subtype==='crying'?t('moodCrying'):e.subtype==='gas'?t('moodGas'):t('moodIrritated');
+        let detail='';
+        if(k==='sleep') detail=e.start+(e.end?(' → '+e.end):(' → '+t('inProgress')))+(e.durationMins?(' · '+fmtDur(e.durationMins)):'');
+        else if(k==='feed') detail=e.start+(e.durationMins?(' · '+e.durationMins+' '+t('minShort')):'');
+        else detail=e.start;
+        html+=`<div class="hitem"><div class="hdot" style="--tone:${col}">${icon[k]}</div><div class="hmain"><div class="hname">${escHtml(name)}</div><div class="hdetail">${escHtml(detail)}</div></div><button class="hdel" onclick="deleteEntry(${e.id})" aria-label="${escHtml(t('delete'))}">×</button></div>`;
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  host.innerHTML=html;
+}
+
 /* ---- MASTER RENDER ---- */
 function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderDaySleepPanel();renderNightPanel();renderTodayRail();ensureNightCardAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
-function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')renderStats();if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
+function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast(t('needCompleteProfileFirst'));return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')renderStats();if(name==='history')renderHistoryI18n();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
+
+// Prefer i18n-safe History renderer
+renderHistory = renderHistoryI18n;
 
 /* ---- actions ---- */
 let sleepActionLockUntil=0;
-function quickSleep(){if(getActiveSleep()){showToast('Já tem sono em andamento');return;}babySlept();}
-function babySlept(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const nowMs=Date.now();if(nowMs<sleepActionLockUntil)return;sleepActionLockUntil=nowMs+900;if(getActiveSleep()){showToast('Já tem sono em andamento');return;}const t=fmtTime(now());const e={id:Date.now(),date:todayStr(),type:'sleep',start:t,end:null};if(isSleepEntryDuplicate(e)){showToast('Sono já registrado');return;}setSleepKind(e);entries.push(e);save();showToast((sleepIsNight(e)?'Noite':'Soneca')+' iniciada às '+t);renderHome();}
-function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const active=getActiveSleep();if(!active){showToast('Nenhum sono em andamento');return;}const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const iv=sleepIntervalDateTimes(entries[idx],new Date());entries[idx].durationMins=sleepDurationMinsFromDates(iv.start,iv.end);setSleepKind(entries[idx]);save();showToast('Acordou às '+t+' · '+fmtDur(entries[idx].durationMins));renderHome();}
-function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t});save();const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);renderHome();}
-function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistory();showToast('Registro excluído');}
+function quickSleep(){if(getActiveSleep()){showToast(t('alreadySleeping'));return;}babySlept();}
+function babySlept(){if(profileNeedsSetup()){showToast(t('needRegisterBabyFirst'));return;}const nowMs=Date.now();if(nowMs<sleepActionLockUntil)return;sleepActionLockUntil=nowMs+900;if(getActiveSleep()){showToast(t('alreadySleeping'));return;}const t0=fmtTime(now());const e={id:Date.now(),date:todayStr(),type:'sleep',start:t0,end:null};if(isSleepEntryDuplicate(e)){showToast(t('sleepAlreadyLogged'));return;}setSleepKind(e);entries.push(e);save();showToast(tFmt('sleepStartedAt',{kind:sleepIsNight(e)?t('night'):t('predNapOngoing'),time:t0}));renderHome();}
+function babyWoke(){if(profileNeedsSetup()){showToast(t('needRegisterBabyFirst'));return;}const active=getActiveSleep();if(!active){showToast(t('noActiveSleep'));return;}const t0=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t0;const iv=sleepIntervalDateTimes(entries[idx],new Date());entries[idx].durationMins=sleepDurationMinsFromDates(iv.start,iv.end);setSleepKind(entries[idx]);save();showToast(tFmt('wokeAt',{time:t0,dur:fmtDur(entries[idx].durationMins)}));renderHome();}
+function logMoodQuick(sub){if(profileNeedsSetup()){showToast(t('needRegisterBabyFirst'));return;}const t0=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t0});save();const lab=sub==='crying'?t('moodCrying'):sub==='gas'?t('moodGas'):t('moodIrritated');showToast(tFmt('moodLoggedAt',{label:lab,time:t0}));renderHome();}
+function deleteEntry(id){if(!confirm(t('confirmDeleteEntry')))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistoryI18n();showToast(t('entryDeleted'));}
 
 function orbitCtaClick(){const cta=$('orbit-cta');if(cta&&cta.onclick)cta.onclick();}
 
 /* ---- Log sheet (FAB) ---- */
-function openLogSheet(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=$('tile-sleep-lbl');if(t)t.textContent=getActiveSleep()?'Acordou':'Dormiu';const shb=$('sheet-backdrop'),sh=$('log-sheet');if(!shb||!sh)return;shb.classList.add('open');sh.classList.add('open');}
+function openLogSheet(){if(profileNeedsSetup()){showToast(t('needRegisterBabyFirst'));return;}const tl=$('tile-sleep-lbl');if(tl)tl.textContent=getActiveSleep()?t('woke'):t('slept');const shb=$('sheet-backdrop'),sh=$('log-sheet');if(!shb||!sh)return;shb.classList.add('open');sh.classList.add('open');}
 function closeLogSheet(){$('sheet-backdrop').classList.remove('open');$('log-sheet').classList.remove('open');}
 function quickSleepOrWake(){if(getActiveSleep())babyWoke();else babySlept();}
 // The tile for Dormiu triggers: if active, wake instead
 document.addEventListener('DOMContentLoaded',()=>{});
 
 /* ---- Modal (form) ---- */
-function openLog(type){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).classList.toggle('hide',t!==type));$('modal-title-el').textContent={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Sono manual'}[type]||'Registrar';const t=fmtTime(now()),td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-backdrop').classList.add('open');}
+function openLog(type){if(profileNeedsSetup()){showToast(t('needRegisterBabyFirst'));return;}curModal=type;['feed','diaper','sleep-manual'].forEach(t0=>$('mf-'+t0).classList.toggle('hide',t0!==type));$('modal-title-el').textContent=(type==='feed'?t('logFeedTitle'):type==='diaper'?t('logDiaperTitle'):type==='sleep-manual'?t('logManualSleepTitle'):t('logTitle'));const tm=fmtTime(now()),td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=tm;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=tm;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=tm;$('f-manual-end').value='';}$('modal-backdrop').classList.add('open');}
 function closeModal(){$('modal-backdrop').classList.remove('open');}
-function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;e.durationMins=parseInt($('f-feed-dur').value)||null;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Início inválido');return;}e.date=date;e.type='sleep';e.start=s;e.end=isValidTime(en)?en:null;if(!e.end&&getActiveSleep()){showToast('Já tem sono em andamento');return;}if(e.end){const iv=sleepIntervalDateTimes(e,new Date());e.durationMins=sleepDurationMinsFromDates(iv.start,iv.end);}if(isSleepEntryDuplicate(e)){showToast('Sono duplicado');return;}setSleepKind(e);}entries.push(e);save();closeModal();showToast('Registro salvo');renderHome();}
+function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast(t('invalidDate'));return;}const tm=$('f-feed-time').value;if(!isValidTime(tm)){showToast(t('invalidTime'));return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=tm;e.durationMins=parseInt($('f-feed-dur').value)||null;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast(t('invalidDate'));return;}const tm=$('f-diaper-time').value;if(!isValidTime(tm)){showToast(t('invalidTime'));return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=tm;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast(t('invalidDate'));return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast(t('invalidStart'));return;}e.date=date;e.type='sleep';e.start=s;e.end=isValidTime(en)?en:null;if(!e.end&&getActiveSleep()){showToast(t('alreadySleepingModal'));return;}if(e.end){const iv=sleepIntervalDateTimes(e,new Date());e.durationMins=sleepDurationMinsFromDates(iv.start,iv.end);}if(isSleepEntryDuplicate(e)){showToast(t('duplicateSleep'));return;}setSleepKind(e);}entries.push(e);save();closeModal();showToast(t('entrySaved'));renderHome();}
 
 /* ---- Segmented buttons (in forms) ---- */
 function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('button').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});});}
@@ -1666,20 +2195,20 @@ function inLateNightWindow(){const m=timeToMins(fmtTime(now()));return m>=0&&m<6
 function maybeEnforceLateNight(){if(!cfg.lateNightMode||!inLateNightWindow())return;if(profileNeedsSetup())return;try{if(sessionStorage.getItem('nest_ln_dismiss_'+todayStr()))return;}catch{}openLateNight();}
 function openLateNight(){const o=$('lateNight');if(!o)return;o.classList.add('open');o.setAttribute('aria-hidden','false');updateLateNight();if(lnTimer)clearInterval(lnTimer);lnTimer=setInterval(updateLateNight,15000);}
 function dismissLateNight(){const o=$('lateNight');if(o){o.classList.remove('open');o.setAttribute('aria-hidden','true');}try{sessionStorage.setItem('nest_ln_dismiss_'+todayStr(),'1');}catch{}if(lnTimer){clearInterval(lnTimer);lnTimer=null;}}
-function updateLateNight(){const c=$('ln-clock'),s=$('ln-since');if(!c)return;c.textContent=fmtTime(now());const active=getActiveSleep();const last=getLastCompletedSleep();if(active){const mins=Math.round((now()-parseTimeOnDate(active.start,active.date))/60000);s.textContent='Dormindo há '+fmtDur(mins)+' (desde '+active.start+')';}else if(last){const mins=Math.round((now()-sleepEndDate(last))/60000);s.textContent='Acordado há '+fmtDur(mins);}else s.textContent='Registre o primeiro sono para começar.';}
+function updateLateNight(){const c=$('ln-clock'),s=$('ln-since');if(!c)return;c.textContent=fmtTime(now());const active=getActiveSleep();const last=getLastCompletedSleep();if(active){const mins=Math.round((now()-parseTimeOnDate(active.start,active.date))/60000);s.textContent=tFmt('lnSleepingFor',{dur:fmtDur(mins),time:active.start});}else if(last){const mins=Math.round((now()-sleepEndDate(last))/60000);s.textContent=tFmt('lnAwakeFor',{dur:fmtDur(mins)});}else s.textContent=t('lnFirstSleep');}
 
 /* ---- Export / Import ---- */
 function eventTypeLabel(e){if(!e)return'';if(e.type==='sleep')return t('sleep');if(e.type==='feed')return t('feed');if(e.type==='diaper')return t('diaper');if(e.type==='wake')return t('awakening');return e.type||'';}
-function exportData(){const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME,display:{reportTitle:t('report'),generatedAt:new Date().toLocaleString(currentLang()),language:currentLang(),eventLabels:{sleep:t('sleep'),feed:t('feed'),diaper:t('diaper'),wake:t('awakening')}}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('JSON exportado');}
+function exportData(){const data={entries,cfg,exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME,display:{reportTitle:t('report'),generatedAt:new Date().toLocaleString(currentLang()),language:currentLang(),eventLabels:{sleep:t('sleep'),feed:t('feed'),diaper:t('diaper'),wake:t('awakening')}}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast(t('jsonExported'));}
 function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
-function exportCsv(){const rows=[[t('date'),t('events'),'subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>rows.push([e.date?new Date(e.date+'T12:00:00').toLocaleDateString(currentLang()):'',eventTypeLabel(e),e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('CSV exportado');}
+function exportCsv(){const rows=[[t('date'),t('events'),'subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>rows.push([e.date?new Date(e.date+'T12:00:00').toLocaleDateString(currentLang()):'',eventTypeLabel(e),e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast(t('csvExported'));}
 function printReport(){const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,300);const daySum=getDaySummary(todayStr(),new Date());const nightSum=getNightSummaryForWakeDay(getNightReferenceWakeYmd(new Date()),new Date());let html=`<div class="pr-title">${escHtml(t('report'))}</div><div class="pr-meta"><strong>${escHtml(t('date'))}:</strong> ${escHtml(new Date().toLocaleString(currentLang()))}<br><strong>${escHtml(t('baby'))}:</strong> ${escHtml(cfg.name||'—')}</div><div class="pr-section"><h3>${escHtml(t('daySummary'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(daySum.sleepTotal))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${daySum.sleepPeriods}</div><div class="pr-cell">${escHtml(t('feeds'))}: ${daySum.feeds}</div><div class="pr-cell">${escHtml(t('diapers'))}: ${daySum.diapers}</div></div></div>`;
   if(nightSum){html+=`<div class="pr-section"><h3>${escHtml(t('nightOngoing'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(nightSum.totalSleep))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${nightSum.blocks}</div><div class="pr-cell">${escHtml(t('awakenings'))}: ${nightSum.wakes}</div></div></div>`;}
   html+=`<div class="pr-section"><h3>${escHtml(t('events'))}</h3><table class="pr-table"><thead><tr><th>${escHtml(t('date'))}</th><th>${escHtml(t('events'))}</th><th>Detalhe</th></tr></thead><tbody>`;
   lines.forEach(e=>{const detail=[e.start||'',e.end?('→ '+e.end):'',e.durationMins!=null?fmtDur(e.durationMins):'',e.subtype||''].filter(Boolean).join(' ');html+=`<tr><td>${escHtml(e.date||'')}</td><td>${escHtml(eventTypeLabel(e))}</td><td>${escHtml(detail)}</td></tr>`;});
   html+='</tbody></table></div>';
   $('print-area').innerHTML=html;$('print-area').classList.remove('hide');window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').classList.add('hide');},300);}
-function importData(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch{}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;return x.date&&isValidDateStr(x.date)?x:{...x,date:fb};});if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}migrateDataModel();if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;save();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Importado');}catch(err){showToast('Erro ao importar');}};r.readAsText(f);ev.target.value='';}
+function importData(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast(t('invalidFile'));return;}if(!confirm(t('confirmReplaceData')))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch{}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;return x.date&&isValidDateStr(x.date)?x:{...x,date:fb};});if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}migrateDataModel();if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;save();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast(t('imported'));}catch(err){showToast(t('importError'));}};r.readAsText(f);ev.target.value='';}
 
 /* ---- PWA ---- */
 function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}}
