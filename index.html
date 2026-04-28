@@ -263,43 +263,61 @@ a{color:inherit;text-decoration:none}
 .pred-row .prange{font-size:10px;color:var(--ink-muted);margin-top:4px;font-variant-numeric:tabular-nums}
 
 /* ---- Missing log cards (stale predictions) ---- */
-.ml-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:9.5px;font-weight:750;letter-spacing:.10em;text-transform:uppercase;
-  padding:4px 9px;border-radius:var(--r-pill);
-  background:color-mix(in srgb,var(--pcol,var(--aurora)) 14%,transparent);
-  color:color-mix(in srgb,var(--pcol,var(--aurora)) 72%,var(--ink));
-  border:1px solid color-mix(in srgb,var(--pcol,var(--aurora)) 22%,var(--hair));
+.missing-card{
+  display:flex;flex-direction:column;gap:12px;
+  padding:14px 14px 12px;
+  border-radius:var(--r-md);
+  background:linear-gradient(145deg,var(--surface-1),var(--surface-0));
+  border:1px solid var(--hair);
+  box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
 }
-.ml-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
-.ml-btn{
+.missing-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--mcol,var(--aurora));opacity:.85}
+.missing-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.missing-icon{
+  width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:color-mix(in srgb,var(--mcol,var(--aurora)) 16%,transparent);
+  color:var(--mcol,var(--aurora));
+  border:1px solid color-mix(in srgb,var(--mcol,var(--aurora)) 22%,var(--hair));
+}
+.missing-icon svg{width:18px;height:18px;stroke-width:2}
+.missing-badge{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:9.5px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;
+  padding:4px 9px;border-radius:var(--r-pill);
+  background:color-mix(in srgb,var(--mcol,var(--aurora)) 14%,transparent);
+  color:color-mix(in srgb,var(--mcol,var(--aurora)) 70%,var(--ink));
+  border:1px solid color-mix(in srgb,var(--mcol,var(--aurora)) 22%,var(--hair));
+  flex-shrink:0;
+}
+.missing-body{min-width:0}
+.missing-title{font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:-.01em;line-height:1.2;color:var(--ink);margin:0;max-width:100%}
+.missing-sub{margin-top:6px;font-size:12px;color:var(--ink-muted);line-height:1.45}
+.missing-help{margin-top:8px;font-size:12.5px;color:var(--ink-dim);line-height:1.55}
+.missing-actions{display:flex;gap:8px;flex-wrap:wrap}
+.missing-btn{
   display:inline-flex;align-items:center;justify-content:center;
-  padding:9px 14px;border-radius:var(--r-pill);
+  padding:10px 14px;border-radius:var(--r-pill);
   font-size:12.5px;font-weight:650;letter-spacing:-.005em;
   background:var(--surface-1);border:1px solid var(--hair-strong);
-  color:var(--ink);min-height:36px;
+  color:var(--ink);min-height:38px;
   transition:transform .16s ease,background .18s ease,border-color .18s ease,filter .16s ease;
 }
-.ml-btn:active{transform:scale(.98)}
-.ml-btn.primary{
-  border-color:transparent;color:#fff;
-  background:linear-gradient(135deg,var(--aurora),var(--indigo));
-  filter:saturate(1.05);
-}
-.ml-btn.ghost{
+.missing-btn:active{transform:scale(.98)}
+.missing-btn.primary{border-color:transparent;color:#fff;background:linear-gradient(135deg,var(--aurora),var(--indigo))}
+.missing-btn.secondary{background:transparent;border-color:var(--hair);color:var(--ink)}
+.missing-btn.ghost{background:transparent;border-color:transparent;color:var(--ink-muted)}
+.missing-btn.secondary{
   background:transparent;
   border-color:var(--hair);
-  color:var(--ink-muted);
-  font-weight:650;
+  color:var(--ink);
 }
-@media (max-width:360px){
-  .pred-row{grid-template-columns:42px 1fr;grid-template-areas:"ico mid" "time time";align-items:start}
-  .pred-row .pico{grid-area:ico}
-  .pred-row .pmid{grid-area:mid}
-  .pred-row .ptime{grid-area:time;text-align:left;min-width:0;margin-top:6px}
-  .ml-actions{justify-content:flex-start}
-  .ml-btn{flex:1}
+@media (max-width:390px){
+  .missing-actions{flex-direction:column}
+  .missing-btn{width:100%}
 }
+
+/* Legacy missing-log classes removed (layout now uses missing-*) */
 
 /* ---- Risk chip ---- */
 .risk{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:var(--r-pill);margin-top:5px;letter-spacing:.02em}
@@ -1760,6 +1778,9 @@ function runNestSelfTests(){
     });
     if(!String(html).includes('Possível mamada não registrada'))throw new Error('missing title');
     if(!String(html).includes('dados incompletos'))throw new Error('missing badge');
+    if(String(html).includes('pred-row'))throw new Error('should not use pred-row');
+    if(!String(html).includes('missing-card'))throw new Error('missing-card class required');
+    if(/há\s+—|há\s*\.|>—</.test(String(html)))throw new Error('bad dash placeholder');
     if(/undefined|NaN|Infinity/.test(String(html)))throw new Error('bad token in html');
   });
   push('renderMissingLogCard(sleep) includes correct title',()=>{
@@ -1775,6 +1796,9 @@ function runNestSelfTests(){
       ]
     });
     if(!String(html).includes('Possível soneca não registrada'))throw new Error('missing title');
+    if(String(html).includes('pred-row'))throw new Error('should not use pred-row');
+    if(!String(html).includes('missing-card'))throw new Error('missing-card class required');
+    if(/há\s+—|há\s*\.|>—</.test(String(html)))throw new Error('bad dash placeholder');
     if(/undefined|NaN|Infinity/.test(String(html)))throw new Error('bad token in html');
   });
   push('handleMissingLogAction opens normal feed flow and manual sleep flow',()=>{
@@ -2204,8 +2228,20 @@ const StalePredictionGuard=(()=>{
   function getMissingLogMessage(kind,ctx){
     if(kind==='feed'){
       const s=ctx&&ctx.staleness;
-      if(!s||s.state==='unknown')return{title:'Possível mamada não registrada',sub:'Última mamada registrada há —.',body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.'};
-      if(s.state==='stale')return{title:'Possível mamada não registrada',sub:`Última mamada registrada há ${fmtStaleSince(s.minutesSince)}.`,body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.'};
+      if(!s||s.state==='unknown'){
+        return{
+          title:'Sem mamada registrada hoje',
+          sub:'Registre a próxima mamada para iniciar a leitura.',
+          body:'Com alguns registros, o app começa a estimar melhor os intervalos.'
+        };
+      }
+      if(s.state==='stale'){
+        return{
+          title:'Possível mamada não registrada',
+          sub:`Última mamada registrada há ${fmtStaleSince(s.minutesSince)}.`,
+          body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.'
+        };
+      }
       return null;
     }
     if(kind==='nap'){
@@ -2270,24 +2306,26 @@ function renderMissingLogCard(kind,data){
   const body=(data&&data.body)||'';
   const badge=(data&&data.badge)||'dados incompletos';
   const actions=(data&&data.actions)||[];
+  const iconSvg=(kind==='feed')
+    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>';
   const acts=actions.map(a=>{
     const cls=a.variant==='primary'?'primary':a.variant==='secondary'?'secondary':'ghost';
-    return `<button type="button" class="ml-btn ${cls}" onclick="handleMissingLogAction('${escHtml(a.kind)}','${escHtml(a.action)}')">${escHtml(a.label)}</button>`;
+    return `<button type="button" class="missing-btn ${cls}" onclick="handleMissingLogAction('${escHtml(a.kind)}','${escHtml(a.action)}')">${escHtml(a.label)}</button>`;
   }).join('');
   return `
-  <div class="pred-row" style="--pcol:${tone}">
-    <div class="pico">${kind==='feed'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>'}</div>
-    <div class="pmid">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-        <div class="pname" style="min-width:0">${escHtml(title)}</div>
-        <span class="ml-badge">${escHtml(badge)}</span>
-      </div>
-      <div class="psub">${escHtml(sub)}</div>
-      ${body?`<div class="pbase" style="font-size:11px;color:var(--ink-dim);letter-spacing:0;margin-top:6px;line-height:1.45">${escHtml(body)}</div>`:''}
+  <div class="missing-card missing-${escHtml(kind)}" style="--mcol:${tone}">
+    <div class="missing-top">
+      <div class="missing-icon">${iconSvg}</div>
+      <span class="missing-badge">${escHtml(badge)}</span>
     </div>
-    <div class="ptime">
-      <div class="pclock" style="font-size:16px">—</div>
-      <div class="ml-actions">${acts}</div>
+    <div class="missing-body">
+      <h4 class="missing-title">${escHtml(title)}</h4>
+      ${sub?`<p class="missing-sub">${escHtml(sub)}</p>`:''}
+      ${body?`<p class="missing-help">${escHtml(body)}</p>`:''}
+    </div>
+    <div class="missing-actions">
+      ${acts}
     </div>
   </div>`;
 }
