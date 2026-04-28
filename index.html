@@ -2012,6 +2012,118 @@ function runNestSelfTests(){
     });
   });
 
+  // --- HOTFIX: ActiveSleepGuard (forgot to mark wake) ---
+  push('ActiveSleepGuard A: active nap normal (15:00..15:45)',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'15:00',end:''}];
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-28','15:45'));
+      entries=prevEntries;
+      if(st.state!=='normal')throw new Error('expected normal');
+      if(st.needsConfirmation!==false)throw new Error('expected needsConfirmation false');
+    });
+  });
+  push('ActiveSleepGuard B: long nap (15:00..18:00) needs confirmation',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'15:00',end:''}];
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-28','18:00'));
+      entries=prevEntries;
+      if(st.state!=='long_nap')throw new Error('expected long_nap');
+      if(st.needsConfirmation!==true)throw new Error('expected needsConfirmation true');
+    });
+  });
+  push('ActiveSleepGuard C: absurdly long nap (10:00..16:00) probably forgotten',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'10:00',end:''}];
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-28','16:00'));
+      entries=prevEntries;
+      if(st.state!=='probably_forgotten')throw new Error('expected probably_forgotten');
+      if(st.needsConfirmation!==true)throw new Error('expected needsConfirmation true');
+    });
+  });
+  push('ActiveSleepGuard D: night sleep normal-ish (22:00..06:00)',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'22:00',end:''}];
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-29','06:00'));
+      entries=prevEntries;
+      if(!['normal','long_night'].includes(st.state))throw new Error('expected normal/long_night');
+    });
+  });
+  push('ActiveSleepGuard E: very long night (20:00..10:30 next day) needs confirmation',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'20:00',end:''}];
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-29','10:30'));
+      entries=prevEntries;
+      if(st.needsConfirmation!==true)throw new Error('expected needsConfirmation true');
+      if(!['long_night','probably_forgotten'].includes(st.state))throw new Error('expected long_night/probably_forgotten');
+    });
+  });
+  push('ActiveSleepGuard F: closeActiveSleepNow closes active sleep',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      const prevSetup=cfg.profileSetupDone;
+      cfg.profileSetupDone=true;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'15:00',end:''}];
+      const r=ActiveSleepGuard.closeActiveSleepNow(TimeEngine.resolveClockOnDate('2026-04-28','15:10'));
+      const a=getActiveSleepEntry(entries);
+      entries=prevEntries;cfg.profileSetupDone=prevSetup;
+      if(!r||r.ok!==true)throw new Error('expected ok');
+      if(a)throw new Error('expected no active sleep');
+    });
+  });
+  push('ActiveSleepGuard G: closeActiveSleepAt (15:00..16:10) end preserved and stats count 70m/1',()=>{
+    withCfg({nightStart:'23:59',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      const prevSetup=cfg.profileSetupDone;
+      cfg.profileSetupDone=true;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'15:00',end:''}];
+      const r=ActiveSleepGuard.closeActiveSleepAt('16:10');
+      const a=getActiveSleepEntry(entries);
+      const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','18:00'));
+      entries=prevEntries;cfg.profileSetupDone=prevSetup;
+      if(!r||r.ok!==true)throw new Error('expected ok');
+      if(r.entry.end!=='16:10')throw new Error('expected end 16:10');
+      if(a)throw new Error('expected no active sleep');
+      if(day.totalSleepDayMins!=70||day.napCount!=1)throw new Error('expected 70m/1');
+    });
+  });
+  push('ActiveSleepGuard H: confirmStillSleeping snoozes warning',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'10:00',end:''}];
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','16:00');
+      const st1=ActiveSleepGuard.getActiveSleepStatus(nowDt);
+      ActiveSleepGuard.confirmStillSleeping(1);
+      const msg=ActiveSleepGuard.getActiveSleepConfirmationMessage(getActiveSleepEntry(entries),nowDt,{state:st1.state,activeMins:st1.activeMins});
+      entries=prevEntries;
+      if(!st1.needsConfirmation)throw new Error('setup expected needsConfirmation');
+      if(msg && msg.message)throw new Error('expected message suppressed after confirm');
+    });
+  });
+  push('ActiveSleepGuard I: probably_forgotten active sleep should be treated as stale-like',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'10:00',end:''}];
+      try{sessionStorage.removeItem('asw_1');}catch{}
+      const st=ActiveSleepGuard.getActiveSleepStatus(TimeEngine.resolveClockOnDate('2026-04-28','16:00'));
+      entries=prevEntries;
+      if(st.state!=='probably_forgotten')throw new Error('expected probably_forgotten');
+      if(st.needsConfirmation!==true)throw new Error('expected needsConfirmation');
+    });
+  });
+  push('ActiveSleepGuard J: robustness (no NaN/undefined/Infinity/negative)',()=>{
+    const st=ActiveSleepGuard.getActiveSleepStatus(new Date());
+    if(!st||typeof st!=='object')throw new Error('bad status');
+    const m=Number(st.activeMins);
+    if(!Number.isFinite(m) || m<0)throw new Error('bad activeMins');
+    if(typeof st.state!=='string')throw new Error('bad state');
+    if(typeof st.needsConfirmation!=='boolean')throw new Error('bad needsConfirmation');
+  });
+
   // --- Stage 3 tests (adaptive predict) ---
   push('Stage 3 A: few data days => age weight > history, low/medium confidence',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
@@ -2767,6 +2879,10 @@ function clearStaleDismissOnNewEntry(entry){
 
 function handleMissingLogAction(kind,action){
   // kind: 'feed' | 'sleep' (nap) | 'diaper' (future)
+  if(kind==='active-sleep'){
+    handleActiveSleepAction(action);
+    return;
+  }
   if(action==='dismiss'){
     if(!window.__dismissStale)window.__dismissStale={sig:'',at:0};
     window.__dismissStale={sig:String(kind||''),at:Date.now()};
@@ -2781,6 +2897,191 @@ function handleMissingLogAction(kind,action){
   if(kind==='sleep'){
     // Must open existing manual sleep flow (início → fim), not a new nap modal.
     openLog('sleep-manual');
+    return;
+  }
+}
+
+/* ---- ActiveSleepGuard (forgot to mark wake) ---- */
+const ActiveSleepGuard=(()=>{
+  const min0=x=>{const n=Number(x);return Number.isFinite(n)?Math.max(0,Math.round(n)):0;};
+  const minsBetween=(a,b)=>{if(!(a instanceof Date)||!(b instanceof Date))return null;const ms=b.getTime()-a.getTime();if(!Number.isFinite(ms))return null;return min0(ms/60000);};
+  function activeSleepStartDt(activeSleep){
+    if(!activeSleep||activeSleep.type!=='sleep')return null;
+    if(!TimeEngine.isValidYmd(activeSleep.date)||!TimeEngine.isValidHHMM(activeSleep.start))return null;
+    return TimeEngine.resolveClockOnDate(activeSleep.date,activeSleep.start);
+  }
+  function isNightSleepAtNow(activeSleep,nowDt){
+    try{
+      if(!(activeSleep&&activeSleep.type==='sleep'))return false;
+      const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+      const cls=SleepEngine.classifySleep(activeSleep,n);
+      return !!(cls&&cls.kind==='night');
+    }catch{return false;}
+  }
+  function thresholdsFor(isNight){
+    // minutes
+    if(isNight){
+      // Night: normal up to 12h; soft warning 12h–13h30; above 13h30 => probably forgotten.
+      return {normalMax:12*60,softMax:13*60+30,forgottenMin:13*60+30};
+    }
+    // nap/daytime
+    // Nap: normal up to 2h30; soft warning 2h30–4h; above 4h => probably forgotten.
+    return {normalMax:2*60+30,softMax:4*60,forgottenMin:4*60};
+  }
+  function getActiveSleepStatus(nowDt=new Date()){
+    const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+    const active=getActiveSleepEntry(entries);
+    if(!active)return{state:'invalid',needsConfirmation:false,activeMins:0,message:'',actions:[]};
+    const stDt=activeSleepStartDt(active);
+    if(!(stDt instanceof Date))return{state:'invalid',needsConfirmation:true,activeMins:0,message:'Sono ativo inválido. Verifique o registro.',actions:[]};
+    const activeMins=minsBetween(stDt,n);
+    if(activeMins==null)return{state:'invalid',needsConfirmation:true,activeMins:0,message:'Não foi possível calcular a duração do sono ativo.',actions:[]};
+    const isNight=isNightSleepAtNow(active,n);
+    const th=thresholdsFor(isNight);
+    let state='normal',needsConfirmation=false;
+    if(activeMins>th.forgottenMin) { state='probably_forgotten'; needsConfirmation=true; }
+    else if(!isNight && activeMins>th.normalMax && activeMins<=th.softMax) { state='long_nap'; needsConfirmation=true; }
+    else if(!isNight && activeMins>th.softMax) { state='very_long_nap'; needsConfirmation=true; }
+    else if(isNight && activeMins>th.normalMax) { state='long_night'; needsConfirmation=true; }
+    else { state='normal'; needsConfirmation=false; }
+
+    // Extra hint: if it's a night sleep and it's far past dayBoundary, treat as probably forgotten.
+    // (Avoid classifying normal/long daytime naps as forgotten just because it's after dayBoundary.)
+    try{
+      if(isNight){
+        const db=cfg.dayBoundary||'06:00';
+        if(TimeEngine.isValidHHMM(db)){
+          const dbDt=TimeEngine.resolveClockOnDate(TimeEngine.fmtYmd?TimeEngine.fmtYmd(n):fmtDateSV(n),db);
+          if(dbDt instanceof Date){
+            const sinceDb=minsBetween(dbDt,n);
+            if(sinceDb!=null && sinceDb>3*60 && activeMins>6*60) { state='probably_forgotten'; needsConfirmation=true; }
+          }
+        }
+      }
+    }catch{}
+
+    const msg=getActiveSleepConfirmationMessage(active,n,{state,activeMins});
+    // If the user snoozed/dismissed the warning, suppress confirmation UI for a while.
+    if(msg && Array.isArray(msg.actions) && msg.actions.length===0){
+      needsConfirmation=false;
+    }
+    return{
+      state,
+      needsConfirmation,
+      activeMins:min0(activeMins),
+      message:(msg&&msg.message)||'',
+      actions:(msg&&msg.actions)||[]
+    };
+  }
+  function shouldAskSleepConfirmation(activeSleep,nowDt=new Date()){
+    const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+    const a=activeSleep||getActiveSleepEntry(entries);
+    if(!a)return false;
+    const status=getActiveSleepStatus(n);
+    return !!status.needsConfirmation;
+  }
+  function fmtSince(activeMins){
+    const m=min0(activeMins);
+    return (m>=24*60)?fmtStaleSince(m):fmtDurShort(m);
+  }
+  function isDismissed(activeSleepId){
+    try{
+      const key='asw_'+String(activeSleepId||'');
+      const raw=sessionStorage.getItem(key);
+      if(!raw)return false;
+      const data=JSON.parse(raw);
+      if(!data||typeof data!=='object')return false;
+      const until=Number(data.untilMs);
+      if(!Number.isFinite(until))return false;
+      return Date.now()<until;
+    }catch{return false;}
+  }
+  function dismissActiveSleepWarning(activeSleepId,mins=45){
+    try{
+      const key='asw_'+String(activeSleepId||'');
+      const untilMs=Date.now()+min0(mins)*60000;
+      sessionStorage.setItem(key,JSON.stringify({untilMs}));
+    }catch{}
+  }
+  function confirmStillSleeping(activeSleepId){
+    // User confirms it's still in progress => snooze warning.
+    dismissActiveSleepWarning(activeSleepId,60);
+    renderHome();
+    return{ok:true};
+  }
+  function closeActiveSleepNow(nowDt=now()){
+    return babyWoke(nowDt);
+  }
+  function closeActiveSleepAt(timeOrDateTime){
+    const active=getActiveSleepEntry(entries);
+    if(!active)return{ok:false,reason:'no_active_sleep'};
+    let dt=null;
+    if(timeOrDateTime instanceof Date && Number.isFinite(timeOrDateTime.getTime())) dt=timeOrDateTime;
+    else if(typeof timeOrDateTime==='string'){
+      const s=timeOrDateTime.trim();
+      if(TimeEngine.isValidHHMM(s) && TimeEngine.isValidYmd(active.date)){
+        dt=TimeEngine.resolveClockOnDate(active.date,s);
+      }
+    }
+    if(!(dt instanceof Date))return{ok:false,reason:'invalid_time'};
+    // If user picked a time before start in same date, it will be treated as next day by SleepEngine interval; allow but normalize will handle duration.
+    return babyWoke(dt);
+  }
+  function getActiveSleepConfirmationMessage(activeSleep,nowDt=new Date(),precomputed){
+    const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+    const a=activeSleep||getActiveSleepEntry(entries);
+    if(!a)return{message:'',actions:[]};
+    const id=a.id;
+    if(isDismissed(id))return{message:'',actions:[]};
+    const activeMins=(precomputed&&Number.isFinite(precomputed.activeMins))?precomputed.activeMins:(getActiveSleepStatus(n).activeMins||0);
+    const since=fmtSince(activeMins);
+    const message='Esse sono ainda está em andamento? Ele começou há '+since+'.';
+    const actions=[
+      {kind:'active-sleep',action:'still',label:'Ainda dormindo',variant:'secondary'},
+      {kind:'active-sleep',action:'wake-now',label:'Acordou agora',variant:'primary'},
+      {kind:'active-sleep',action:'pick',label:'Escolher horário',variant:'secondary'},
+      {kind:'active-sleep',action:'dismiss',label:'Ignorar',variant:'ghost'},
+    ];
+    return{message,actions};
+  }
+  return{
+    getActiveSleepStatus,
+    shouldAskSleepConfirmation,
+    getActiveSleepConfirmationMessage,
+    confirmStillSleeping,
+    closeActiveSleepNow,
+    closeActiveSleepAt,
+    dismissActiveSleepWarning
+  };
+})();
+
+function handleActiveSleepAction(action){
+  const active=getActiveSleepEntry(entries);
+  if(!active){showToast('Nenhum sono em andamento.');return;}
+  const id=active.id;
+  const nowDt=now();
+  if(action==='still'){
+    ActiveSleepGuard.confirmStillSleeping(id);
+    showToast('Ok — vamos lembrar mais tarde.');
+    return;
+  }
+  if(action==='wake-now'){
+    ActiveSleepGuard.closeActiveSleepNow(nowDt);
+    return;
+  }
+  if(action==='pick'){
+    const cur=fmtTime(nowDt);
+    const picked=prompt('Que horas ele(a) acordou? (HH:mm)',cur);
+    if(picked==null)return;
+    const s=String(picked||'').trim();
+    if(!TimeEngine.isValidHHMM(s)){showToast('Horário inválido. Use HH:mm');return;}
+    const res=ActiveSleepGuard.closeActiveSleepAt(s);
+    if(!res||res.ok!==true){showToast('Não foi possível fechar com esse horário.');return;}
+    return;
+  }
+  if(action==='dismiss'){
+    ActiveSleepGuard.dismissActiveSleepWarning(id,45);
+    renderHome();
     return;
   }
 }
@@ -3459,6 +3760,7 @@ function renderPredictions(){
   const dm=dataMaturity();if(badge){badge.textContent=dm.label;badge.style.color=dm.conf==='high'?'var(--mint)':dm.conf==='mid'?'var(--sun)':'var(--lilac)';}
   const today=calendarDayEntries(todayStr());
   const activeSleep=getActiveSleep();
+  const activeSleepStatus=activeSleep?ActiveSleepGuard.getActiveSleepStatus(now()):null;
   // Use DaySleepStats as source-of-truth so active naps contribute immediately.
   const ts=SleepEngine.getDaySleepStats(todayStr(),new Date()).totalSleepDayMins||0;
   const lastSleep=getLastCompletedSleep();
@@ -3470,6 +3772,17 @@ function renderPredictions(){
   const dismissSig=window.__dismissStale.sig||'';
   if(activeSleep){
     preds.push({kind:'sleep-now',name:sleepIsNight(activeSleep)?'Noite em andamento':'Soneca em andamento',sub:'Registre Acordou quando despertar',pred:{center:activeSleep.start,from:activeSleep.start,to:activeSleep.start,basis:'sono ativo'},color:sleepIsNight(activeSleep)?'#6366F1':'#A78BFA'});
+    if(activeSleepStatus && activeSleepStatus.needsConfirmation){
+      // Insert a confirmation card before other predictions.
+      preds.unshift({
+        kind:'active-sleep-guard',
+        name:'Esse sono ainda está em andamento?',
+        sub:`Ele começou há ${fmtDurShort(activeSleepStatus.activeMins)}.`,
+        color:'#A78BFA',
+        _body:'Se o bebê já acordou, registre o horário para manter as previsões corretas.',
+        _actions:activeSleepStatus.actions
+      });
+    }
   }else if(insideNight){
     // Inside night window — "next window" is waking up in the morning, not a future night start
     preds.push({kind:'night-now',name:'Janela noturna ativa',sub:'Toque em Dormiu quando adormecer',pred:{center:cfg.dayBoundary||'06:00',from:cfg.nightStart||'18:00',to:cfg.dayBoundary||'06:00',basis:'janela fisiológica configurada'},color:'#6366F1'});
@@ -3531,6 +3844,16 @@ function renderPredictions(){
   if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   list.innerHTML=preds.map(p=>{
+    if(p.kind==='active-sleep-guard'){
+      return renderMissingLogCard('active-sleep',{
+        tone:p.color||'#A78BFA',
+        badge:'confirmação',
+        title:p.name,
+        sub:p.sub||'',
+        body:p._body||'',
+        actions:p._actions||[]
+      });
+    }
     if(p.kind==='missing-feed'){
       return renderMissingLogCard('feed',{
         tone:p._tone||p.color||'#22D3EE',
