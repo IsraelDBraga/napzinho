@@ -1083,11 +1083,185 @@ const TimeEngine=(()=>{
   };
 })();
 
+/* ---- SleepEngine (stage 2A: single source for sleep intervals + classification) ---- */
+const SleepEngine=(()=>{
+  function addDaysYmd(ymd,delta){
+    const base=TimeEngine.parseYmdLocalSafe(ymd);
+    if(!base)return null;
+    const d=new Date(base.getTime());
+    d.setDate(d.getDate()+Number(delta||0));
+    return fmtDateSV(d);
+  }
+  function intervalOverlapMins(aStart,aEnd,bStart,bEnd){
+    if(!(aStart instanceof Date)||!(aEnd instanceof Date)||!(bStart instanceof Date)||!(bEnd instanceof Date))return 0;
+    const s=Math.max(aStart.getTime(),bStart.getTime());
+    const e=Math.min(aEnd.getTime(),bEnd.getTime());
+    const ms=e-s;
+    if(!Number.isFinite(ms)||ms<=0)return 0;
+    return TimeEngine.clampDurationMins(Math.round(ms/60000));
+  }
+  function getSleepInterval(entry,nowDt=new Date()){
+    try{
+      if(!entry||entry.type!=='sleep')return{startDt:null,endDt:null,isActive:false,durationMins:0,crossesMidnight:false,isValid:false};
+      const ymd=entry.date;
+      const startHH=entry.start;
+      if(!TimeEngine.isValidYmd(ymd)||!TimeEngine.isValidHHMM(startHH))return{startDt:null,endDt:null,isActive:false,durationMins:0,crossesMidnight:false,isValid:false};
+      const startDt=TimeEngine.resolveClockOnDate(ymd,startHH);
+      if(!(startDt instanceof Date))return{startDt:null,endDt:null,isActive:false,durationMins:0,crossesMidnight:false,isValid:false};
+      let endDt=null,isActive=false;
+      if(entry.end&&TimeEngine.isValidHHMM(entry.end)){
+        endDt=TimeEngine.resolveClockOnDate(ymd,entry.end);
+        if(!(endDt instanceof Date))return{startDt,endDt:null,isActive:false,durationMins:0,crossesMidnight:false,isValid:false};
+        if(endDt.getTime()<startDt.getTime())endDt=new Date(endDt.getTime()+24*60*60000);
+      }else{
+        isActive=true;
+        endDt=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?new Date(nowDt.getTime()):new Date();
+      }
+      const ms=endDt.getTime()-startDt.getTime();
+      const dur=TimeEngine.clampDurationMins(Math.round(Math.max(0,ms)/60000));
+      const crossesMidnight=fmtDateSV(startDt)!==fmtDateSV(endDt);
+      return{startDt,endDt,isActive,durationMins:dur,crossesMidnight,isValid:true};
+    }catch(e){
+      return{startDt:null,endDt:null,isActive:false,durationMins:0,crossesMidnight:false,isValid:false};
+    }
+  }
+  function getNightWindowForWakeDay(wakeYmd){
+    if(!TimeEngine.isValidYmd(wakeYmd))return{startDt:null,endDt:null,wakeYmd};
+    const prevYmd=addDaysYmd(wakeYmd,-1);
+    const ns=cfg.nightStart||'18:00';
+    const db=cfg.dayBoundary||'06:00';
+    const startDt=prevYmd?TimeEngine.resolveClockOnDate(prevYmd,ns):null;
+    const endDt=TimeEngine.resolveClockOnDate(wakeYmd,db);
+    return{startDt,endDt,wakeYmd};
+  }
+  function getNightReferenceWakeYmd(nowDt=new Date()){
+    const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+    // Must be based on provided nowDt (not system clock), for deterministic behavior and tests.
+    const ymd=fmtDateSV(n);
+    const nowM=timeToMins(fmtTime(n));
+    // Avoid relying on helpers outside SleepEngine (keeps self-tests runnable in isolation).
+    const nsM=TimeEngine.timeToMinsSafe(cfg.nightStart||'18:00') ?? 1080;
+    const dbM=TimeEngine.timeToMinsSafe(cfg.dayBoundary||'06:00') ?? 360;
+    if(nowM<dbM)return ymd;
+    if(nowM>=nsM){
+      const next=addDaysYmd(ymd,1);
+      return next||ymd;
+    }
+    return ymd;
+  }
+  function sleepOverlapsNight(entry,wakeYmd,nowDt=new Date()){
+    const iv=getSleepInterval(entry,nowDt);
+    if(!iv.isValid)return false;
+    const win=getNightWindowForWakeDay(wakeYmd);
+    if(!(win.startDt instanceof Date)||!(win.endDt instanceof Date))return false;
+    return intervalOverlapMins(iv.startDt,iv.endDt,win.startDt,win.endDt)>0;
+  }
+  function classifySleep(entry,nowDt=new Date()){
+    const iv=getSleepInterval(entry,nowDt);
+    const dayYmd=(entry&&TimeEngine.isValidYmd(entry.date))?entry.date:null;
+    if(!iv.isValid)return{kind:'invalid',wakeYmd:null,dayYmd:dayYmd||null,reason:'invalid'};
+    const y0=dayYmd||fmtDateSV(iv.startDt);
+    const cand=[y0,addDaysYmd(y0,1)].filter(Boolean);
+    let best={wakeYmd:null,overlap:0};
+    cand.forEach(wy=>{
+      const win=getNightWindowForWakeDay(wy);
+      const ov=intervalOverlapMins(iv.startDt,iv.endDt,win.startDt,win.endDt);
+      if(ov>best.overlap)best={wakeYmd:wy,overlap:ov};
+    });
+    if(best.overlap>0){
+      return{kind:'night',wakeYmd:best.wakeYmd,dayYmd:y0,reason:'overlapsNightWindow'};
+    }
+    return{kind:'nap',wakeYmd:null,dayYmd:y0,reason:'outsideNightWindow'};
+  }
+  function getDaySleepStats(ymd,nowDt=new Date()){
+    const out={ymd,totalSleepDayMins:0,napCount:0,averageNapMins:0,longestNapMins:0,activeNapMins:0,naps:[]};
+    if(!TimeEngine.isValidYmd(ymd))return out;
+    const uniq=(typeof uniqueEntriesForMetrics==='function')?uniqueEntriesForMetrics:(list=>Array.isArray(list)?list:[]);
+    const list=uniq(entries,nowDt).filter(e=>e&&e.type==='sleep');
+    list.forEach(e=>{
+      const cls=classifySleep(e,nowDt);
+      if(cls.kind!=='nap')return;
+      if(cls.dayYmd!==ymd)return;
+      const iv=getSleepInterval(e,nowDt);
+      if(!iv.isValid||iv.durationMins<=0)return;
+      out.naps.push({id:e.id,startDt:iv.startDt,endDt:iv.endDt,isActive:iv.isActive,durationMins:iv.durationMins});
+      out.totalSleepDayMins+=iv.durationMins;
+      out.napCount++;
+      out.longestNapMins=Math.max(out.longestNapMins,iv.durationMins);
+      if(iv.isActive)out.activeNapMins+=iv.durationMins;
+    });
+    out.averageNapMins=out.napCount?Math.round(out.totalSleepDayMins/out.napCount):0;
+    return out;
+  }
+  function getNightSleepStats(wakeYmd,nowDt=new Date()){
+    const win=getNightWindowForWakeDay(wakeYmd);
+    const res={
+      wakeYmd,
+      windowStartDt:win.startDt,
+      windowEndDt:win.endDt,
+      totalNightSleepMins:0,
+      sleepBlocks:0,
+      wakeCountBetweenBlocks:0,
+      awakeMinsDuringNight:0,
+      nightStart:null,
+      nightEnd:null,
+      isActiveNight:false,
+      segments:[]
+    };
+    if(!(win.startDt instanceof Date)||!(win.endDt instanceof Date))return res;
+    const uniq=(typeof uniqueEntriesForMetrics==='function')?uniqueEntriesForMetrics:(list=>Array.isArray(list)?list:[]);
+    const list=uniq(entries,nowDt).filter(e=>e&&e.type==='sleep');
+    const segs=[];
+    list.forEach(e=>{
+      const cls=classifySleep(e,nowDt);
+      if(cls.kind!=='night')return;
+      if(cls.wakeYmd!==wakeYmd)return;
+      const iv=getSleepInterval(e,nowDt);
+      if(!iv.isValid||iv.endDt.getTime()<=iv.startDt.getTime())return;
+      const ov=intervalOverlapMins(iv.startDt,iv.endDt,win.startDt,win.endDt);
+      if(ov<=0)return;
+      const overlapStart=new Date(Math.max(iv.startDt.getTime(),win.startDt.getTime()));
+      const overlapEnd=new Date(Math.min(iv.endDt.getTime(),win.endDt.getTime()));
+      segs.push({id:e.id,startDt:overlapStart,endDt:overlapEnd,isActive:iv.isActive,sourceStartDt:iv.startDt,sourceEndDt:iv.endDt,durationMins:ov});
+    });
+    segs.sort((a,b)=>a.startDt-b.startDt);
+    if(!segs.length)return res;
+    res.segments=segs;
+    res.sleepBlocks=segs.length;
+    res.wakeCountBetweenBlocks=Math.max(0,segs.length-1);
+    res.isActiveNight=segs.some(s=>s.isActive);
+    res.totalNightSleepMins=segs.reduce((a,s)=>a+s.durationMins,0);
+    for(let i=0;i<segs.length-1;i++){
+      const gapMs=segs[i+1].startDt.getTime()-segs[i].endDt.getTime();
+      const g=TimeEngine.clampDurationMins(Math.round(Math.max(0,gapMs)/60000));
+      res.awakeMinsDuringNight+=g;
+    }
+    res.nightStart=fmtTime(segs[0].startDt);
+    res.nightEnd=fmtTime(segs[segs.length-1].endDt);
+    return res;
+  }
+  return{
+    getSleepInterval,
+    getNightWindowForWakeDay,
+    getNightReferenceWakeYmd,
+    sleepOverlapsNight,
+    classifySleep,
+    getDaySleepStats,
+    getNightSleepStats,
+    _addDaysYmd:addDaysYmd
+  };
+})();
+
 // Global self-tests (run in console): runNestSelfTests()
 function runNestSelfTests(){
   const tests=[];
   const push=(name,fn)=>tests.push({name,fn});
   const isFiniteNumber=x=>typeof x==='number'&&Number.isFinite(x);
+  const withCfg=(patch,fn)=>{
+    const prev={nightStart:cfg.nightStart,dayBoundary:cfg.dayBoundary};
+    try{if(patch){if(patch.nightStart!=null)cfg.nightStart=patch.nightStart;if(patch.dayBoundary!=null)cfg.dayBoundary=patch.dayBoundary;}return fn();}
+    finally{cfg.nightStart=prev.nightStart;cfg.dayBoundary=prev.dayBoundary;}
+  };
 
   push('parseYmdLocalSafe parses correct local date',()=>{
     const d=TimeEngine.parseYmdLocalSafe('2026-04-26');
@@ -1168,6 +1342,110 @@ function runNestSelfTests(){
     if(!['future','now','overdue','invalid'].includes(st.state))throw new Error('bad state');
     if(!isFiniteNumber(st.minutes)||st.minutes<0)throw new Error('minutes invalid');
     if(typeof st.label!=='string')throw new Error('label not string');
+  });
+
+  push('Sleep crosses midnight (22:00->06:00) has 480 mins',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const e={type:'sleep',date:'2026-04-26',start:'22:00',end:'06:00'};
+      const iv=SleepEngine.getSleepInterval(e,TimeEngine.resolveClockOnDate('2026-04-27','07:00'));
+      if(!iv.isValid)throw new Error('interval invalid');
+      if(iv.durationMins!==480)throw new Error('expected 480');
+      if(!iv.crossesMidnight)throw new Error('expected crossesMidnight');
+    });
+  });
+  push('Sleep 17:45->19:10 overlaps nightStart => night, wakeYmd=next day',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const e={type:'sleep',date:'2026-04-26',start:'17:45',end:'19:10'};
+      const cls=SleepEngine.classifySleep(e,TimeEngine.resolveClockOnDate('2026-04-26','20:00'));
+      if(cls.kind!=='night')throw new Error('expected night');
+      if(cls.wakeYmd!=='2026-04-27')throw new Error('expected wakeYmd 2026-04-27');
+    });
+  });
+  push('Sleep 16:30->17:20 does not overlap nightStart => nap',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const e={type:'sleep',date:'2026-04-26',start:'16:30',end:'17:20'};
+      const cls=SleepEngine.classifySleep(e,TimeEngine.resolveClockOnDate('2026-04-26','18:30'));
+      if(cls.kind!=='nap')throw new Error('expected nap');
+    });
+  });
+  push('Sleep 02:00->03:00 belongs to wakeYmd same day (night)',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const e={type:'sleep',date:'2026-04-27',start:'02:00',end:'03:00'};
+      const cls=SleepEngine.classifySleep(e,TimeEngine.resolveClockOnDate('2026-04-27','04:00'));
+      if(cls.kind!=='night')throw new Error('expected night');
+      if(cls.wakeYmd!=='2026-04-27')throw new Error('expected wakeYmd 2026-04-27');
+    });
+  });
+  push('Day sleep 10:00->10:45 is nap and dayYmd matches',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const e={type:'sleep',date:'2026-04-27',start:'10:00',end:'10:45'};
+      const cls=SleepEngine.classifySleep(e,TimeEngine.resolveClockOnDate('2026-04-27','11:00'));
+      if(cls.kind!=='nap')throw new Error('expected nap');
+      if(cls.dayYmd!=='2026-04-27')throw new Error('expected dayYmd 2026-04-27');
+    });
+  });
+  push('Active night sleep counts duration in real time',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-27','01:00');
+      const e={type:'sleep',date:'2026-04-26',start:'22:00',end:null};
+      const iv=SleepEngine.getSleepInterval(e,nowDt);
+      if(!iv.isValid)throw new Error('invalid interval');
+      if(!iv.isActive)throw new Error('expected active');
+      if(iv.durationMins!==180)throw new Error('expected 180');
+      const cls=SleepEngine.classifySleep(e,nowDt);
+      if(cls.kind!=='night')throw new Error('expected night');
+    });
+  });
+  push('getNightReferenceWakeYmd follows nowDt rules',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const a=SleepEngine.getNightReferenceWakeYmd(TimeEngine.resolveClockOnDate('2026-04-27','02:00'));
+      const b=SleepEngine.getNightReferenceWakeYmd(TimeEngine.resolveClockOnDate('2026-04-27','14:00'));
+      const c=SleepEngine.getNightReferenceWakeYmd(TimeEngine.resolveClockOnDate('2026-04-27','20:00'));
+      if(a!=='2026-04-27')throw new Error('expected 2026-04-27 at 02:00');
+      if(b!=='2026-04-27')throw new Error('expected 2026-04-27 at 14:00');
+      if(c!=='2026-04-28')throw new Error('expected 2026-04-28 at 20:00');
+    });
+  });
+  push('Night blocks: 3 blocks => 2 wakesBetween and 50 awake mins',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[
+        {id:1,type:'sleep',date:'2026-04-26',start:'22:00',end:'23:00'},
+        {id:2,type:'sleep',date:'2026-04-26',start:'23:30',end:'01:00'},
+        {id:3,type:'sleep',date:'2026-04-27',start:'01:20',end:'03:00'},
+      ];
+      const st=SleepEngine.getNightSleepStats('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','04:00'));
+      entries=prevEntries;
+      if(st.sleepBlocks!==3)throw new Error('expected 3 blocks');
+      if(st.wakeCountBetweenBlocks!==2)throw new Error('expected 2 wakesBetween');
+      if(st.awakeMinsDuringNight!==50)throw new Error('expected 50 awake mins');
+    });
+  });
+  push('Separation day/night stats: day excludes night and night excludes day',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[
+        {id:1,type:'sleep',date:'2026-04-26',start:'22:00',end:'06:00'}, // night for wakeYmd 2026-04-27
+        {id:2,type:'sleep',date:'2026-04-27',start:'10:00',end:'10:45'}, // nap
+      ];
+      const day=SleepEngine.getDaySleepStats('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','12:00'));
+      const night=SleepEngine.getNightSleepStats('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','07:00'));
+      entries=prevEntries;
+      if(day.napCount!==1)throw new Error('expected 1 nap');
+      if(day.totalSleepDayMins!==45)throw new Error('expected 45 daytime mins');
+      if(night.totalNightSleepMins!==480)throw new Error('expected 480 night mins');
+    });
+  });
+  push('Robustness: no NaN/Infinity/negative in stats',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-27',start:'10:00',end:'10:45'}];
+      const day=SleepEngine.getDaySleepStats('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','12:00'));
+      const night=SleepEngine.getNightSleepStats('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','12:00'));
+      entries=prevEntries;
+      const nums=[day.totalSleepDayMins,day.napCount,day.averageNapMins,day.longestNapMins,day.activeNapMins,night.totalNightSleepMins,night.sleepBlocks,night.wakeCountBetweenBlocks,night.awakeMinsDuringNight];
+      nums.forEach(n=>{if(!isFiniteNumber(n)||n<0)throw new Error('bad number');});
+    });
   });
 
   const results={passed:0,failed:0,details:[]};
@@ -1273,7 +1551,11 @@ function addCalendarDaysStr(ymd,delta){const d=new Date(ymd+'T12:00:00');d.setDa
 function parseYmdLocal(ymd){const[y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d,0,0,0,0);}
 function addDaysLocal(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
 function setClockLocal(baseDate,hhmm){const[h,m]=String(hhmm||'').split(':').map(Number);const d=new Date(baseDate);d.setHours(h||0,m||0,0,0);return d;}
-function getNightWindowForWakeDay(wakeYmd){const wakeDate=parseYmdLocal(wakeYmd);const prevDate=addDaysLocal(wakeDate,-1);return{start:setClockLocal(prevDate,cfg.nightStart||'18:00'),end:setClockLocal(wakeDate,cfg.dayBoundary||'06:00')};}
+function getNightWindowForWakeDay(wakeYmd){
+  // Wrapper for progressive migration.
+  const w=SleepEngine.getNightWindowForWakeDay(wakeYmd);
+  return {start:w.startDt,end:w.endDt};
+}
 function getNightWindowForDate(ymd){return getNightWindowForWakeDay(ymd);}
 function sleepIntervalDateTimes(e,nowDt=new Date()){const startBase=parseYmdLocal(e.date);const start=setClockLocal(startBase,e.start);let end=null;if(e.end){end=setClockLocal(startBase,e.end);if(end<start)end=addDaysLocal(end,1);}else if(e.type==='sleep'){end=nowDt;}return{start,end};}
 function sleepDurationMinsFromDates(startDt,endDt){if(!startDt||!endDt)return 0;const ms=endDt-startDt;if(!Number.isFinite(ms)||ms<=0)return 0;return Math.round(ms/60000);}
@@ -1309,7 +1591,42 @@ function getDaySummary(ymd,nowDt=new Date()){
   return{events:dayEvents,sleepTotal,sleepPeriods:sleepDurations.length,feeds:dayEvents.filter(e=>e.type==='feed').length,diapers:dayEvents.filter(e=>e.type==='diaper').length,awakenings:dayEvents.filter(e=>e.type==='wake').length};
 }
 function getNightSleepSegmentsForWakeDay(wakeYmd,nowDt=new Date()){const win=getNightWindowForWakeDay(wakeYmd);const seen=new Set();return entries.filter(e=>e.type==='sleep'&&e.start).map(e=>{const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start||!iv.end)return null;const computedDuration=sleepDurationMinsFromDates(iv.start,iv.end);const effective=e.durationMins>0?e.durationMins:computedDuration;if(e.end&&effective<=0)return null;const key=sleepIdentityKey(e,nowDt);if(key&&seen.has(key))return null;if(key)seen.add(key);return{...e,_startDt:iv.start,_endDt:iv.end,_computedDurationMins:effective,_isActive:!e.end};}).filter(Boolean).filter(e=>intervalsOverlap(e._startDt,e._endDt,win.start,win.end)).sort((a,b)=>a._startDt-b._startDt);}
-function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){const segs=getNightSleepSegmentsForWakeDay(wakeYmd,nowDt);if(!segs.length)return null;const hasActiveSleep=segs.some(e=>e._isActive);let wakesBetween=0;const gaps=[];for(let i=0;i<segs.length-1;i++){const gap=Math.round((segs[i+1]._startDt-segs[i]._endDt)/60000);if(gap>0){wakesBetween++;gaps.push(gap);}}const totalSleep=segs.reduce((acc,e)=>{if(e._isActive)return acc+Math.max(0,Math.round((nowDt-e._startDt)/60000));return acc+(e.durationMins||e._computedDurationMins||0);},0);const wakes=hasActiveSleep?wakesBetween:wakesBetween+1;return{wakeYmd,segs,hasActiveSleep,totalSleep,blocks:segs.length,wakes,wakesBetween,firstStart:segs[0].start,lastEnd:hasActiveSleep?'agora':segs[segs.length-1].end,gaps};}
+function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){
+  // Wrapper for progressive migration.
+  const st=SleepEngine.getNightSleepStats(wakeYmd,nowDt);
+  if(!st||!Array.isArray(st.segments)||!st.segments.length)return null;
+  const segs=st.segments.map(s=>({
+    id:s.id,
+    type:'sleep',
+    _startDt:s.startDt,
+    _endDt:s.endDt,
+    _computedDurationMins:s.durationMins,
+    _isActive:!!s.isActive,
+    start:fmtTime(s.startDt),
+    end:fmtTime(s.endDt),
+    durationMins:s.durationMins
+  }));
+  const hasActiveSleep=segs.some(s=>s._isActive);
+  const gaps=[];
+  let wakesBetween=0;
+  for(let i=0;i<segs.length-1;i++){
+    const gap=Math.round((segs[i+1]._startDt-segs[i]._endDt)/60000);
+    if(gap>0){wakesBetween++;gaps.push(gap);}
+  }
+  const wakes=hasActiveSleep?wakesBetween:(wakesBetween+1);
+  return{
+    wakeYmd,
+    segs,
+    hasActiveSleep,
+    totalSleep:st.totalNightSleepMins,
+    blocks:st.sleepBlocks,
+    wakes,
+    wakesBetween,
+    firstStart:fmtTime(segs[0]._startDt),
+    lastEnd:hasActiveSleep?'agora':fmtTime(segs[segs.length-1]._endDt),
+    gaps
+  };
+}
 /** Normaliza cadeia de sono para métricas: une trechos sobrepostos/colados (sem criar despertar artificial). */
 function normalizeSleepChainForStats(segs){
   if(!Array.isArray(segs)||!segs.length)return[];
@@ -1724,11 +2041,45 @@ function renderPredictions(){
 function renderGlance(){const host=$('glance');if(!host)return;const ymd=todayStr();const td=calendarDayEntries(ymd);const total=totalSleepMinsCalendarDay(ymd);const anN=analyzeLastCompleteNight();const wakeShow=anN&&anN.wakes!=null?anN.wakes:nightWakeCountBetweenSegments(ymd);host.innerHTML=`<div class="glance-cell" data-tone="sleep"><div class="glance-val">${fmtDurShort(total)}</div><div class="glance-lbl">Sono</div></div><div class="glance-cell" data-tone="feed"><div class="glance-val">${td.filter(e=>e.type==='feed').length}</div><div class="glance-lbl">Mamadas</div></div><div class="glance-cell" data-tone="diaper"><div class="glance-val">${td.filter(e=>e.type==='diaper').length}</div><div class="glance-lbl">Fraldas</div></div><div class="glance-cell" data-tone="night"><div class="glance-val">${wakeShow}</div><div class="glance-lbl">Despertares (noite)</div></div>`;}
 
 /* ---- Night panel ---- */
-function getNightReferenceWakeYmd(nowDt=new Date()){const ymd=todayStr();if(timeToMins(fmtTime(nowDt))>=nightStartMinsVal())return fmtDateSV(addDaysLocal(parseYmdLocal(ymd),1));return ymd;}
+function getNightReferenceWakeYmd(nowDt=new Date()){
+  // Wrapper for progressive migration.
+  return SleepEngine.getNightReferenceWakeYmd(nowDt);
+}
 function nightCardHasActiveSleep(nowDt=new Date()){const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);return !!(an&&an.hasActiveSleep);}
 function ensureNightCardAutoRefresh(nowDt=new Date()){const needs=nightCardHasActiveSleep(nowDt);if(needs&&!homeNightTimer){homeNightTimer=setInterval(()=>{if(document.hidden)return;renderHome();},60000);}else if(!needs&&homeNightTimer){clearInterval(homeNightTimer);homeNightTimer=null;}}
-function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const nowDt=new Date();const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);if(!an){host.innerHTML='';return;}const waves=[];for(let i=0;i<an.segs.length;i++){const seg=an.segs[i];const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);if(i<an.segs.length-1){const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);}}const kicker=t('nightOngoing');const wakeMetricVal=an.hasActiveSleep?an.wakesBetween:an.wakes;const wakeMetricLbl=an.hasActiveSleep?'Entre trechos':t('awakenings');const nightFoot=an.hasActiveSleep?`${t('nightOngoing')}: ${t('sleep').toLowerCase()} ativo em tempo real. ${wakeMetricLbl} = pausas entre trechos (despertar final entra ao fechar a noite).`:`${t('periods')} = janela ${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}.`;host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${wakeMetricVal}</div><div class="night-metric-lbl">${escHtml(wakeMetricLbl)}</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;}
-function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary(ymd,new Date());host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(ymd)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;}
+function renderNightPanel(){
+  const host=$('night-panel-wrap');if(!host)return;
+  const nowDt=new Date();
+  const wakeYmd=getNightReferenceWakeYmd(nowDt);
+  const an=getNightSummaryForWakeDay(wakeYmd,nowDt);
+  if(!an){host.innerHTML='';return;}
+  const waves=[];
+  for(let i=0;i<an.segs.length;i++){
+    const seg=an.segs[i];
+    const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);
+    waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);
+    if(i<an.segs.length-1){
+      const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);
+      if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);
+    }
+  }
+  const kicker=t('nightOngoing');
+  const wakeMetricVal=an.hasActiveSleep?an.wakesBetween:an.wakes;
+  const wakeMetricLbl=an.hasActiveSleep?'Entre trechos':t('awakenings');
+  const nightFoot=an.hasActiveSleep
+    ?`${t('nightOngoing')}: ${t('sleep').toLowerCase()} ativo em tempo real. ${wakeMetricLbl} = pausas entre trechos (despertar final entra ao fechar a noite).`
+    :`${t('periods')} = janela ${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}.`;
+  host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${wakeMetricVal}</div><div class="night-metric-lbl">${escHtml(wakeMetricLbl)}</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;
+}
+function renderDaySleepPanel(){
+  const host=$('day-sleep-panel-wrap');if(!host)return;
+  const ymd=todayStr();
+  const nowDt=new Date();
+  const dayStats=SleepEngine.getDaySleepStats(ymd,nowDt);
+  const dayEvents=uniqueEntriesForMetrics(getDaytimeEvents(ymd,nowDt),nowDt);
+  const sum={events:dayEvents,sleepTotal:dayStats.totalSleepDayMins,sleepPeriods:dayStats.napCount,feeds:dayEvents.filter(e=>e.type==='feed').length,diapers:dayEvents.filter(e=>e.type==='diaper').length};
+  host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(ymd)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;
+}
 
 /* ---- Today rail (horizontal timeline) ---- */
 function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';if(!ev.length){host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
