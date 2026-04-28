@@ -1652,6 +1652,60 @@ function runNestSelfTests(){
     if(((b2.b&&b2.b.entries)||[]).length!==0)throw new Error('expected 0 entry in profile b');
   });
 
+  // --- Stage 2D tests (StalePredictionGuard / MissingLogGuard) ---
+  push('Feed stale when last feed too old',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','14:13');
+      const last={type:'feed',date:'2026-04-28',time:'07:00',start:'07:00'};
+      const st=StalePredictionGuard.getFeedStaleness(last,nowDt,6,180);
+      if(st.state!=='stale')throw new Error('expected stale');
+      if(st.needsUserConfirmation!==true)throw new Error('expected needsUserConfirmation');
+      if(!isFiniteNumber(st.minutesSince)||st.minutesSince<=0)throw new Error('bad minutesSince');
+    });
+  });
+  push('Feed overdue but plausible (not stale yet)',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','13:30');
+      const last={type:'feed',date:'2026-04-28',time:'10:00',start:'10:00'};
+      const st=StalePredictionGuard.getFeedStaleness(last,nowDt,6,180);
+      if(st.state!=='overdue' && st.state!=='normal')throw new Error('expected overdue/normal');
+      if(st.state==='stale')throw new Error('should not be stale');
+    });
+  });
+  push('No feed today => unknown/stale; should suppress precise prediction',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','14:00');
+      const st=StalePredictionGuard.getFeedStaleness(null,nowDt,6,180);
+      if(!['unknown','stale'].includes(st.state))throw new Error('expected unknown/stale');
+    });
+  });
+  push('Next nap stale/overdueCritical when awake too long',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','15:00');
+      const lastSleep={type:'sleep',date:'2026-04-28',start:'09:00',end:'10:00'};
+      const st=StalePredictionGuard.getSleepStaleness(lastSleep,nowDt,6,180);
+      if(!['stale','overdueCritical'].includes(st.state))throw new Error('expected stale/overdueCritical');
+      if(st.minutesAwake<240)throw new Error('expected long awake');
+    });
+  });
+  push('Active sleep very long needs confirmation',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const nowDt=TimeEngine.resolveClockOnDate('2026-04-28','08:00');
+      const active={type:'sleep',date:'2026-04-27',start:'20:00',end:''};
+      const iv=SleepEngine.getSleepInterval(active,nowDt);
+      if(!iv.isValid||!iv.isActive)throw new Error('expected active valid');
+      if(iv.durationMins<10*60)throw new Error('expected very long sleep');
+    });
+  });
+  push('StalePredictionGuard robustness: no NaN/Infinity/negative',()=>{
+    const st1=StalePredictionGuard.getFeedStaleness(null,new Date(),3,180);
+    const st2=StalePredictionGuard.getDiaperStaleness(null,new Date());
+    [st1,st2].forEach(s=>{
+      if(!s||typeof s!=='object')throw new Error('bad staleness');
+      Object.values(s).forEach(v=>{if(typeof v==='number'&&(!Number.isFinite(v)||v<0))throw new Error('bad number');});
+    });
+  });
+
   const results={passed:0,failed:0,details:[]};
   tests.forEach(t=>{
     try{
@@ -1994,6 +2048,73 @@ function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&
 function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const n=getSleepEngineAdjustmentFromLastNight();na+=n.napAdj;fa+=n.feedAdj;ra+=n.rangeAdj;return{napAdj:Math.min(45,na),feedAdj:Math.min(35,fa),rangeAdj:Math.min(26,ra),nightLabel:n.label};}
 function getRecentSignalCount(windowMin){const cut=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{return parseTimeOnDate(e.start,e.date).getTime()>=cut;}catch{return false;}}).length;}
 function getSignalPressure(){const s30=getRecentSignalCount(30),s90=getRecentSignalCount(90);const gasToday=calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype==='gas').length;const gasBias=Math.min(8,gasToday*2);return{napBias:Math.min(20,s30*5+s90*2+gasBias),feedBias:Math.min(15,s30*4),rangeBias:Math.min(10,s90*2),hasSignals:(s90>0||gasToday>0)};}
+
+/* ---- StalePredictionGuard / MissingLogGuard (stage 2D) ---- */
+const StalePredictionGuard=(()=>{
+  const min0=x=>{const n=Number(x);return Number.isFinite(n)?Math.max(0,Math.round(n)):0;};
+  const minsSince=(dt,nowDt)=>{if(!(dt instanceof Date)||!(nowDt instanceof Date))return null;const a=dt.getTime(),b=nowDt.getTime();if(!Number.isFinite(a)||!Number.isFinite(b))return null;return min0((b-a)/60000);};
+  const lastEventDt=(e)=>{
+    if(!e||!e.date||!TimeEngine.isValidYmd(e.date))return null;
+    const t=(e.time||e.start||'').trim();
+    if(!TimeEngine.isValidHHMM(t))return null;
+    return TimeEngine.resolveClockOnDate(e.date,t);
+  };
+  function getFeedStaleness(lastFeed,nowDt,babyMonths,typicalIntervalMin){
+    const lastDt=lastEventDt(lastFeed);
+    if(!lastDt)return{state:'unknown',minutesSince:0,typicalMin:min0(typicalIntervalMin),dataQuality:'insufficient',needsUserConfirmation:true};
+    const since=minsSince(lastDt,nowDt);if(since==null)return{state:'unknown',minutesSince:0,typicalMin:min0(typicalIntervalMin),dataQuality:'insufficient',needsUserConfirmation:true};
+    const typical=min0(typicalIntervalMin)|| (babyMonths<=3?120:babyMonths<=6?150:180);
+    const staleThreshold=Math.max(typical*2,typical+180);
+    const overdue=(since>typical+30);
+    const stale=(since>staleThreshold);
+    const state=stale?'stale':(overdue?'overdue':'normal');
+    return{state,minutesSince:since,typicalMin:typical,dataQuality:stale?'stale':'good',needsUserConfirmation:stale};
+  }
+  function getSleepStaleness(lastSleep,nowDt,babyMonths,maxWakeWindowMin){
+    // This guard is about *awake time since last sleep end* while we want a next nap.
+    if(!lastSleep||!lastSleep.end||!TimeEngine.isValidYmd(lastSleep.date)||!TimeEngine.isValidHHMM(lastSleep.end))return{state:'unknown',minutesAwake:0,maxWakeMin:min0(maxWakeWindowMin),dataQuality:'insufficient',needsUserConfirmation:true};
+    const endDt=TimeEngine.resolveClockOnDate(lastSleep.date,lastSleep.end);
+    if(!(endDt instanceof Date))return{state:'unknown',minutesAwake:0,maxWakeMin:min0(maxWakeWindowMin),dataQuality:'insufficient',needsUserConfirmation:true};
+    const awake=minsSince(endDt,nowDt);if(awake==null)return{state:'unknown',minutesAwake:0,maxWakeMin:min0(maxWakeWindowMin),dataQuality:'insufficient',needsUserConfirmation:true};
+    const maxWake=min0(maxWakeWindowMin)||Math.max(120,wwBaseTarget(babyMonths)+60);
+    if(awake>maxWake+90)return{state:'stale',minutesAwake:awake,maxWakeMin:maxWake,dataQuality:'stale',needsUserConfirmation:true};
+    if(awake>maxWake+30)return{state:'overdueCritical',minutesAwake:awake,maxWakeMin:maxWake,dataQuality:'partial',needsUserConfirmation:true};
+    return{state:'normal',minutesAwake:awake,maxWakeMin:maxWake,dataQuality:'good',needsUserConfirmation:false};
+  }
+  function getDiaperStaleness(lastDiaper,nowDt){
+    const lastDt=lastEventDt(lastDiaper);
+    if(!lastDt)return{state:'unknown',minutesSince:0,dataQuality:'insufficient',needsUserConfirmation:false};
+    const since=minsSince(lastDt,nowDt);if(since==null)return{state:'unknown',minutesSince:0,dataQuality:'insufficient',needsUserConfirmation:false};
+    const stale=since>8*60;
+    return{state:stale?'stale':'normal',minutesSince:since,dataQuality:stale?'partial':'good',needsUserConfirmation:false};
+  }
+  function shouldSuppressPrediction(kind,ctx){
+    if(kind==='feed')return ctx&&ctx.staleness&&ctx.staleness.state==='stale';
+    if(kind==='nap')return ctx&&ctx.staleness&&['stale'].includes(ctx.staleness.state);
+    return false;
+  }
+  function getMissingLogMessage(kind,ctx){
+    if(kind==='feed'){
+      const s=ctx&&ctx.staleness;
+      if(!s||s.state==='unknown')return{title:'Sem mamada registrada',sub:'Registre o horário aproximado para recalibrar.',body:''};
+      if(s.state==='stale')return{title:'Possível mamada não registrada',sub:`Última mamada registrada há ${fmtDurShort(s.minutesSince)}.`,body:'Se o bebê mamou nesse intervalo, registre o horário aproximado para recalibrar as próximas previsões.'};
+      return null;
+    }
+    if(kind==='nap'){
+      const s=ctx&&ctx.staleness;
+      if(!s||s.state==='unknown')return{title:'Sem sono recente',sub:'Pode haver sono não registrado.',body:'Se houve soneca, registre o horário aproximado para recalibrar a próxima janela.'};
+      if(s.state==='stale')return{title:'Possível sono não registrado',sub:`Janela muito ultrapassada (acordado há ${fmtDurShort(s.minutesAwake)}).`,body:'Se houve soneca, registre o horário aproximado para recalibrar as próximas previsões.'};
+      return null;
+    }
+    if(kind==='diaper'){
+      const s=ctx&&ctx.staleness;
+      if(s&&s.state==='stale')return{title:'Sem fralda recente',sub:`Sem fralda registrada há ${fmtDurShort(s.minutesSince)}.`,body:'Pode ser só falta de lançamento.'};
+      return null;
+    }
+    return null;
+  }
+  return{getFeedStaleness,getSleepStaleness,getDiaperStaleness,shouldSuppressPrediction,getMissingLogMessage};
+})();
 function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const days=getDaysWithData().length;const phase=days<4?1:days<8?2:3;const hw=getHistoricalWakeWindows(35,320);const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.68+base*0.32)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.86+base*0.14)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw+=cx.napAdj-sp.napBias;pw=Math.max(wakeWindowLowerBound(base,hw,phase),Math.round(pw));range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=normClockMin(endM+pw),lo=normClockMin(c-range),hi=normClockMin(c+range);const basisBits=[];basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');if(hw.length>=4)basisBits.push('histórico amplo (35 dias)');if(hw.length>=4)basisBits.push('respeitando piso do histórico');if(cx.nightLabel)basisBits.push(cx.nightLabel);if(sp.hasSignals)basisBits.push('sinais recentes');return{center:minsToTime(c),from:minsToTime(lo),to:minsToTime(hi),basis:basisBits.join(' · '),phase,centerMin:c,range};}
 function smartPredictNextFeed(lastStart){
   const cx=getContextAdjust(),sp=getSignalPressure();
@@ -2303,7 +2424,11 @@ function renderPredictions(){
   const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
   const lastSleep=getLastCompletedSleep();
   const preds=[];
+  const nowDt=now();
   const insideNight=isNightContextForClock(fmtTime(now()));
+  // Temporary dismiss for stale/missing cards (until next new event).
+  if(!window.__dismissStale)window.__dismissStale={sig:'',at:0};
+  const dismissSig=window.__dismissStale.sig||'';
   if(activeSleep){
     preds.push({kind:'sleep-now',name:sleepIsNight(activeSleep)?'Noite em andamento':'Soneca em andamento',sub:'Registre Acordou quando despertar',pred:{center:activeSleep.start,from:activeSleep.start,to:activeSleep.start,basis:'sono ativo'},color:sleepIsNight(activeSleep)?'#6366F1':'#A78BFA'});
   }else if(insideNight){
@@ -2313,11 +2438,65 @@ function renderPredictions(){
     if(wakeCountsAsDayForPredictions(lastSleep)){
       const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);
       if(nightVsNextNap(lastSleep,p)){const np=nightStartPrediction();preds.push({kind:'night',name:'Entrada da noite',sub:'Com base no dia + histórico',pred:np,color:'#6366F1'});}
-      else{preds.push({kind:'nap',name:'Próxima soneca',sub:'A partir do último despertar',pred:p,color:'#A78BFA'});const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Hora de desacelerar',pred:np,color:'#6366F1'});}
+      else{
+        // MissingLogGuard for nap: if awake time is way beyond plausible, show stale card instead of precise prediction.
+        const months=babyAgeMonths();
+        const base=wwBaseTarget(months);
+        const maxWake=Math.max(120,base+60);
+        const st=StalePredictionGuard.getSleepStaleness(lastSleep,nowDt,months,maxWake);
+        const sig=`nap|${st.state}|${st.minutesAwake||0}`;
+        if(!dismissSig.includes('nap') && StalePredictionGuard.shouldSuppressPrediction('nap',{staleness:st})){
+          const msg=StalePredictionGuard.getMissingLogMessage('nap',{staleness:st});
+          preds.push({
+            kind:'missing-nap',
+            name:msg.title,
+            sub:msg.sub,
+            pred:{center:'—',from:'',to:'',basis:'dados incompletos'},
+            color:'#A78BFA',
+            dataQuality:st.dataQuality||'stale',
+            needsUserConfirmation:true,
+            _actions:[
+              {label:'Registrar agora',on:()=>{openLog('sleep-manual');}},
+              {label:'Registrar horário anterior',on:()=>{openLog('sleep-manual');}},
+              {label:'Ignorar por enquanto',on:()=>{window.__dismissStale={sig:'nap',at:Date.now()};renderHome();}}
+            ]
+          });
+        }else{
+          preds.push({kind:'nap',name:'Próxima soneca',sub:'A partir do último despertar',pred:p,color:'#A78BFA'});
+        }
+        const np=nightStartPrediction();
+        preds.push({kind:'night',name:'Rotina da noite',sub:'Hora de desacelerar',pred:np,color:'#6366F1'});
+      }
     }else{const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Fim do dia se aproximando',pred:np,color:'#6366F1'});}
   }
   const lf=today.filter(e=>e.type==='feed').sort((a,b)=>timeToMins(b.start)-timeToMins(a.start))[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];
-  if(lf){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:insideNight?'Noturna — bebês pequenos ainda mamam de madrugada':'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
+  // MissingLogGuard for feed: suppress absurd future predictions when last feed is too old (likely missing log).
+  const months=babyAgeMonths();
+  const histIv=getHistoricalFeedIntervals(35,240);
+  const typical=(histIv&&histIv.length)?Math.round(histIv.reduce((a,b)=>a+b,0)/histIv.length):(months<=3?120:months<=6?150:180);
+  const feedSt=StalePredictionGuard.getFeedStaleness(lf,nowDt,months,typical);
+  const hasFeedToday=today.some(e=>e.type==='feed');
+  const feedSig=`feed|${feedSt.state}|${feedSt.minutesSince||0}|${hasFeedToday?1:0}`;
+  if(!dismissSig.includes('feed') && (feedSt.state==='stale' || (!hasFeedToday && nowDt.getHours()>=11))){
+    const msg=StalePredictionGuard.getMissingLogMessage('feed',{staleness:feedSt});
+    preds.push({
+      kind:'missing-feed',
+      name:msg.title,
+      sub:msg.sub,
+      pred:{center:'—',from:'',to:'',basis:'dados incompletos'},
+      color:'#22D3EE',
+      dataQuality:feedSt.dataQuality||'stale',
+      needsUserConfirmation:true,
+      _actions:[
+        {label:'Registrar agora',on:()=>{openLog('feed');}},
+        {label:'Registrar horário anterior',on:()=>{openLog('feed');}},
+        {label:'Ignorar por enquanto',on:()=>{window.__dismissStale={sig:'feed',at:Date.now()};renderHome();}}
+      ]
+    });
+  }else if(lf){
+    const p=smartPredictNextFeed(lf.start);
+    preds.push({kind:'feed',name:'Próxima mamada',sub:insideNight?'Noturna — bebês pequenos ainda mamam de madrugada':'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE',dataQuality:feedSt.dataQuality||'good',needsUserConfirmation:!!feedSt.needsUserConfirmation});
+  }
   if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   list.innerHTML=preds.map(p=>{
@@ -2326,8 +2505,10 @@ function renderPredictions(){
     let right;
     if(p.kind==='night-now'||p.kind==='sleep-now'){
       right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
+    }else if(p.kind==='missing-feed' || p.kind==='missing-nap'){
+      const acts=(p._actions||[]).map(a=>`<button class="pill" style="margin-left:6px" onclick="(${a.on.toString()})()">${escHtml(a.label)}</button>`).join('');
+      right=`<div class="pclock" style="font-size:16px">—</div><div class="prange">${escHtml(p.sub||'')}</div><div style="margin-top:6px;display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap">${acts}</div>`;
     }else{
-      const nowDt=now();
       const baseYmd=todayStr();
       const r=resolvePredictionDates(p.pred,baseYmd,nowDt);
       const tStatus=TimeEngine.getTemporalStatus(r.centerDt,nowDt,{toleranceMin:1});
