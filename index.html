@@ -1518,12 +1518,12 @@ function runNestSelfTests(){
     });
   });
 
-  // --- Stage 2B.5 tests (manual/retroactive + refresh) ---
-  push('Manual feed today counts in day summary',()=>{
+  // --- Stage 2B.5 tests (user entry now/retro + refresh) ---
+  push('User feed today counts in day summary',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-feed-today',bypassLocks:true});
+      const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'user'},{reason:'test-feed-today',bypassLocks:true});
       if(!ok)throw new Error('commit failed');
       if(entries.filter(e=>e.type==='feed'&&e.date==='2026-04-28'&&e.start==='13:00').length!==1)throw new Error('feed not stored');
       const sum=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','14:00'));
@@ -1531,11 +1531,11 @@ function runNestSelfTests(){
       if(sum.feeds!==1)throw new Error('expected 1 feed');
     });
   });
-  push('Manual retroactive feed does not count in today summary',()=>{
+  push('User retroactive feed does not count in today summary',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'feed',date:'2026-04-27',time:'20:00',subtype:'breast',source:'manual'},{reason:'test-feed-retro',bypassLocks:true});
+      commitEntry({type:'feed',date:'2026-04-27',time:'20:00',subtype:'breast',source:'user'},{reason:'test-feed-retro',bypassLocks:true});
       const sumToday=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','14:00'));
       const sumPrev=getDaySummary('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','21:00'));
       entries=prevEntries;
@@ -1543,11 +1543,11 @@ function runNestSelfTests(){
       if(sumPrev.feeds!==1)throw new Error('should count in 2026-04-27');
     });
   });
-  push('Manual daytime nap updates DaySleepStats only',()=>{
+  push('User daytime nap updates DaySleepStats only',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'sleep',date:'2026-04-28',start:'10:00',end:'10:45',source:'manual'},{reason:'test-nap',bypassLocks:true});
+      commitEntry({type:'sleep',date:'2026-04-28',start:'10:00',end:'10:45',source:'user'},{reason:'test-nap',bypassLocks:true});
       const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','12:00'));
       const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','12:00'));
       entries=prevEntries;
@@ -1555,11 +1555,11 @@ function runNestSelfTests(){
       if(night.totalNightSleepMins!==0)throw new Error('night should not include nap');
     });
   });
-  push('Manual night sleep crossing midnight updates correct NightSleepStats',()=>{
+  push('User night sleep crossing midnight updates correct NightSleepStats',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'sleep',date:'2026-04-28',start:'22:00',end:'06:00',source:'manual'},{reason:'test-night-cross',bypassLocks:true});
+      commitEntry({type:'sleep',date:'2026-04-28',start:'22:00',end:'06:00',source:'user'},{reason:'test-night-cross',bypassLocks:true});
       const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','23:00'));
       const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-29','07:00'));
       entries=prevEntries;
@@ -1567,11 +1567,11 @@ function runNestSelfTests(){
       if(night.totalNightSleepMins!==480)throw new Error('expected 480');
     });
   });
-  push('Manual sleep 17:45-19:10 is night and not in DaySleepStats',()=>{
+  push('User sleep 17:45-19:10 is night and not in DaySleepStats',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'sleep',date:'2026-04-28',start:'17:45',end:'19:10',source:'manual'},{reason:'test-early-night',bypassLocks:true});
+      commitEntry({type:'sleep',date:'2026-04-28',start:'17:45',end:'19:10',source:'user'},{reason:'test-early-night',bypassLocks:true});
       const cls=SleepEngine.classifySleep(entries[0],TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
       const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
       const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
@@ -1581,11 +1581,11 @@ function runNestSelfTests(){
       if(night.totalNightSleepMins<=0)throw new Error('night should include');
     });
   });
-  push('Manual sleep 16:30-17:20 is nap and not in NightSleepStats',()=>{
+  push('User sleep 16:30-17:20 is nap and not in NightSleepStats',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'sleep',date:'2026-04-28',start:'16:30',end:'17:20',source:'manual'},{reason:'test-nap2',bypassLocks:true});
+      commitEntry({type:'sleep',date:'2026-04-28',start:'16:30',end:'17:20',source:'user'},{reason:'test-nap2',bypassLocks:true});
       const cls=SleepEngine.classifySleep(entries[0],TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
       const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
       const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
@@ -1595,11 +1595,11 @@ function runNestSelfTests(){
       if(night.totalNightSleepMins!==0)throw new Error('night should not include');
     });
   });
-  push('Manual diaper today counts in day summary',()=>{
+  push('User diaper today counts in day summary',()=>{
     withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
       const prevEntries=entries;
       entries=[];
-      commitEntry({type:'diaper',date:'2026-04-28',time:'12:00',diaperType:'wet',source:'manual'},{reason:'test-diaper',bypassLocks:true});
+      commitEntry({type:'diaper',date:'2026-04-28',time:'12:00',diaperType:'wet',source:'user'},{reason:'test-diaper',bypassLocks:true});
       const sum=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','13:00'));
       entries=prevEntries;
       if(sum.diapers!==1)throw new Error('expected 1 diaper');
@@ -1610,7 +1610,7 @@ function runNestSelfTests(){
     __lastRefreshReason='';
     const prevEntries=entries;
     entries=[];
-    const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-refresh',bypassLocks:true});
+    const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'user'},{reason:'test-refresh',bypassLocks:true});
     entries=prevEntries;
     if(!ok)throw new Error('commit failed');
     if(__lastRefreshReason!=='test-refresh')throw new Error('refresh reason not set');
@@ -1619,7 +1619,7 @@ function runNestSelfTests(){
   push('Manual canonical format: no DD-MM-YYYY, invalid time, invalid type, NaN',()=>{
     const prevEntries=entries;
     entries=[];
-    const ok=commitEntry({type:'feed',date:'28-04-2026',time:'13:00',subtype:'breast'},{reason:'test-canonical',bypassLocks:true});
+    const ok=commitEntry({type:'feed',date:'28-04-2026',time:'13:00',subtype:'breast',source:'user'},{reason:'test-canonical',bypassLocks:true});
     if(!ok)throw new Error('commit failed');
     const e=entries[0];
     entries=prevEntries;
@@ -1639,7 +1639,7 @@ function runNestSelfTests(){
     localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));
     localStorage.setItem(CUR_PROFILE,'a');
     loadProfileIntoMemory();
-    commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-profile-a',bypassLocks:true});
+    commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'user'},{reason:'test-profile-a',bypassLocks:true});
     persistAll();
     localStorage.setItem(CUR_PROFILE,'b');
     loadProfileIntoMemory();
@@ -1703,7 +1703,57 @@ function sleepIsNight(e){
   if(!(e&&e.type==='sleep'))return false;
   return SleepEngine.classifySleep(e,now()).kind==='night';
 }
-function normalizeEntry(raw){if(!raw||typeof raw!=='object')return null;const safe={...raw};safe.id=typeof safe.id==='number'?safe.id:Date.now()+Math.floor(Math.random()*1000);safe.date=isValidDateStr(safe.date)?safe.date:todayStr();let typ=typeof safe.type==='string'?safe.type:'sleep';if(typ==='unknown'){if(safe.start&&safe.end!=null)typ='sleep';else if(safe.subtype==='wet'||safe.subtype==='dirty'||safe.subtype==='both')typ='diaper';else if(safe.subtype==='breast'||safe.subtype==='bottle')typ='feed';else typ='sleep';}safe.type=typ;if(safe.type==='mood'&&safe.subtype==='cry')safe.subtype='crying';safe.start=isValidTime(safe.start)?safe.start:fmtTime(now());if(safe.end!=null&&!isValidTime(safe.end))safe.end=null;if(safe.durationMins!=null&&(!Number.isFinite(safe.durationMins)||safe.durationMins<0))safe.durationMins=null;if(safe.type==='sleep')setSleepKind(safe);return safe;}
+function normalizeEntry(raw,nowDt=new Date()){
+  if(!raw||typeof raw!=='object')return null;
+  const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+  const safe={...raw};
+  safe.id=typeof safe.id==='number'?safe.id:Date.now()+Math.floor(Math.random()*1000);
+  // Accept canonical ISO or DD-MM-YYYY from UI, but always store ISO.
+  const coerceYmd=(v)=>{
+    const s=String(v||'').trim();
+    if(isValidDateStr(s))return s;
+    const m=/^(\d{2})-(\d{2})-(\d{4})$/.exec(s);
+    if(m){
+      const iso=`${m[3]}-${m[2]}-${m[1]}`;
+      return isValidDateStr(iso)?iso:null;
+    }
+    return null;
+  };
+  safe.date=coerceYmd(safe.date)||todayStr();
+  let typ=typeof safe.type==='string'?safe.type:'sleep';
+  if(typ==='unknown'){
+    if(safe.start&&safe.end!=null)typ='sleep';
+    else if(safe.subtype==='wet'||safe.subtype==='dirty'||safe.subtype==='both')typ='diaper';
+    else if(safe.subtype==='breast'||safe.subtype==='bottle')typ='feed';
+    else typ='sleep';
+  }
+  safe.type=typ;
+  // Canonical metadata (do not require it to exist for imported/legacy entries).
+  if(!safe.createdAt)safe.createdAt=n.toISOString();
+  safe.updatedAt=n.toISOString();
+  if(!safe.source)safe.source='user';
+  if(safe.type==='mood'&&safe.subtype==='cry')safe.subtype='crying';
+  // Canonical time field for feed/diaper; keep legacy `start` for compatibility.
+  if(safe.type==='feed'||safe.type==='diaper'){
+    const t=String(safe.time||safe.start||'').trim();
+    if(isValidTime(t)){safe.time=t;safe.start=t;}
+  }
+  safe.start=isValidTime(safe.start)?safe.start:fmtTime(now());
+  if(safe.end!=null&&safe.end!==''&&!isValidTime(safe.end))safe.end=null;
+  if(safe.type==='sleep'){
+    // Store empty end as '' (canonical says HH:mm or '').
+    if(safe.end==null)safe.end='';
+    if(safe.end){
+      const iv=SleepEngine.getSleepInterval({type:'sleep',date:safe.date,start:safe.start,end:safe.end},n);
+      safe.durationMins=(iv&&iv.isValid)?iv.durationMins:null;
+    }else{
+      safe.durationMins=null;
+    }
+    setSleepKind(safe);
+  }
+  if(safe.durationMins!=null&&(!Number.isFinite(safe.durationMins)||safe.durationMins<0))safe.durationMins=null;
+  return safe;
+}
 function migrateDataModel(){cfg={...defaultCfg(),...(cfg||{})};delete cfg.appName;if(!Array.isArray(entries))entries=[];entries=entries.map(normalizeEntry).filter(Boolean);if((cfg.dataSchemaVersion||0)<APP_SCHEMA_VERSION){if(cfg.dataSchemaVersion<3)entries.forEach(e=>{if(e&&e.type==='sleep'){delete e.sleepKind;setSleepKind(e);}});if(cfg.dataSchemaVersion<4)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});if(cfg.dataSchemaVersion<5)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});if(cfg.dataSchemaVersion<6)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});cfg.dataSchemaVersion=APP_SCHEMA_VERSION;}if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;}
 function profileNeedsSetup(){return!cfg.profileSetupDone;}
 
@@ -2465,14 +2515,15 @@ function refreshAppAfterDataChange(reason){
     else if(id==='sec-copilot')renderCopilot();
   }catch(e){}
 }
-function normalizeManualEntry(raw,nowDt=new Date()){
+// Canonical normalization for user-provided form inputs (now or retroactive).
+function normalizeEntry(raw,nowDt=new Date()){
   const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
   const type=(raw&&raw.type)||'';
   const base={
     id:(raw&&raw.id!=null)?raw.id:Date.now(),
     createdAt:(raw&&raw.createdAt)||n.toISOString(),
     updatedAt:n.toISOString(),
-    source:'manual'
+    source:(raw&&raw.source)||'user'
   };
   const coerceYmd=(v)=>{
     const s=String(v||'').trim();
@@ -2489,6 +2540,7 @@ function normalizeManualEntry(raw,nowDt=new Date()){
   if(type==='feed'){
     const time=String(raw&&raw.time||raw&&raw.start||'').trim();
     if(!isValidTime(time))return null;
+    // Keep `start` for backward compat; canonical key is `time`.
     const out={...base,type:'feed',date:ymd,time,subtype:raw&&raw.subtype||state.feedType,start:time};
     const dur=raw&&raw.durationMins!=null?parseInt(raw.durationMins,10):null;
     out.durationMins=Number.isFinite(dur)&&dur>0?dur:null;
@@ -2497,6 +2549,7 @@ function normalizeManualEntry(raw,nowDt=new Date()){
   if(type==='diaper'){
     const time=String(raw&&raw.time||raw&&raw.start||'').trim();
     if(!isValidTime(time))return null;
+    // Keep `start` for backward compat; canonical key is `time`.
     const out={...base,type:'diaper',date:ymd,time,diaperType:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,subtype:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,start:time};
     return out;
   }
@@ -2522,7 +2575,7 @@ function normalizeManualEntry(raw,nowDt=new Date()){
 function commitEntry(entry,opt={}){
   const nowDt=new Date();
   // Always normalize manual-ish inputs to canonical app shape.
-  const e=normalizeManualEntry(entry,nowDt);
+  const e=normalizeEntry(entry,nowDt);
   if(!e||!e.type||!e.date)return false;
   // Double-click protection: both time lock and signature dedupe.
   const nowMs=Date.now();
@@ -2570,25 +2623,25 @@ function saveEntry(){
   const id=Date.now();
   if(curModal==='feed'){
     const raw={id,type:'feed',date:$('f-feed-date').value||todayStr(),time:$('f-feed-time').value,subtype:state.feedType,durationMins:($('f-feed-dur').value||'').trim()};
-    const e=normalizeManualEntry(raw,new Date());
+    const e=normalizeEntry(raw,new Date());
     if(!e){showToast('Dados inválidos');return;}
-    if(!commitEntry(e,{closeModal:true,reason:'manual-feed'})){showToast('Não foi possível salvar');return;}
+    if(!commitEntry(e,{closeModal:true,reason:'user-feed'})){showToast('Não foi possível salvar');return;}
     showToast('Registro salvo');
     return;
   }
   if(curModal==='diaper'){
     const raw={id,type:'diaper',date:$('f-diaper-date').value||todayStr(),time:$('f-diaper-time').value,diaperType:state.diaperType};
-    const e=normalizeManualEntry(raw,new Date());
+    const e=normalizeEntry(raw,new Date());
     if(!e){showToast('Dados inválidos');return;}
-    if(!commitEntry(e,{closeModal:true,reason:'manual-diaper'})){showToast('Não foi possível salvar');return;}
+    if(!commitEntry(e,{closeModal:true,reason:'user-diaper'})){showToast('Não foi possível salvar');return;}
     showToast('Registro salvo');
     return;
   }
   if(curModal==='sleep-manual'){
     const raw={id,type:'sleep',date:$('f-manual-date').value||todayStr(),start:$('f-manual-start').value,end:$('f-manual-end').value};
-    const e=normalizeManualEntry(raw,new Date());
+    const e=normalizeEntry(raw,new Date());
     if(!e){showToast('Dados inválidos');return;}
-    if(!commitEntry(e,{closeModal:true,reason:'manual-sleep'})){
+    if(!commitEntry(e,{closeModal:true,reason:'user-sleep'})){
       showToast(getActiveSleep()&&!e.end?'Já tem sono em andamento':'Não foi possível salvar');
       return;
     }
