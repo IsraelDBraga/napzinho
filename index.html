@@ -999,6 +999,193 @@ const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1];}
+
+/* ---- TimeEngine (stage 1: safe parsing + countdown status) ---- */
+const TimeEngine=(()=>{
+  function isValidYmd(ymd){return isValidDateStr(ymd);}
+  function isValidHHMM(hhmm){return isValidTime(hhmm);}
+  function parseYmdLocalSafe(ymd){
+    if(!isValidYmd(ymd))return null;
+    const [y,m,d]=String(ymd).split('-').map(Number);
+    if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d))return null;
+    return new Date(y,m-1,d,12,0,0,0);
+  }
+  function setClockLocalSafe(baseDate,hhmm){
+    if(!(baseDate instanceof Date)||!Number.isFinite(baseDate.getTime()))return null;
+    if(!isValidHHMM(hhmm))return null;
+    const [h,m]=String(hhmm).split(':').map(Number);
+    const d=new Date(baseDate.getTime());
+    d.setHours(h,m,0,0);
+    return Number.isFinite(d.getTime())?d:null;
+  }
+  function timeToMinsSafe(hhmm){
+    if(!isValidHHMM(hhmm))return null;
+    const [h,m]=String(hhmm).split(':').map(Number);
+    if(!Number.isFinite(h)||!Number.isFinite(m))return null;
+    const v=h*60+m;
+    return (v>=0&&v<1440)?v:null;
+  }
+  function minsToTimeSafe(mins){
+    const x=Math.round(Number(mins));
+    if(!Number.isFinite(x))return null;
+    const m=((x%1440)+1440)%1440;
+    const hh=Math.floor(m/60),mm=m%60;
+    return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  }
+  function clampDurationMins(value){
+    const x=Number(value);
+    if(!Number.isFinite(x))return 0;
+    if(x<=0)return 0;
+    return Math.round(x);
+  }
+  function diffMinutes(startDt,endDt,mode='floor'){
+    if(!(startDt instanceof Date)||!(endDt instanceof Date))return null;
+    const a=startDt.getTime(),b=endDt.getTime();
+    if(!Number.isFinite(a)||!Number.isFinite(b))return null;
+    const raw=(b-a)/60000;
+    if(!Number.isFinite(raw))return null;
+    const fn=mode==='round'?Math.round:mode==='ceil'?Math.ceil:Math.floor;
+    return fn(raw);
+  }
+  function resolveClockOnDate(ymd,hhmm){
+    const base=parseYmdLocalSafe(ymd);
+    if(!base)return null;
+    return setClockLocalSafe(base,hhmm);
+  }
+  function resolveWindowOnDate(ymd,startHHMM,endHHMM){
+    const base=parseYmdLocalSafe(ymd);
+    if(!base)return {startDt:null,endDt:null,crosses:false};
+    const startDt=setClockLocalSafe(base,startHHMM);
+    const endDt0=setClockLocalSafe(base,endHHMM);
+    if(!startDt||!endDt0)return {startDt:null,endDt:null,crosses:false};
+    const crosses=endDt0.getTime()<startDt.getTime();
+    const endDt=crosses?new Date(endDt0.getTime()+24*60*60000):endDt0;
+    return {startDt,endDt,crosses};
+  }
+  function getTemporalStatus(targetDt,nowDt=new Date(),options={}){
+    const tol=Number.isFinite(options.toleranceMin)?options.toleranceMin:1;
+    if(!(targetDt instanceof Date)||!Number.isFinite(targetDt.getTime()))return {state:'invalid',minutes:0,label:''};
+    if(!(nowDt instanceof Date)||!Number.isFinite(nowDt.getTime()))nowDt=new Date();
+    const diff=diffMinutes(nowDt,targetDt,'round'); // target - now (minutes)
+    if(diff==null)return {state:'invalid',minutes:0,label:''};
+    const abs=clampDurationMins(Math.abs(diff));
+    if(Math.abs(diff)<=tol)return {state:'now',minutes:0,label:'janela aberta agora'};
+    if(diff>0)return {state:'future',minutes:abs,label:`em ${abs} min`};
+    return {state:'overdue',minutes:abs,label:`atrasado há ${abs} min`};
+  }
+  return {
+    isValidYmd,isValidHHMM,
+    parseYmdLocalSafe,setClockLocalSafe,
+    timeToMinsSafe,minsToTimeSafe,
+    diffMinutes,clampDurationMins,
+    resolveClockOnDate,resolveWindowOnDate,
+    getTemporalStatus
+  };
+})();
+
+// Global self-tests (run in console): runNestSelfTests()
+function runNestSelfTests(){
+  const tests=[];
+  const push=(name,fn)=>tests.push({name,fn});
+  const isFiniteNumber=x=>typeof x==='number'&&Number.isFinite(x);
+
+  push('parseYmdLocalSafe parses correct local date',()=>{
+    const d=TimeEngine.parseYmdLocalSafe('2026-04-26');
+    if(!(d instanceof Date))throw new Error('not a Date');
+    if(d.getFullYear()!==2026)throw new Error('year mismatch');
+    if(d.getMonth()!==3)throw new Error('month mismatch');
+    if(d.getDate()!==26)throw new Error('day mismatch');
+  });
+
+  push('timeToMinsSafe 00:00 => 0',()=>{
+    const v=TimeEngine.timeToMinsSafe('00:00');
+    if(v!==0)throw new Error('expected 0');
+  });
+
+  push('timeToMinsSafe 23:59 => 1439',()=>{
+    const v=TimeEngine.timeToMinsSafe('23:59');
+    if(v!==1439)throw new Error('expected 1439');
+  });
+
+  push('timeToMinsSafe invalid does not return NaN',()=>{
+    const v=TimeEngine.timeToMinsSafe('xx');
+    if(v!==null)throw new Error('expected null');
+  });
+
+  push('minsToTimeSafe 0 => 00:00',()=>{
+    const v=TimeEngine.minsToTimeSafe(0);
+    if(v!=='00:00')throw new Error('expected 00:00');
+  });
+
+  push('minsToTimeSafe 1439 => 23:59',()=>{
+    const v=TimeEngine.minsToTimeSafe(1439);
+    if(v!=='23:59')throw new Error('expected 23:59');
+  });
+
+  push('resolveWindowOnDate crosses midnight correctly',()=>{
+    const w=TimeEngine.resolveWindowOnDate('2026-04-26','18:00','06:00');
+    if(!(w.startDt instanceof Date)&&!(w.endDt instanceof Date))throw new Error('invalid dates');
+    const end=w.endDt;
+    if(end.getFullYear()!==2026||end.getMonth()!==3||end.getDate()!==27)throw new Error('end date should be 2026-04-27');
+    if(end.getHours()!==6||end.getMinutes()!==0)throw new Error('end time should be 06:00');
+  });
+
+  push('getTemporalStatus future 20 min',()=>{
+    const base=TimeEngine.parseYmdLocalSafe('2026-04-26');
+    const target=TimeEngine.setClockLocalSafe(base,'14:00');
+    const nowDt=TimeEngine.setClockLocalSafe(base,'13:40');
+    const st=TimeEngine.getTemporalStatus(target,nowDt,{toleranceMin:1});
+    if(st.state!=='future')throw new Error('expected future');
+    if(st.minutes!==20)throw new Error('expected 20');
+    if(!st.label.includes('20'))throw new Error('label should include 20');
+  });
+
+  push('getTemporalStatus overdue 30 min',()=>{
+    const base=TimeEngine.parseYmdLocalSafe('2026-04-26');
+    const target=TimeEngine.setClockLocalSafe(base,'14:00');
+    const nowDt=TimeEngine.setClockLocalSafe(base,'14:30');
+    const st=TimeEngine.getTemporalStatus(target,nowDt,{toleranceMin:1});
+    if(st.state!=='overdue')throw new Error('expected overdue');
+    if(st.minutes!==30)throw new Error('expected 30');
+    if(!st.label.includes('30'))throw new Error('label should include 30');
+  });
+
+  push('getTemporalStatus now within tolerance 5 min',()=>{
+    const base=TimeEngine.parseYmdLocalSafe('2026-04-26');
+    const target=TimeEngine.setClockLocalSafe(base,'14:00');
+    const nowDt=TimeEngine.setClockLocalSafe(base,'14:03');
+    const st=TimeEngine.getTemporalStatus(target,nowDt,{toleranceMin:5});
+    if(st.state!=='now')throw new Error('expected now');
+    if(st.minutes!==0)throw new Error('expected 0');
+  });
+
+  push('No NaN/undefined/Infinity in outputs',()=>{
+    const base=TimeEngine.parseYmdLocalSafe('2026-04-26');
+    const target=TimeEngine.setClockLocalSafe(base,'14:00');
+    const nowDt=TimeEngine.setClockLocalSafe(base,'14:30');
+    const st=TimeEngine.getTemporalStatus(target,nowDt,{toleranceMin:5});
+    if(!st||typeof st!=='object')throw new Error('status not object');
+    if(!['future','now','overdue','invalid'].includes(st.state))throw new Error('bad state');
+    if(!isFiniteNumber(st.minutes)||st.minutes<0)throw new Error('minutes invalid');
+    if(typeof st.label!=='string')throw new Error('label not string');
+  });
+
+  const results={passed:0,failed:0,details:[]};
+  tests.forEach(t=>{
+    try{
+      t.fn();
+      results.passed++;
+      results.details.push({name:t.name,ok:true});
+    }catch(err){
+      results.failed++;
+      results.details.push({name:t.name,ok:false,error:String(err&&err.message||err)});
+    }
+  });
+  const summary=`Nest self-tests: ${results.passed} passed, ${results.failed} failed`;
+  if(results.failed)console.error(summary,results.details);
+  else console.log(summary,results.details);
+  return results;
+}
 function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
 function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length<=2)el.value=d;else if(d.length<=4)el.value=d.slice(0,2)+'-'+d.slice(2);else el.value=d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4);}
 function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
@@ -1267,12 +1454,12 @@ function formatTimeUntil(timeStr){return minutesUntilNextClock(timeToMins(timeSt
 function formatTimeUntilNapIfDay(timeStr){return minutesUntilDaytimeNap(timeToMins(timeStr),now());}
 /** Temporal status for a concrete target datetime (never auto-add 24h). */
 function getTemporalStatus(targetDt,nowDt=new Date(),opt={}){
-  const tol=Number.isFinite(opt.toleranceMin)?opt.toleranceMin:1;
-  const diffMs=targetDt-nowDt;
-  const absMin=Math.max(0,Math.round(Math.abs(diffMs)/60000));
-  if(Math.abs(diffMs)<=tol*60000)return{state:'now',minutesAbs:0,label:'agora'};
-  if(diffMs>0)return{state:'future',minutesAbs:absMin,label:`em ${absMin} min`};
-  return{state:'late',minutesAbs:absMin,label:`${absMin} min em atraso`};
+  const st=TimeEngine.getTemporalStatus(targetDt,nowDt,opt);
+  // Keep backward-compatible shape for existing callers in this file.
+  if(st.state==='invalid')return{state:'invalid',minutesAbs:0,label:''};
+  if(st.state==='now')return{state:'now',minutesAbs:0,label:'agora'};
+  if(st.state==='future')return{state:'future',minutesAbs:st.minutes,label:st.label};
+  return{state:'late',minutesAbs:st.minutes,label:st.label};
 }
 /** Window status for a concrete window (start/end datetimes). */
 function getWindowStatus(winStartDt,winEndDt,nowDt=new Date()){
@@ -1291,12 +1478,13 @@ function getWindowStatus(winStartDt,winEndDt,nowDt=new Date()){
  * Handles windows that cross midnight (end < start) without "pushing" overdue targets to tomorrow.
  */
 function resolvePredictionDates(pred,baseYmd,nowDt=new Date()){
-  const startM=timeToMins(pred.from),endM=timeToMins(pred.to),centerM=timeToMins(pred.center);
-  const crosses=endM<startM;
-  const winStart=parseTimeOnDate(pred.from,baseYmd);
-  const winEnd=crosses?addMinutesLocal(parseTimeOnDate(pred.to,baseYmd),24*60):parseTimeOnDate(pred.to,baseYmd);
-  let center=parseTimeOnDate(pred.center,baseYmd);
-  if(crosses&&centerM<startM)center=addMinutesLocal(center,24*60);
+  const startM=timeToMins(pred.from),endM=timeToMins(pred.to);
+  const crosses=Number.isFinite(startM)&&Number.isFinite(endM)?(endM<startM):false;
+  const w=TimeEngine.resolveWindowOnDate(baseYmd,pred.from,pred.to);
+  const winStart=w.startDt;
+  const winEnd=w.endDt;
+  let center=TimeEngine.resolveClockOnDate(baseYmd,pred.center);
+  if(crosses&&center&&winStart&&center.getTime()<winStart.getTime())center=new Date(center.getTime()+24*60*60000);
   return{centerDt:center,winStartDt:winStart,winEndDt:winEnd,crosses};
 }
 function napTransitionHelp(){const nowM=timeToMins(fmtTime(now()));if(nowM>=nightStartMinsVal()-45)return'';const td=calendarDayEntries(todayStr());const done=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length;const exp=expectedNapCountToday();if(exp<=1||done>=exp)return'';const m=babyAgeMonths();const ageCap=m<=2?5:m<=5?4:m<=8?3:2;const med=medianDaytimeNapCountRecent(8);const learningDown=med!=null&&med<ageCap&&exp>done;return learningDown?' O histórico recente está com menos sonecas que a tabela da idade — transição comum. Se recusar este cochilo, não force por muito tempo (ambiente calmo, ~20–30 min), aceite e espere novo cansaço.':' Ainda faltam sonecas no “plano” do dia ('+done+'/'+exp+'). Se recusar, não force por muito tempo (ambiente calmo, ~20–30 min); observe sinais e ajuste a próxima janela.';}
@@ -1514,7 +1702,7 @@ function renderPredictions(){
       const nowDt=now();
       const baseYmd=todayStr();
       const r=resolvePredictionDates(p.pred,baseYmd,nowDt);
-      const tStatus=getTemporalStatus(r.centerDt,nowDt,{toleranceMin:1});
+      const tStatus=TimeEngine.getTemporalStatus(r.centerDt,nowDt,{toleranceMin:1});
       const wStatus=getWindowStatus(r.winStartDt,r.winEndDt,nowDt);
       // Display rules (formatter only):
       // - before window: count down to the *predicted center* (not window start)
@@ -1524,7 +1712,7 @@ function renderPredictions(){
       let effectiveLbl=tStatus.label;
       if(wStatus.state==='within') effectiveLbl=wStatus.label;
       else if(wStatus.state==='after') effectiveLbl=wStatus.label;
-      else if(tStatus.state==='late') effectiveLbl=tStatus.label;
+      else if(tStatus.state==='overdue') effectiveLbl=tStatus.label;
       const timeLbl=`${effectiveLbl} · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}`;
       right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">${timeLbl}</div>`;
     }
