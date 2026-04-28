@@ -265,37 +265,30 @@ a{color:inherit;text-decoration:none}
 /* ---- Missing log cards (stale predictions) ---- */
 .ml-badge{
   display:inline-flex;align-items:center;gap:6px;
-  font-size:10px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;
+  font-size:9.5px;font-weight:750;letter-spacing:.10em;text-transform:uppercase;
   padding:4px 9px;border-radius:var(--r-pill);
-  background:color-mix(in srgb,var(--pcol,var(--aurora)) 20%,transparent);
-  color:color-mix(in srgb,var(--pcol,var(--aurora)) 78%,var(--ink));
-  border:1px solid color-mix(in srgb,var(--pcol,var(--aurora)) 28%,var(--hair));
+  background:color-mix(in srgb,var(--pcol,var(--aurora)) 14%,transparent);
+  color:color-mix(in srgb,var(--pcol,var(--aurora)) 72%,var(--ink));
+  border:1px solid color-mix(in srgb,var(--pcol,var(--aurora)) 22%,var(--hair));
 }
-.ml-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ml-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:10px}
 .ml-btn{
-  padding:9px 12px;border-radius:var(--r-pill);
-  font-size:12px;font-weight:750;letter-spacing:-.005em;
-  border:1px solid var(--hair);background:rgba(255,255,255,.04);
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:9px 14px;border-radius:var(--r-pill);
+  font-size:12.5px;font-weight:650;letter-spacing:-.005em;
+  background:var(--surface-1);border:1px solid var(--hair-strong);
   color:var(--ink);min-height:36px;
-  transition:transform .16s ease,filter .16s ease,background .18s ease;
+  transition:transform .16s ease,background .18s ease,border-color .18s ease,filter .16s ease;
 }
 .ml-btn:active{transform:scale(.98)}
 .ml-btn.primary{
   border-color:transparent;color:#fff;
-  background:linear-gradient(135deg,
-    color-mix(in srgb,var(--pcol,var(--aurora)) 70%,var(--aurora)),
-    color-mix(in srgb,var(--pcol,var(--aurora)) 45%,var(--indigo))
-  );
-  box-shadow:0 10px 24px -10px color-mix(in srgb,var(--pcol,var(--aurora)) 55%,transparent);
-}
-.ml-btn.secondary{
-  background:color-mix(in srgb,var(--pcol,var(--aurora)) 10%,rgba(255,255,255,.03));
-  border-color:color-mix(in srgb,var(--pcol,var(--aurora)) 20%,var(--hair));
-  color:var(--ink);
+  background:linear-gradient(135deg,var(--aurora),var(--indigo));
+  filter:saturate(1.05);
 }
 .ml-btn.ghost{
   background:transparent;
-  border-color:color-mix(in srgb,var(--ink-faint) 35%,var(--hair));
+  border-color:var(--hair);
   color:var(--ink-muted);
   font-weight:650;
 }
@@ -1762,7 +1755,6 @@ function runNestSelfTests(){
       body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.',
       actions:[
         {kind:'feed',action:'now',label:'Registrar agora',variant:'primary'},
-        {kind:'feed',action:'choose',label:'Escolher horário',variant:'secondary'},
         {kind:'feed',action:'dismiss',label:'Ignorar',variant:'ghost'}
       ]
     });
@@ -1790,12 +1782,10 @@ function runNestSelfTests(){
     let called=[];
     window.openLog=(t)=>called.push(t);
     handleMissingLogAction('feed','now');
-    handleMissingLogAction('feed','choose');
     handleMissingLogAction('sleep','manual');
     window.openLog=prevOpenLog;
     if(called[0]!=='feed')throw new Error('expected feed for now');
-    if(called[1]!=='feed')throw new Error('expected feed for choose');
-    if(called[2]!=='sleep-manual')throw new Error('expected sleep-manual');
+    if(called[1]!=='sleep-manual')throw new Error('expected sleep-manual');
   });
   push('handleMissingLogAction dismiss sets __dismissStale and triggers renderHome',()=>{
     const prevRH=window.renderHome||renderHome;
@@ -2687,7 +2677,6 @@ function renderPredictions(){
         body:p._body||'',
         actions:[
           {kind:'feed',action:'now',label:'Registrar agora',variant:'primary'},
-          {kind:'feed',action:'choose',label:'Escolher horário',variant:'secondary'},
           {kind:'feed',action:'dismiss',label:'Ignorar',variant:'ghost'}
         ]
       });
