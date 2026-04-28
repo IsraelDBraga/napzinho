@@ -262,6 +262,52 @@ a{color:inherit;text-decoration:none}
 .pred-row .pclock{font-family:'Instrument Serif',serif;font-size:24px;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .pred-row .prange{font-size:10px;color:var(--ink-muted);margin-top:4px;font-variant-numeric:tabular-nums}
 
+/* ---- Missing log cards (stale predictions) ---- */
+.ml-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;
+  padding:4px 9px;border-radius:var(--r-pill);
+  background:color-mix(in srgb,var(--pcol,var(--aurora)) 20%,transparent);
+  color:color-mix(in srgb,var(--pcol,var(--aurora)) 78%,var(--ink));
+  border:1px solid color-mix(in srgb,var(--pcol,var(--aurora)) 28%,var(--hair));
+}
+.ml-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ml-btn{
+  padding:9px 12px;border-radius:var(--r-pill);
+  font-size:12px;font-weight:750;letter-spacing:-.005em;
+  border:1px solid var(--hair);background:rgba(255,255,255,.04);
+  color:var(--ink);min-height:36px;
+  transition:transform .16s ease,filter .16s ease,background .18s ease;
+}
+.ml-btn:active{transform:scale(.98)}
+.ml-btn.primary{
+  border-color:transparent;color:#fff;
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--pcol,var(--aurora)) 70%,var(--aurora)),
+    color-mix(in srgb,var(--pcol,var(--aurora)) 45%,var(--indigo))
+  );
+  box-shadow:0 10px 24px -10px color-mix(in srgb,var(--pcol,var(--aurora)) 55%,transparent);
+}
+.ml-btn.secondary{
+  background:color-mix(in srgb,var(--pcol,var(--aurora)) 10%,rgba(255,255,255,.03));
+  border-color:color-mix(in srgb,var(--pcol,var(--aurora)) 20%,var(--hair));
+  color:var(--ink);
+}
+.ml-btn.ghost{
+  background:transparent;
+  border-color:color-mix(in srgb,var(--ink-faint) 35%,var(--hair));
+  color:var(--ink-muted);
+  font-weight:650;
+}
+@media (max-width:360px){
+  .pred-row{grid-template-columns:42px 1fr;grid-template-areas:"ico mid" "time time";align-items:start}
+  .pred-row .pico{grid-area:ico}
+  .pred-row .pmid{grid-area:mid}
+  .pred-row .ptime{grid-area:time;text-align:left;min-width:0;margin-top:6px}
+  .ml-actions{justify-content:flex-start}
+  .ml-btn{flex:1}
+}
+
 /* ---- Risk chip ---- */
 .risk{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:var(--r-pill);margin-top:5px;letter-spacing:.02em}
 .risk.low{background:rgba(94,234,212,.14);color:var(--mint)}
@@ -1706,6 +1752,71 @@ function runNestSelfTests(){
     });
   });
 
+  // --- Stage 2D.1 tests (missing log cards: render/actions/dismiss) ---
+  push('renderMissingLogCard(feed) includes correct title and badge',()=>{
+    const html=renderMissingLogCard('feed',{
+      tone:'#22D3EE',
+      badge:'dados incompletos',
+      title:'Possível mamada não registrada',
+      sub:'Última mamada registrada há 3h40.',
+      body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.',
+      actions:[
+        {kind:'feed',action:'now',label:'Registrar agora',variant:'primary'},
+        {kind:'feed',action:'choose',label:'Escolher horário',variant:'secondary'},
+        {kind:'feed',action:'dismiss',label:'Ignorar',variant:'ghost'}
+      ]
+    });
+    if(!String(html).includes('Possível mamada não registrada'))throw new Error('missing title');
+    if(!String(html).includes('dados incompletos'))throw new Error('missing badge');
+    if(/undefined|NaN|Infinity/.test(String(html)))throw new Error('bad token in html');
+  });
+  push('renderMissingLogCard(sleep) includes correct title',()=>{
+    const html=renderMissingLogCard('sleep',{
+      tone:'#A78BFA',
+      badge:'dados incompletos',
+      title:'Possível soneca não registrada',
+      sub:'A janela de sono foi muito ultrapassada.',
+      body:'Se o bebê dormiu e isso não foi registrado, adicione o horário para recalibrar a próxima soneca.',
+      actions:[
+        {kind:'sleep',action:'manual',label:'Registrar soneca',variant:'primary'},
+        {kind:'sleep',action:'dismiss',label:'Ignorar',variant:'ghost'}
+      ]
+    });
+    if(!String(html).includes('Possível soneca não registrada'))throw new Error('missing title');
+    if(/undefined|NaN|Infinity/.test(String(html)))throw new Error('bad token in html');
+  });
+  push('handleMissingLogAction opens normal feed flow and manual sleep flow',()=>{
+    const prevOpenLog=window.openLog||openLog;
+    let called=[];
+    window.openLog=(t)=>called.push(t);
+    handleMissingLogAction('feed','now');
+    handleMissingLogAction('feed','choose');
+    handleMissingLogAction('sleep','manual');
+    window.openLog=prevOpenLog;
+    if(called[0]!=='feed')throw new Error('expected feed for now');
+    if(called[1]!=='feed')throw new Error('expected feed for choose');
+    if(called[2]!=='sleep-manual')throw new Error('expected sleep-manual');
+  });
+  push('handleMissingLogAction dismiss sets __dismissStale and triggers renderHome',()=>{
+    const prevRH=window.renderHome||renderHome;
+    let rh=0;
+    window.renderHome=()=>{rh++;};
+    window.__dismissStale={sig:'',at:0};
+    handleMissingLogAction('feed','dismiss');
+    window.renderHome=prevRH;
+    if(!window.__dismissStale||window.__dismissStale.sig!=='feed')throw new Error('dismiss not set');
+    if(rh<1)throw new Error('renderHome not called');
+  });
+  push('fmtStaleSince uses days for >=24h and avoids hours explosion',()=>{
+    if(fmtStaleSince(10)!=='10m')throw new Error('expected 10m');
+    const a=fmtStaleSince(3*60+40);
+    if(!/3h40|3h 40/.test(a.replace(' ','')))throw new Error('expected 3h40-ish');
+    const b=fmtStaleSince(25*60);
+    if(!/1 dia/.test(b))throw new Error('expected 1 dia');
+    const c=fmtStaleSince(138*60+51);
+    if(/138h/.test(c))throw new Error('should not show hours');
+  });
+
   const results={passed:0,failed:0,details:[]};
   tests.forEach(t=>{
     try{
@@ -2097,20 +2208,20 @@ const StalePredictionGuard=(()=>{
   }
   function shouldSuppressPrediction(kind,ctx){
     if(kind==='feed')return ctx&&ctx.staleness&&ctx.staleness.state==='stale';
-    if(kind==='nap')return ctx&&ctx.staleness&&['stale'].includes(ctx.staleness.state);
+    if(kind==='nap')return ctx&&ctx.staleness&&['stale','overdueCritical'].includes(ctx.staleness.state);
     return false;
   }
   function getMissingLogMessage(kind,ctx){
     if(kind==='feed'){
       const s=ctx&&ctx.staleness;
-      if(!s||s.state==='unknown')return{title:'Sem mamada registrada',sub:'Registre o horário aproximado para recalibrar.',body:''};
-      if(s.state==='stale')return{title:'Possível mamada não registrada',sub:`Última mamada registrada há ${fmtDurShort(s.minutesSince)}.`,body:'Se o bebê mamou nesse intervalo, registre o horário aproximado para recalibrar as próximas previsões.'};
+      if(!s||s.state==='unknown')return{title:'Possível mamada não registrada',sub:'Última mamada registrada há —.',body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.'};
+      if(s.state==='stale')return{title:'Possível mamada não registrada',sub:`Última mamada registrada há ${fmtStaleSince(s.minutesSince)}.`,body:'Se houve uma mamada nesse intervalo, registre o horário para recalibrar as próximas previsões.'};
       return null;
     }
     if(kind==='nap'){
       const s=ctx&&ctx.staleness;
-      if(!s||s.state==='unknown')return{title:'Sem sono recente',sub:'Pode haver sono não registrado.',body:'Se houve soneca, registre o horário aproximado para recalibrar a próxima janela.'};
-      if(s.state==='stale')return{title:'Possível sono não registrado',sub:`Janela muito ultrapassada (acordado há ${fmtDurShort(s.minutesAwake)}).`,body:'Se houve soneca, registre o horário aproximado para recalibrar as próximas previsões.'};
+      if(!s||s.state==='unknown')return{title:'Possível soneca não registrada',sub:'A janela de sono foi muito ultrapassada.',body:'Se o bebê dormiu e isso não foi registrado, adicione o horário para recalibrar a próxima soneca.'};
+      if(['stale','overdueCritical'].includes(s.state))return{title:'Possível soneca não registrada',sub:'A janela de sono foi muito ultrapassada.',body:'Se o bebê dormiu e isso não foi registrado, adicione o horário para recalibrar a próxima soneca.'};
       return null;
     }
     if(kind==='diaper'){
@@ -2122,6 +2233,74 @@ const StalePredictionGuard=(()=>{
   }
   return{getFeedStaleness,getSleepStaleness,getDiaperStaleness,shouldSuppressPrediction,getMissingLogMessage};
 })();
+
+// Human-friendly stale duration for "missing log" cards (avoid giant "138h51").
+function fmtStaleSince(minutes){
+  const m=Math.max(0,Math.round(Number(minutes)||0));
+  if(m<24*60)return fmtDurShort(m);
+  const days=Math.floor(m/(24*60));
+  const cap=60;
+  if(days>cap)return `mais de ${cap} dias`;
+  return `${days} dia${days===1?'':'s'}`;
+}
+
+function clearStaleDismissOnNewEntry(entry){
+  try{
+    if(!entry||!entry.type)return;
+    if(!window||!window.__dismissStale)return;
+    const relevant=['feed','sleep'];
+    if(relevant.includes(entry.type))window.__dismissStale={sig:'',at:0};
+  }catch{}
+}
+
+function handleMissingLogAction(kind,action){
+  // kind: 'feed' | 'sleep' (nap) | 'diaper' (future)
+  if(action==='dismiss'){
+    if(!window.__dismissStale)window.__dismissStale={sig:'',at:0};
+    window.__dismissStale={sig:String(kind||''),at:Date.now()};
+    renderHome();
+    return;
+  }
+  if(kind==='feed'){
+    openLog('feed');
+    // openLog() already pre-fills date/time with now; both actions intentionally use the normal flow.
+    return;
+  }
+  if(kind==='sleep'){
+    // Must open existing manual sleep flow (início → fim), not a new nap modal.
+    openLog('sleep-manual');
+    return;
+  }
+}
+
+function renderMissingLogCard(kind,data){
+  const tone=data&&data.tone?data.tone:'var(--aurora)';
+  const title=(data&&data.title)||'Dados incompletos';
+  const sub=(data&&data.sub)||'';
+  const body=(data&&data.body)||'';
+  const badge=(data&&data.badge)||'dados incompletos';
+  const actions=(data&&data.actions)||[];
+  const acts=actions.map(a=>{
+    const cls=a.variant==='primary'?'primary':a.variant==='secondary'?'secondary':'ghost';
+    return `<button type="button" class="ml-btn ${cls}" onclick="handleMissingLogAction('${escHtml(a.kind)}','${escHtml(a.action)}')">${escHtml(a.label)}</button>`;
+  }).join('');
+  return `
+  <div class="pred-row" style="--pcol:${tone}">
+    <div class="pico">${kind==='feed'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>'}</div>
+    <div class="pmid">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div class="pname" style="min-width:0">${escHtml(title)}</div>
+        <span class="ml-badge">${escHtml(badge)}</span>
+      </div>
+      <div class="psub">${escHtml(sub)}</div>
+      ${body?`<div class="pbase" style="font-size:11px;color:var(--ink-dim);letter-spacing:0;margin-top:6px;line-height:1.45">${escHtml(body)}</div>`:''}
+    </div>
+    <div class="ptime">
+      <div class="pclock" style="font-size:16px">—</div>
+      <div class="ml-actions">${acts}</div>
+    </div>
+  </div>`;
+}
 function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const days=getDaysWithData().length;const phase=days<4?1:days<8?2:3;const hw=getHistoricalWakeWindows(35,320);const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.68+base*0.32)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.86+base*0.14)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw+=cx.napAdj-sp.napBias;pw=Math.max(wakeWindowLowerBound(base,hw,phase),Math.round(pw));range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=normClockMin(endM+pw),lo=normClockMin(c-range),hi=normClockMin(c+range);const basisBits=[];basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');if(hw.length>=4)basisBits.push('histórico amplo (35 dias)');if(hw.length>=4)basisBits.push('respeitando piso do histórico');if(cx.nightLabel)basisBits.push(cx.nightLabel);if(sp.hasSignals)basisBits.push('sinais recentes');return{center:minsToTime(c),from:minsToTime(lo),to:minsToTime(hi),basis:basisBits.join(' · '),phase,centerMin:c,range};}
 function smartPredictNextFeed(lastStart){
   const cx=getContextAdjust(),sp=getSignalPressure();
@@ -2451,22 +2630,18 @@ function renderPredictions(){
         const base=wwBaseTarget(months);
         const maxWake=Math.max(120,base+60);
         const st=StalePredictionGuard.getSleepStaleness(lastSleep,nowDt,months,maxWake);
-        const sig=`nap|${st.state}|${st.minutesAwake||0}`;
-        if(!dismissSig.includes('nap') && StalePredictionGuard.shouldSuppressPrediction('nap',{staleness:st})){
+        const sig=`sleep|${st.state}|${st.minutesAwake||0}`;
+        if(!dismissSig.includes('sleep') && (['stale','overdueCritical','unknown'].includes(st.state) || StalePredictionGuard.shouldSuppressPrediction('nap',{staleness:st}))){
           const msg=StalePredictionGuard.getMissingLogMessage('nap',{staleness:st});
           preds.push({
             kind:'missing-nap',
             name:msg.title,
             sub:msg.sub,
-            pred:{center:'—',from:'',to:'',basis:'dados incompletos'},
             color:'#A78BFA',
             dataQuality:st.dataQuality||'stale',
             needsUserConfirmation:true,
-            _actions:[
-              {label:'Registrar agora',on:()=>{openLog('sleep-manual');}},
-              {label:'Registrar horário anterior',on:()=>{openLog('sleep-manual');}},
-              {label:'Ignorar por enquanto',on:()=>{window.__dismissStale={sig:'nap',at:Date.now()};renderHome();}}
-            ]
+            _body:msg.body||'',
+            _tone:'#A78BFA'
           });
         }else{
           preds.push({kind:'nap',name:'Próxima soneca',sub:'A partir do último despertar',pred:p,color:'#A78BFA'});
@@ -2490,15 +2665,11 @@ function renderPredictions(){
       kind:'missing-feed',
       name:msg.title,
       sub:msg.sub,
-      pred:{center:'—',from:'',to:'',basis:'dados incompletos'},
       color:'#22D3EE',
       dataQuality:feedSt.dataQuality||'stale',
       needsUserConfirmation:true,
-      _actions:[
-        {label:'Registrar agora',on:()=>{openLog('feed');}},
-        {label:'Registrar horário anterior',on:()=>{openLog('feed');}},
-        {label:'Ignorar por enquanto',on:()=>{window.__dismissStale={sig:'feed',at:Date.now()};renderHome();}}
-      ]
+      _body:msg.body||'',
+      _tone:'#22D3EE'
     });
   }else if(lf){
     const p=smartPredictNextFeed(lf.start);
@@ -2507,14 +2678,38 @@ function renderPredictions(){
   if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   list.innerHTML=preds.map(p=>{
+    if(p.kind==='missing-feed'){
+      return renderMissingLogCard('feed',{
+        tone:p._tone||p.color||'#22D3EE',
+        badge:'dados incompletos',
+        title:'Possível mamada não registrada',
+        sub:p.sub||'',
+        body:p._body||'',
+        actions:[
+          {kind:'feed',action:'now',label:'Registrar agora',variant:'primary'},
+          {kind:'feed',action:'choose',label:'Escolher horário',variant:'secondary'},
+          {kind:'feed',action:'dismiss',label:'Ignorar',variant:'ghost'}
+        ]
+      });
+    }
+    if(p.kind==='missing-nap'){
+      return renderMissingLogCard('sleep',{
+        tone:p._tone||p.color||'#A78BFA',
+        badge:'dados incompletos',
+        title:'Possível soneca não registrada',
+        sub:p.sub||'A janela de sono foi muito ultrapassada.',
+        body:p._body||'',
+        actions:[
+          {kind:'sleep',action:'manual',label:'Registrar soneca',variant:'primary'},
+          {kind:'sleep',action:'dismiss',label:'Ignorar',variant:'ghost'}
+        ]
+      });
+    }
     const risk=p.kind==='nap'?getWakeRisk(wwCurrentAwakeMinutes(),wwCurrentTargetMinutes()):null;
     const ico=iconSvg[p.kind==='night-now'?'night':p.kind==='sleep-now'?'sleep':p.kind]||iconSvg.nap;
     let right;
     if(p.kind==='night-now'||p.kind==='sleep-now'){
       right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
-    }else if(p.kind==='missing-feed' || p.kind==='missing-nap'){
-      const acts=(p._actions||[]).map(a=>`<button class="pill" style="margin-left:6px" onclick="(${a.on.toString()})()">${escHtml(a.label)}</button>`).join('');
-      right=`<div class="pclock" style="font-size:16px">—</div><div class="prange">${escHtml(p.sub||'')}</div><div style="margin-top:6px;display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap">${acts}</div>`;
     }else{
       const baseYmd=todayStr();
       const r=resolvePredictionDates(p.pred,baseYmd,nowDt);
@@ -2710,6 +2905,8 @@ function commitEntry(entry,opt={}){
   // Always normalize manual-ish inputs to canonical app shape.
   const e=normalizeEntry(entry,nowDt);
   if(!e||!e.type||!e.date)return false;
+  // If a stale/missing warning was dismissed, a new relevant log should immediately recalibrate.
+  clearStaleDismissOnNewEntry(e);
   // Double-click protection: both time lock and signature dedupe.
   const nowMs=Date.now();
   const bypass=!!opt.bypassLocks;
