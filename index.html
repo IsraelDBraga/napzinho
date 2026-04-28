@@ -2485,6 +2485,15 @@ function normalizeEntry(raw,nowDt=new Date()){
     const t=String(safe.time||safe.start||'').trim();
     if(isValidTime(t)){safe.time=t;safe.start=t;}
   }
+  // Canonical duration for feed (minutes). UI sends string; store number|null.
+  if(safe.type==='feed'){
+    const dm=(safe.durationMins==null)?null:String(safe.durationMins).trim();
+    if(dm===''||dm==null)safe.durationMins=null;
+    else{
+      const v=Math.round(Number(dm));
+      safe.durationMins=Number.isFinite(v)&&v>=0?Math.min(24*60,v):null;
+    }
+  }
   // Respect injected nowDt for deterministic tests (avoid using real-time now()).
   safe.start=isValidTime(safe.start)?safe.start:fmtTime(n);
   if(safe.end!=null&&safe.end!==''&&!isValidTime(safe.end))safe.end=null;
@@ -4065,7 +4074,24 @@ function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!
 
 /* ---- MASTER RENDER ---- */
 function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderDaySleepPanel();renderNightPanel();renderTodayRail();ensureNightCardAutoRefresh();ensureHomeActiveSleepAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
-function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')renderStats();if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
+function showSec(name){
+  if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $('sec-'+name).classList.add('active');
+  const ni=$('nav-'+name);if(ni)ni.classList.add('active');
+  // Avoid leaving sections blank if any render throws.
+  try{
+    if(name==='home')renderHome();
+    if(name==='stats')renderStats();
+    if(name==='history')renderHistory();
+    if(name==='copilot')renderCopilot();
+    if(name==='settings')syncSettingsForm();
+  }catch(e){
+    console.error('showSec render failed',name,e);
+    showToast('Erro ao renderizar — tente recarregar');
+  }
+}
 
 /* ---- Data change pipeline (manual/retroactive correctness) ---- */
 let __commitLockUntil=0;
@@ -4075,15 +4101,20 @@ function refreshAppAfterDataChange(reason){
   __lastRefreshReason=String(reason||'');
   try{save();}catch(e){}
   // Home always recalculates main cards/predictions.
-  try{renderHome();}catch(e){}
+  try{renderHome();}catch(e){
+    console.error('refreshAppAfterDataChange renderHome failed',e);
+    try{showToast('Erro ao atualizar a tela inicial');}catch(err){}
+  }
   // If another section is active, refresh it too.
   try{
     const active=document.querySelector('.section.active');
     const id=active&&active.id;
-    if(id==='sec-stats')renderStats();
-    else if(id==='sec-history')renderHistory();
-    else if(id==='sec-copilot')renderCopilot();
-  }catch(e){}
+    if(id==='sec-stats')try{renderStats();}catch(e){console.error('refreshAppAfterDataChange renderStats failed',e);try{showToast('Erro ao atualizar Estatísticas');}catch(err){}}
+    else if(id==='sec-history')try{renderHistory();}catch(e){console.error('refreshAppAfterDataChange renderHistory failed',e);try{showToast('Erro ao atualizar Histórico');}catch(err){}}
+    else if(id==='sec-copilot')try{renderCopilot();}catch(e){console.error('refreshAppAfterDataChange renderCopilot failed',e);try{showToast('Erro ao atualizar Copilot');}catch(err){}}
+  }catch(e){
+    console.error('refreshAppAfterDataChange refresh active section failed',e);
+  }
 }
 // Canonical normalization for user-provided form inputs (now or retroactive).
 // (Removed duplicate normalizeEntry; canonical normalizeEntry is defined earlier.)
