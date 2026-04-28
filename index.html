@@ -1747,11 +1747,15 @@ function dayBoundaryMins(){const s=(cfg.dayBoundary||'06:00');return isValidTime
 function nightStartMinsVal(){const s=cfg.nightStart||'18:00';return isValidTime(s)?timeToMins(s):1080;}
 function isNightContextAtClock(mins){const dB=dayBoundaryMins(),ns=nightStartMinsVal();return mins>=ns||mins<dB;}
 function isNightContextForClock(t){return isNightContextAtClock(timeToMins(t));}
-/** Sono que cruza a janela fisiológica (ex.: começa 16:30 e segue até depois de nightStart) conta como noite em todo o app. */
-function sleepTouchesNightBetween(st,en){if(!st||!en||en.getTime()<=st.getTime())return false;const step=5*60000;for(let t=st.getTime();t<en.getTime();t+=step){const d=new Date(t);const mins=d.getHours()*60+d.getMinutes();if(isNightContextAtClock(mins))return true;}return false;}
-function sleepTouchesPhysiologicalNight(e){if(!e||e.type!=='sleep'||!e.end||!isValidTime(e.end))return false;const st=sleepStartDate(e),en=sleepEndDate(e);return sleepTouchesNightBetween(st,en);}
-/** Início na janela noturna OU sono diurno que entra nela = noite (trechos curtos na madrugada = despertares, não soneca). Soneca = só o que fica inteiro no dia sem tocar a janela noturna. */
-function setSleepKind(e){if(!e||e.type!=='sleep')return e;e.sleepKind=isNightContextForClock(e.start)||sleepTouchesPhysiologicalNight(e)?'night':'nap';e.subtype=e.sleepKind==='night'?'night':'nap';return e;}
+/** Compatibility wrapper; remove after callers migrate to SleepEngine only. */
+function setSleepKind(e){
+  if(!e||e.type!=='sleep')return e;
+  const cls=SleepEngine.classifySleep(e,now());
+  const k=cls.kind==='night'?'night':'nap';
+  e.sleepKind=k;
+  e.subtype=k;
+  return e;
+}
 function sleepIsNight(e){
   // Wrapper for progressive migration (SleepEngine is source of truth).
   if(!(e&&e.type==='sleep'))return false;
@@ -1817,7 +1821,7 @@ function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:tod
 function gapMinutesBetweenSleeps(a,b){if(!a||!b||!a.end||!b.start)return 0;const tE=sleepEndDate(a),tS=sleepStartDate(b);if(!tE||!tS)return 0;const g=Math.round((tS-tE)/60000);return g>0&&g<720?g:0;}
 const getActiveSleep=()=>entries.filter(e=>e.type==='sleep'&&!e.end).sort((a,b)=>b.id-a.id)[0]||null;
 function sleepWakeCalendarDay(e){
-  // Wrapper for progressive migration.
+  // Compatibility wrapper; remove after migrating callers.
   if(!e||e.type!=='sleep')return null;
   const cls=SleepEngine.classifySleep(e,now());
   if(cls.kind==='night')return cls.wakeYmd||null;
@@ -1829,6 +1833,7 @@ function sleepWakeCalendarDay(e){
  * Explicitly includes overlap from both naps and night blocks.
  */
 function totalSleepMinsCalendarDay(ymd){
+  // Compatibility wrapper; civil-day overlap (explicitly mixes by design).
   if(!TimeEngine.isValidYmd(ymd))return 0;
   const start=TimeEngine.resolveClockOnDate(ymd,'00:00');
   const next=SleepEngine._addDaysYmd(ymd,1);
@@ -1849,6 +1854,7 @@ function totalSleepMinsCalendarDay(ymd){
   return sum;
 }
 function calendarDayEntries(ymd){
+  // Compatibility wrapper; day membership derived from SleepEngine classification.
   const nowDt=new Date();
   return entries.filter(e=>{
     if(!e||!e.date)return false;
@@ -1860,7 +1866,7 @@ function calendarDayEntries(ymd){
   });
 }
 function nightSegmentsOnWakeDay(ymd){
-  // Wrapper for progressive migration.
+  // Compatibility wrapper; remove after migrating callers.
   const st=SleepEngine.getNightSleepStats(ymd,new Date());
   const segs=Array.isArray(st.segments)?st.segments:[];
   return segs.map(s=>({
@@ -1873,18 +1879,19 @@ function nightSegmentsOnWakeDay(ymd){
   }));
 }
 function addCalendarDaysStr(ymd,delta){const d=new Date(ymd+'T12:00:00');d.setDate(d.getDate()+delta);return fmtDateSV(d);}
-function parseYmdLocal(ymd){const[y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d,0,0,0,0);}
-function addDaysLocal(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
-function setClockLocal(baseDate,hhmm){const[h,m]=String(hhmm||'').split(':').map(Number);const d=new Date(baseDate);d.setHours(h||0,m||0,0,0);return d;}
 function getNightWindowForWakeDay(wakeYmd){
   // Wrapper for progressive migration.
   const w=SleepEngine.getNightWindowForWakeDay(wakeYmd);
   return {start:w.startDt,end:w.endDt};
 }
 function getNightWindowForDate(ymd){return getNightWindowForWakeDay(ymd);}
-function sleepIntervalDateTimes(e,nowDt=new Date()){const startBase=parseYmdLocal(e.date);const start=setClockLocal(startBase,e.start);let end=null;if(e.end){end=setClockLocal(startBase,e.end);if(end<start)end=addDaysLocal(end,1);}else if(e.type==='sleep'){end=nowDt;}return{start,end};}
-function sleepDurationMinsFromDates(startDt,endDt){if(!startDt||!endDt)return 0;const ms=endDt-startDt;if(!Number.isFinite(ms)||ms<=0)return 0;return Math.round(ms/60000);}
-function sleepIdentityKey(e,nowDt=new Date()){if(!e||e.type!=='sleep'||!e.start)return'';const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start)return'';const endKey=iv.end?iv.end.getTime():'active';return`${e.date||''}|${e.start||''}|${e.end||''}|${iv.start.getTime()}|${endKey}`;}
+function sleepIdentityKey(e,nowDt=new Date()){
+  if(!e||e.type!=='sleep'||!e.start)return'';
+  const iv=SleepEngine.getSleepInterval(e,nowDt);
+  if(!iv||!iv.isValid||!(iv.startDt instanceof Date))return'';
+  const endKey=iv.isActive?'active':(iv.endDt?iv.endDt.getTime():'');
+  return`${e.date||''}|${e.start||''}|${e.end||''}|${iv.startDt.getTime()}|${endKey}`;
+}
 function uniqueEntriesForMetrics(list,nowDt=new Date()){const out=[],seenSleep=new Set(),seenId=new Set();(Array.isArray(list)?list:[]).forEach(e=>{if(!e||!e.type)return;const idKey=e.id!=null?String(e.id):'';if(idKey&&seenId.has(idKey))return;if(e.type==='sleep'){const sk=sleepIdentityKey(e,nowDt);if(sk&&seenSleep.has(sk))return;if(sk)seenSleep.add(sk);}if(idKey)seenId.add(idKey);out.push(e);});return out;}
 function getSleepDurationForMetrics(e,nowDt=new Date()){
   // Wrapper for progressive migration.
@@ -1904,7 +1911,8 @@ function getActiveNightInterval(nowDt=new Date()){
   return {start:sum.segs[0]._startDt,end:nowDt};
 }
 function isNightRelatedEvent(e,nowDt=new Date()){
-  // Wrapper for progressive migration. Uses SleepEngine night windows by overlap, no stepping.
+  // Compatibility wrapper; remove after migrating callers.
+  // Uses SleepEngine night windows by overlap, no stepping.
   if(!e||!e.start)return false;
   if(e.type==='sleep')return SleepEngine.classifySleep(e,nowDt).kind==='night';
   const baseYmd=e.date&&TimeEngine.isValidYmd(e.date)?e.date:todayStr();
@@ -1939,7 +1947,6 @@ function getDaySummary(ymd,nowDt=new Date()){
     awakenings:nonSleep.filter(e=>e.type==='wake').length
   };
 }
-function getNightSleepSegmentsForWakeDay(wakeYmd,nowDt=new Date()){const win=getNightWindowForWakeDay(wakeYmd);const seen=new Set();return entries.filter(e=>e.type==='sleep'&&e.start).map(e=>{const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start||!iv.end)return null;const computedDuration=sleepDurationMinsFromDates(iv.start,iv.end);const effective=e.durationMins>0?e.durationMins:computedDuration;if(e.end&&effective<=0)return null;const key=sleepIdentityKey(e,nowDt);if(key&&seen.has(key))return null;if(key)seen.add(key);return{...e,_startDt:iv.start,_endDt:iv.end,_computedDurationMins:effective,_isActive:!e.end};}).filter(Boolean).filter(e=>intervalsOverlap(e._startDt,e._endDt,win.start,win.end)).sort((a,b)=>a._startDt-b._startDt);}
 function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){
   // Wrapper for progressive migration.
   const st=SleepEngine.getNightSleepStats(wakeYmd,nowDt);
@@ -2697,62 +2704,7 @@ function refreshAppAfterDataChange(reason){
   }catch(e){}
 }
 // Canonical normalization for user-provided form inputs (now or retroactive).
-function normalizeEntry(raw,nowDt=new Date()){
-  const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
-  const type=(raw&&raw.type)||'';
-  const base={
-    id:(raw&&raw.id!=null)?raw.id:Date.now(),
-    createdAt:(raw&&raw.createdAt)||n.toISOString(),
-    updatedAt:n.toISOString(),
-    source:(raw&&raw.source)||'user'
-  };
-  const coerceYmd=(v)=>{
-    const s=String(v||'').trim();
-    if(isValidDateStr(s))return s;
-    const m=/^(\d{2})-(\d{2})-(\d{4})$/.exec(s);
-    if(m){
-      const iso=`${m[3]}-${m[2]}-${m[1]}`;
-      return isValidDateStr(iso)?iso:null;
-    }
-    return null;
-  };
-  const ymd=coerceYmd(raw&&raw.date)||todayStr();
-  if(!isValidDateStr(ymd))return null;
-  if(type==='feed'){
-    const time=String(raw&&raw.time||raw&&raw.start||'').trim();
-    if(!isValidTime(time))return null;
-    // Keep `start` for backward compat; canonical key is `time`.
-    const out={...base,type:'feed',date:ymd,time,subtype:raw&&raw.subtype||state.feedType,start:time};
-    const dur=raw&&raw.durationMins!=null?parseInt(raw.durationMins,10):null;
-    out.durationMins=Number.isFinite(dur)&&dur>0?dur:null;
-    return out;
-  }
-  if(type==='diaper'){
-    const time=String(raw&&raw.time||raw&&raw.start||'').trim();
-    if(!isValidTime(time))return null;
-    // Keep `start` for backward compat; canonical key is `time`.
-    const out={...base,type:'diaper',date:ymd,time,diaperType:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,subtype:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,start:time};
-    return out;
-  }
-  if(type==='sleep'){
-    const start=String(raw&&raw.start||'').trim();
-    const endRaw=(raw&&raw.end===''? '' : raw&&raw.end);
-    const end=(endRaw==null?'':String(endRaw).trim());
-    if(!isValidTime(start))return null;
-    if(end && !isValidTime(end))return null;
-    const out={...base,type:'sleep',date:ymd,start,end:end||null};
-    // Avoid creating a second active sleep.
-    if(!out.end&&getActiveSleep())return null;
-    if(out.end){
-      const iv=SleepEngine.getSleepInterval(out,n);
-      out.durationMins=(iv&&iv.isValid)?iv.durationMins:null;
-    }else{
-      out.durationMins=null;
-    }
-    return out;
-  }
-  return null;
-}
+// (Removed duplicate normalizeEntry; canonical normalizeEntry is defined earlier.)
 function commitEntry(entry,opt={}){
   const nowDt=new Date();
   // Always normalize manual-ish inputs to canonical app shape.
