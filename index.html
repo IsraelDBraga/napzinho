@@ -1518,6 +1518,140 @@ function runNestSelfTests(){
     });
   });
 
+  // --- Stage 2B.5 tests (manual/retroactive + refresh) ---
+  push('Manual feed today counts in day summary',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-feed-today',bypassLocks:true});
+      if(!ok)throw new Error('commit failed');
+      if(entries.filter(e=>e.type==='feed'&&e.date==='2026-04-28'&&e.start==='13:00').length!==1)throw new Error('feed not stored');
+      const sum=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','14:00'));
+      entries=prevEntries;
+      if(sum.feeds!==1)throw new Error('expected 1 feed');
+    });
+  });
+  push('Manual retroactive feed does not count in today summary',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'feed',date:'2026-04-27',time:'20:00',subtype:'breast',source:'manual'},{reason:'test-feed-retro',bypassLocks:true});
+      const sumToday=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','14:00'));
+      const sumPrev=getDaySummary('2026-04-27',TimeEngine.resolveClockOnDate('2026-04-27','21:00'));
+      entries=prevEntries;
+      if(sumToday.feeds!==0)throw new Error('should not count in 2026-04-28');
+      if(sumPrev.feeds!==1)throw new Error('should count in 2026-04-27');
+    });
+  });
+  push('Manual daytime nap updates DaySleepStats only',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'sleep',date:'2026-04-28',start:'10:00',end:'10:45',source:'manual'},{reason:'test-nap',bypassLocks:true});
+      const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','12:00'));
+      const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','12:00'));
+      entries=prevEntries;
+      if(day.totalSleepDayMins!==45||day.napCount!==1)throw new Error('expected 45/1');
+      if(night.totalNightSleepMins!==0)throw new Error('night should not include nap');
+    });
+  });
+  push('Manual night sleep crossing midnight updates correct NightSleepStats',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'sleep',date:'2026-04-28',start:'22:00',end:'06:00',source:'manual'},{reason:'test-night-cross',bypassLocks:true});
+      const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','23:00'));
+      const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-29','07:00'));
+      entries=prevEntries;
+      if(day.totalSleepDayMins!==0)throw new Error('day should not include night');
+      if(night.totalNightSleepMins!==480)throw new Error('expected 480');
+    });
+  });
+  push('Manual sleep 17:45-19:10 is night and not in DaySleepStats',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'sleep',date:'2026-04-28',start:'17:45',end:'19:10',source:'manual'},{reason:'test-early-night',bypassLocks:true});
+      const cls=SleepEngine.classifySleep(entries[0],TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
+      const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
+      const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','20:00'));
+      entries=prevEntries;
+      if(cls.kind!=='night')throw new Error('expected night');
+      if(day.totalSleepDayMins!==0)throw new Error('day should not include');
+      if(night.totalNightSleepMins<=0)throw new Error('night should include');
+    });
+  });
+  push('Manual sleep 16:30-17:20 is nap and not in NightSleepStats',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'sleep',date:'2026-04-28',start:'16:30',end:'17:20',source:'manual'},{reason:'test-nap2',bypassLocks:true});
+      const cls=SleepEngine.classifySleep(entries[0],TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
+      const day=SleepEngine.getDaySleepStats('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
+      const night=SleepEngine.getNightSleepStats('2026-04-29',TimeEngine.resolveClockOnDate('2026-04-28','18:30'));
+      entries=prevEntries;
+      if(cls.kind!=='nap')throw new Error('expected nap');
+      if(day.totalSleepDayMins!==50)throw new Error('expected 50');
+      if(night.totalNightSleepMins!==0)throw new Error('night should not include');
+    });
+  });
+  push('Manual diaper today counts in day summary',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[];
+      commitEntry({type:'diaper',date:'2026-04-28',time:'12:00',diaperType:'wet',source:'manual'},{reason:'test-diaper',bypassLocks:true});
+      const sum=getDaySummary('2026-04-28',TimeEngine.resolveClockOnDate('2026-04-28','13:00'));
+      entries=prevEntries;
+      if(sum.diapers!==1)throw new Error('expected 1 diaper');
+    });
+  });
+  push('refreshAppAfterDataChange is invoked on commitEntry',()=>{
+    const prev=__lastRefreshReason;
+    __lastRefreshReason='';
+    const prevEntries=entries;
+    entries=[];
+    const ok=commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-refresh',bypassLocks:true});
+    entries=prevEntries;
+    if(!ok)throw new Error('commit failed');
+    if(__lastRefreshReason!=='test-refresh')throw new Error('refresh reason not set');
+    __lastRefreshReason=prev;
+  });
+  push('Manual canonical format: no DD-MM-YYYY, invalid time, invalid type, NaN',()=>{
+    const prevEntries=entries;
+    entries=[];
+    const ok=commitEntry({type:'feed',date:'28-04-2026',time:'13:00',subtype:'breast'},{reason:'test-canonical',bypassLocks:true});
+    if(!ok)throw new Error('commit failed');
+    const e=entries[0];
+    entries=prevEntries;
+    if(!isValidDateStr(e.date))throw new Error('date not canonical');
+    if(!isValidTime(e.start))throw new Error('time not canonical');
+    if(!['feed','sleep','diaper'].includes(e.type))throw new Error('bad type');
+    if(Object.values(e).some(v=>typeof v==='number'&&!Number.isFinite(v)))throw new Error('bad number');
+  });
+  push('Manual entry saved only in active profile (no leak)',()=>{
+    const prevEntries=entries;
+    const prevCfg={...cfg};
+    const blobPrev=loadProfilesBlob&&loadProfilesBlob();
+    // Setup two profiles with different entries arrays.
+    let blob=loadProfilesBlob()||{};
+    blob.a={entries:[],cfg:{...defaultCfg(),name:'A',profileSetupDone:true}};
+    blob.b={entries:[],cfg:{...defaultCfg(),name:'B',profileSetupDone:true}};
+    localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));
+    localStorage.setItem(CUR_PROFILE,'a');
+    loadProfileIntoMemory();
+    commitEntry({type:'feed',date:'2026-04-28',time:'13:00',subtype:'breast',source:'manual'},{reason:'test-profile-a',bypassLocks:true});
+    persistAll();
+    localStorage.setItem(CUR_PROFILE,'b');
+    loadProfileIntoMemory();
+    persistAll();
+    const b2=loadProfilesBlob()||{};
+    // restore
+    if(blobPrev)localStorage.setItem(PROFILE_KEY,JSON.stringify(blobPrev));
+    entries=prevEntries;cfg=prevCfg;
+    if(((b2.a&&b2.a.entries)||[]).length!==1)throw new Error('expected 1 entry in profile a');
+    if(((b2.b&&b2.b.entries)||[]).length!==0)throw new Error('expected 0 entry in profile b');
+  });
+
   const results={passed:0,failed:0,details:[]};
   tests.forEach(t=>{
     try{
@@ -1680,11 +1814,26 @@ function isNightRelatedEvent(e,nowDt=new Date()){
 }
 function getDaytimeEvents(ymd,nowDt=new Date()){return calendarDayEntries(ymd).filter(e=>!isNightRelatedEvent(e,nowDt));}
 function getDaySummary(ymd,nowDt=new Date()){
-  const dayEvents=uniqueEntriesForMetrics(getDaytimeEvents(ymd,nowDt),nowDt);
-  const sleeps=dayEvents.filter(e=>e.type==='sleep');
-  const sleepDurations=sleeps.map(e=>getSleepDurationForMetrics(e,nowDt)).filter(d=>d>0);
+  // Day summary is a civil-day view for non-sleep events + daytime naps.
+  // It must not exclude retroactive feeds/diapers just because they happened during the night window.
+  const all=uniqueEntriesForMetrics(entries,nowDt);
+  const naps=all.filter(e=>{
+    if(!e||e.type!=='sleep')return false;
+    const cls=SleepEngine.classifySleep(e,nowDt);
+    return cls.kind==='nap' && cls.dayYmd===ymd;
+  });
+  const nonSleep=all.filter(e=>e&&e.type!=='sleep'&&e.date===ymd);
+  const dayEvents=[...naps,...nonSleep];
+  const sleepDurations=naps.map(e=>getSleepDurationForMetrics(e,nowDt)).filter(d=>d>0);
   const sleepTotal=sleepDurations.reduce((a,d)=>a+d,0);
-  return{events:dayEvents,sleepTotal,sleepPeriods:sleepDurations.length,feeds:dayEvents.filter(e=>e.type==='feed').length,diapers:dayEvents.filter(e=>e.type==='diaper').length,awakenings:dayEvents.filter(e=>e.type==='wake').length};
+  return{
+    events:dayEvents,
+    sleepTotal,
+    sleepPeriods:sleepDurations.length,
+    feeds:nonSleep.filter(e=>e.type==='feed').length,
+    diapers:nonSleep.filter(e=>e.type==='diaper').length,
+    awakenings:nonSleep.filter(e=>e.type==='wake').length
+  };
 }
 function getNightSleepSegmentsForWakeDay(wakeYmd,nowDt=new Date()){const win=getNightWindowForWakeDay(wakeYmd);const seen=new Set();return entries.filter(e=>e.type==='sleep'&&e.start).map(e=>{const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start||!iv.end)return null;const computedDuration=sleepDurationMinsFromDates(iv.start,iv.end);const effective=e.durationMins>0?e.durationMins:computedDuration;if(e.end&&effective<=0)return null;const key=sleepIdentityKey(e,nowDt);if(key&&seen.has(key))return null;if(key)seen.add(key);return{...e,_startDt:iv.start,_endDt:iv.end,_computedDurationMins:effective,_isActive:!e.end};}).filter(Boolean).filter(e=>intervalsOverlap(e._startDt,e._endDt,win.start,win.end)).sort((a,b)=>a._startDt-b._startDt);}
 function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){
@@ -1919,13 +2068,24 @@ function skipBabyOnboarding(){cfg.profileSetupDone=true;save();syncOnboardingUI(
 
 /* ---- Profiles ---- */
 function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${escHtml((blob[i].cfg&&blob[i].cfg.name)||i)}</option>`).join('');sel.value=currentProfileId();}
-function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil trocado');}
+function switchProfile(id){
+  persistAll();
+  localStorage.setItem(CUR_PROFILE,id);
+  loadProfileIntoMemory();
+  applyTheme();
+  refreshProfileSelect();
+  syncSettingsForm();
+  syncOnboardingUI();
+  updateHeader();
+  refreshAppAfterDataChange('switchProfile');
+  showToast('Perfil trocado');
+}
 function addNewProfile(){const n=prompt('Nome do novo bebê:');if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim(),profileSetupDone:false}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showSec('home');showToast('Novo perfil criado');}
 function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil excluído');}
 
 /* ---- Settings form ---- */
 function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-birth-date').value=isoToBirthDisplay(cfg.babyBirthDate);$('months-auto-hint').textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático)':'';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-day-boundary').value=cfg.dayBoundary||'06:00';$('cfg-language').value=currentLang();$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-late-night').checked=!!cfg.lateNightMode;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('cfg-license-key').value=cfg.licenseToken||'';$('cfg-premium-local').checked=!!cfg.premiumUnlockLocal;$('cfg-license-api').value=localStorage.getItem('nz_license_api_base')||'';refreshProfileSelect();updatePremiumStatusText();applyI18nStatic();}
-function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast('Salvo');renderHome();}
+function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);cfg.premiumUnlockLocal=$('cfg-premium-local').checked;const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast('Salvo');refreshAppAfterDataChange('saveSettings');}
 function applyPremiumLocalToggle(){cfg.premiumUnlockLocal=$('cfg-premium-local').checked;save();updatePremiumStatusText();renderHome();showToast(cfg.premiumUnlockLocal?'Premium liberado neste aparelho':'Gratuito');}
 
 /* ---- Premium ---- */
@@ -2287,13 +2447,112 @@ function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!
 function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderDaySleepPanel();renderNightPanel();renderTodayRail();ensureNightCardAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
 function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')renderStats();if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
 
+/* ---- Data change pipeline (manual/retroactive correctness) ---- */
+let __commitLockUntil=0;
+let __lastCommitSig='',__lastCommitAt=0;
+let __lastRefreshReason='';
+function refreshAppAfterDataChange(reason){
+  __lastRefreshReason=String(reason||'');
+  try{save();}catch(e){}
+  // Home always recalculates main cards/predictions.
+  try{renderHome();}catch(e){}
+  // If another section is active, refresh it too.
+  try{
+    const active=document.querySelector('.section.active');
+    const id=active&&active.id;
+    if(id==='sec-stats')renderStats();
+    else if(id==='sec-history')renderHistory();
+    else if(id==='sec-copilot')renderCopilot();
+  }catch(e){}
+}
+function normalizeManualEntry(raw,nowDt=new Date()){
+  const n=(nowDt instanceof Date&&Number.isFinite(nowDt.getTime()))?nowDt:new Date();
+  const type=(raw&&raw.type)||'';
+  const base={
+    id:(raw&&raw.id!=null)?raw.id:Date.now(),
+    createdAt:(raw&&raw.createdAt)||n.toISOString(),
+    updatedAt:n.toISOString(),
+    source:'manual'
+  };
+  const coerceYmd=(v)=>{
+    const s=String(v||'').trim();
+    if(isValidDateStr(s))return s;
+    const m=/^(\d{2})-(\d{2})-(\d{4})$/.exec(s);
+    if(m){
+      const iso=`${m[3]}-${m[2]}-${m[1]}`;
+      return isValidDateStr(iso)?iso:null;
+    }
+    return null;
+  };
+  const ymd=coerceYmd(raw&&raw.date)||todayStr();
+  if(!isValidDateStr(ymd))return null;
+  if(type==='feed'){
+    const time=String(raw&&raw.time||raw&&raw.start||'').trim();
+    if(!isValidTime(time))return null;
+    const out={...base,type:'feed',date:ymd,time,subtype:raw&&raw.subtype||state.feedType,start:time};
+    const dur=raw&&raw.durationMins!=null?parseInt(raw.durationMins,10):null;
+    out.durationMins=Number.isFinite(dur)&&dur>0?dur:null;
+    return out;
+  }
+  if(type==='diaper'){
+    const time=String(raw&&raw.time||raw&&raw.start||'').trim();
+    if(!isValidTime(time))return null;
+    const out={...base,type:'diaper',date:ymd,time,diaperType:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,subtype:raw&&raw.diaperType||raw&&raw.subtype||state.diaperType,start:time};
+    return out;
+  }
+  if(type==='sleep'){
+    const start=String(raw&&raw.start||'').trim();
+    const endRaw=(raw&&raw.end===''? '' : raw&&raw.end);
+    const end=(endRaw==null?'':String(endRaw).trim());
+    if(!isValidTime(start))return null;
+    if(end && !isValidTime(end))return null;
+    const out={...base,type:'sleep',date:ymd,start,end:end||null};
+    // Avoid creating a second active sleep.
+    if(!out.end&&getActiveSleep())return null;
+    if(out.end){
+      const iv=SleepEngine.getSleepInterval(out,n);
+      out.durationMins=(iv&&iv.isValid)?iv.durationMins:null;
+    }else{
+      out.durationMins=null;
+    }
+    return out;
+  }
+  return null;
+}
+function commitEntry(entry,opt={}){
+  const nowDt=new Date();
+  // Always normalize manual-ish inputs to canonical app shape.
+  const e=normalizeManualEntry(entry,nowDt);
+  if(!e||!e.type||!e.date)return false;
+  // Double-click protection: both time lock and signature dedupe.
+  const nowMs=Date.now();
+  const bypass=!!opt.bypassLocks;
+  if(!bypass){
+    if(nowMs<__commitLockUntil)return false;
+    __commitLockUntil=nowMs+800;
+  }
+  const sig=[e.type,e.date,e.start||e.time||'',e.end||'',e.subtype||'',e.durationMins||''].join('|');
+  if(!bypass){
+    if(sig===__lastCommitSig && (nowMs-__lastCommitAt)<900)return false;
+  }
+  __lastCommitSig=sig;__lastCommitAt=nowMs;
+  // Sleep-specific duplicate guard.
+  if(e.type==='sleep' && isSleepEntryDuplicate(e)){showToast('Sono duplicado');return false;}
+  // Normalize app-level kind fields (kept for backward compat, but source of truth is SleepEngine).
+  if(e.type==='sleep')setSleepKind(e);
+  entries.push(e);
+  if(opt&&opt.closeModal)try{closeModal();}catch(err){}
+  refreshAppAfterDataChange(opt.reason||'commitEntry');
+  return true;
+}
+
 /* ---- actions ---- */
 let sleepActionLockUntil=0;
 function quickSleep(){if(getActiveSleep()){showToast('Já tem sono em andamento');return;}babySlept();}
-function babySlept(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const nowMs=Date.now();if(nowMs<sleepActionLockUntil)return;sleepActionLockUntil=nowMs+900;if(getActiveSleep()){showToast('Já tem sono em andamento');return;}const t=fmtTime(now());const e={id:Date.now(),date:todayStr(),type:'sleep',start:t,end:null};if(isSleepEntryDuplicate(e)){showToast('Sono já registrado');return;}setSleepKind(e);entries.push(e);save();showToast((sleepIsNight(e)?'Noite':'Soneca')+' iniciada às '+t);renderHome();}
-function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const active=getActiveSleep();if(!active){showToast('Nenhum sono em andamento');return;}const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const iv=sleepIntervalDateTimes(entries[idx],new Date());entries[idx].durationMins=sleepDurationMinsFromDates(iv.start,iv.end);setSleepKind(entries[idx]);save();showToast('Acordou às '+t+' · '+fmtDur(entries[idx].durationMins));renderHome();}
-function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t});save();const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);renderHome();}
-function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistory();showToast('Registro excluído');}
+function babySlept(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const nowMs=Date.now();if(nowMs<sleepActionLockUntil)return;sleepActionLockUntil=nowMs+900;if(getActiveSleep()){showToast('Já tem sono em andamento');return;}const t=fmtTime(now());const e={id:Date.now(),type:'sleep',date:todayStr(),start:t,end:null,source:'quick',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};if(!commitEntry(e,{reason:'quick-sleep'}))return;showToast((sleepIsNight(e)?'Noite':'Soneca')+' iniciada às '+t);}
+function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const active=getActiveSleep();if(!active){showToast('Nenhum sono em andamento');return;}const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;entries[idx].updatedAt=new Date().toISOString();const iv=SleepEngine.getSleepInterval(entries[idx],new Date());entries[idx].durationMins=(iv&&iv.isValid)?iv.durationMins:null;setSleepKind(entries[idx]);refreshAppAfterDataChange('wake');showToast('Acordou às '+t+' · '+fmtDur(entries[idx].durationMins||0));}
+function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());const e={id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t,source:'quick',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};entries.push(e);refreshAppAfterDataChange('quick-mood');const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);}
+function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);refreshAppAfterDataChange('delete');showToast('Registro excluído');}
 
 function orbitCtaClick(){const cta=$('orbit-cta');if(cta&&cta.onclick)cta.onclick();}
 
@@ -2307,7 +2566,37 @@ document.addEventListener('DOMContentLoaded',()=>{});
 /* ---- Modal (form) ---- */
 function openLog(type){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).classList.toggle('hide',t!==type));$('modal-title-el').textContent={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Sono manual'}[type]||'Registrar';const t=fmtTime(now()),td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-backdrop').classList.add('open');}
 function closeModal(){$('modal-backdrop').classList.remove('open');}
-function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;e.durationMins=parseInt($('f-feed-dur').value)||null;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Início inválido');return;}e.date=date;e.type='sleep';e.start=s;e.end=isValidTime(en)?en:null;if(!e.end&&getActiveSleep()){showToast('Já tem sono em andamento');return;}if(e.end){const iv=sleepIntervalDateTimes(e,new Date());e.durationMins=sleepDurationMinsFromDates(iv.start,iv.end);}if(isSleepEntryDuplicate(e)){showToast('Sono duplicado');return;}setSleepKind(e);}entries.push(e);save();closeModal();showToast('Registro salvo');renderHome();}
+function saveEntry(){
+  const id=Date.now();
+  if(curModal==='feed'){
+    const raw={id,type:'feed',date:$('f-feed-date').value||todayStr(),time:$('f-feed-time').value,subtype:state.feedType,durationMins:($('f-feed-dur').value||'').trim()};
+    const e=normalizeManualEntry(raw,new Date());
+    if(!e){showToast('Dados inválidos');return;}
+    if(!commitEntry(e,{closeModal:true,reason:'manual-feed'})){showToast('Não foi possível salvar');return;}
+    showToast('Registro salvo');
+    return;
+  }
+  if(curModal==='diaper'){
+    const raw={id,type:'diaper',date:$('f-diaper-date').value||todayStr(),time:$('f-diaper-time').value,diaperType:state.diaperType};
+    const e=normalizeManualEntry(raw,new Date());
+    if(!e){showToast('Dados inválidos');return;}
+    if(!commitEntry(e,{closeModal:true,reason:'manual-diaper'})){showToast('Não foi possível salvar');return;}
+    showToast('Registro salvo');
+    return;
+  }
+  if(curModal==='sleep-manual'){
+    const raw={id,type:'sleep',date:$('f-manual-date').value||todayStr(),start:$('f-manual-start').value,end:$('f-manual-end').value};
+    const e=normalizeManualEntry(raw,new Date());
+    if(!e){showToast('Dados inválidos');return;}
+    if(!commitEntry(e,{closeModal:true,reason:'manual-sleep'})){
+      showToast(getActiveSleep()&&!e.end?'Já tem sono em andamento':'Não foi possível salvar');
+      return;
+    }
+    showToast('Registro salvo');
+    return;
+  }
+  showToast('Tipo inválido');
+}
 
 /* ---- Segmented buttons (in forms) ---- */
 function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('button').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});});}
@@ -2334,7 +2623,28 @@ function printReport(){const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(
   lines.forEach(e=>{const detail=[e.start||'',e.end?('→ '+e.end):'',e.durationMins!=null?fmtDur(e.durationMins):'',e.subtype||''].filter(Boolean).join(' ');html+=`<tr><td>${escHtml(e.date||'')}</td><td>${escHtml(eventTypeLabel(e))}</td><td>${escHtml(detail)}</td></tr>`;});
   html+='</tbody></table></div>';
   $('print-area').innerHTML=html;$('print-area').classList.remove('hide');window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').classList.add('hide');},300);}
-function importData(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{const data=JSON.parse(e.target.result);if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch{}entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;return x.date&&isValidDateStr(x.date)?x:{...x,date:fb};});if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}migrateDataModel();if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;save();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Importado');}catch(err){showToast('Erro ao importar');}};r.readAsText(f);ev.target.value='';}
+function importData(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=(e)=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.entries||!Array.isArray(data.entries)){showToast('Arquivo inválido');return;}
+      if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;
+      let fb=todayStr();try{if(data.exportedAt)fb=new Date(data.exportedAt).toLocaleDateString('sv-SE');}catch{}
+      entries=data.entries.map(x=>{if(!x||typeof x!=='object')return x;return x.date&&isValidDateStr(x.date)?x:{...x,date:fb};});
+      if(data.cfg){cfg={...defaultCfg(),...data.cfg};delete cfg.appName;}
+      migrateDataModel();
+      if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;
+      refreshAppAfterDataChange('importData');
+      showToast('Importado');
+    }catch(err){
+      showToast('Erro ao importar');
+    }
+  };
+  r.readAsText(f);
+  ev.target.value='';
+}
 
 /* ---- PWA ---- */
 function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}}
