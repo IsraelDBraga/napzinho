@@ -1,4 +1,35 @@
 /* ---- sleep engine (dates) ---- */
+// Night/nap classification helpers (used across modules).
+function dayBoundaryMins(){const s=(cfg&&cfg.dayBoundary)||'06:00';return isValidTime(s)?timeToMins(s):360;}
+function nightStartMinsVal(){const s=(cfg&&cfg.nightStart)||'18:00';return isValidTime(s)?timeToMins(s):1080;}
+function isNightContextAtClock(mins){const dB=dayBoundaryMins(),ns=nightStartMinsVal();return mins>=ns||mins<dB;}
+function isNightContextForClock(hhmm){const m=timeToMins(String(hhmm||'00:00'));return isNightContextAtClock(m);}
+/** Sleep that touches the physiological night window counts as night. */
+function sleepTouchesPhysiologicalNight(e){
+  if(!e||e.type!=='sleep'||!e.end||!isValidTime(e.end))return false;
+  const st=sleepStartDate(e),en=sleepEndDate(e);
+  if(!st||!en||en.getTime()<=st.getTime())return false;
+  const step=5*60000;
+  for(let t=st.getTime();t<en.getTime();t+=step){
+    const d=new Date(t);
+    const mins=d.getHours()*60+d.getMinutes();
+    if(isNightContextAtClock(mins))return true;
+  }
+  return false;
+}
+function setSleepKind(e){
+  if(!e||e.type!=='sleep')return e;
+  const isNight=isNightContextForClock(e.start)||sleepTouchesPhysiologicalNight(e);
+  e.sleepKind=isNight?'night':'nap';
+  if(!e.subtype)e.subtype=e.sleepKind;
+  return e;
+}
+function sleepIsNight(e){
+  if(!e||e.type!=='sleep')return false;
+  if(isNightContextForClock(e.start))return true;
+  if(e.end&&isValidTime(e.end))return sleepTouchesPhysiologicalNight(e);
+  return false;
+}
 function sleepStartDate(e){if(!e||!isValidTime(e.start))return null;const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.start.split(':').map(Number);d.setHours(h,m,0,0);return d;}
 function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.end.split(':').map(Number);d.setHours(h,m,0,0);if(timeToMins(e.end)<timeToMins(e.start))d.setDate(d.getDate()+1);return d;}
 function gapMinutesBetweenSleeps(a,b){if(!a||!b||!a.end||!b.start)return 0;const tE=sleepEndDate(a),tS=sleepStartDate(b);if(!tE||!tS)return 0;const g=Math.round((tS-tE)/60000);return g>0&&g<720?g:0;}
