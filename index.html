@@ -13,7 +13,638 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+/* ==============================================
+   NEST · Design System v2 (dark-first, premium)
+   ============================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+:root{
+  /* Night palette — deep indigo/violet, not black */
+  --bg-0:#06050E;
+  --bg-1:#0B0A1A;
+  --bg-2:#12102A;
+  --surface-0:#16132E;
+  --surface-1:#1C1940;
+  --surface-2:#241F52;
+  --hair:rgba(148,163,255,.10);
+  --hair-strong:rgba(148,163,255,.18);
+  --ink:#F5F3FF;
+  --ink-dim:#C7C4E8;
+  --ink-muted:#8B87B8;
+  --ink-faint:#605C8E;
+  /* Accents */
+  --lilac:#C4B5FD;
+  --indigo:#818CF8;
+  --violet:#A78BFA;
+  --aurora:#8B5CF6;
+  --night:#4338CA;
+  --moon:#EEF2FF;
+  --sun:#FCD34D;
+  --dusk:#F97316;
+  --mint:#5EEAD4;
+  --rose:#FB7185;
+  /* Category tones */
+  --c-sleep:#A78BFA;
+  --c-night:#6366F1;
+  --c-feed:#22D3EE;
+  --c-diaper:#F59E0B;
+  --c-mood:#F472B6;
+  --c-gas:#34D399;
+  /* Radii */
+  --r-xs:10px;--r-sm:14px;--r-md:20px;--r-lg:28px;--r-xl:36px;--r-pill:999px;
+  /* Elevation */
+  --shadow-card:0 12px 32px -12px rgba(0,0,0,.6),0 0 0 1px var(--hair);
+  --shadow-hero:0 30px 60px -20px rgba(67,56,202,.45),0 0 0 1px var(--hair-strong);
+  --shadow-float:0 24px 48px -12px rgba(0,0,0,.55);
+  /* Layout */
+  --nav-h:78px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --max-w:440px;
+}
+/* Light theme — readable, warm, never washed out */
+[data-theme="light"]{
+  --bg-0:#F7F5FF;
+  --bg-1:#EEEAFB;
+  --bg-2:#E4DFF7;
+  --surface-0:#FFFFFF;
+  --surface-1:#F9F7FF;
+  --surface-2:#F0ECFB;
+  --hair:rgba(67,56,202,.10);
+  --hair-strong:rgba(67,56,202,.20);
+  --ink:#1A1640;
+  --ink-dim:#3A3473;
+  --ink-muted:#655E99;
+  --ink-faint:#9A94C2;
+  --moon:#4338CA;
+  --sun:#D97706;
+  --shadow-card:0 12px 32px -12px rgba(67,56,202,.18),0 0 0 1px var(--hair);
+  --shadow-hero:0 30px 60px -20px rgba(67,56,202,.35),0 0 0 1px var(--hair-strong);
+  --shadow-float:0 24px 48px -12px rgba(67,56,202,.28);
+}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  font-size:15px;line-height:1.5;color:var(--ink);
+  background:var(--bg-0);
+  background-image:
+    radial-gradient(900px 600px at 80% -10%,rgba(139,92,246,.22),transparent 60%),
+    radial-gradient(700px 500px at -10% 20%,rgba(67,56,202,.18),transparent 55%),
+    radial-gradient(600px 400px at 50% 110%,rgba(34,211,238,.08),transparent 60%),
+    linear-gradient(180deg,var(--bg-0) 0%,var(--bg-1) 40%,var(--bg-0) 100%);
+  background-attachment:fixed;
+  min-height:100svh;
+  max-width:var(--max-w);margin:0 auto;
+  padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 40px);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+[data-theme="light"] body{
+  background-image:
+    radial-gradient(900px 600px at 80% -10%,rgba(167,139,250,.28),transparent 60%),
+    radial-gradient(700px 500px at -10% 20%,rgba(99,102,241,.20),transparent 55%),
+    linear-gradient(180deg,var(--bg-0) 0%,var(--bg-1) 60%,var(--bg-0) 100%);
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+a{color:inherit;text-decoration:none}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-.01em}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---- Header ---- */
+.app-header{
+  position:sticky;top:0;z-index:40;
+  padding:calc(var(--safe-top) + 14px) 20px 10px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(180deg,var(--bg-0) 0%,var(--bg-0) 65%,transparent 100%);
+}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--aurora),var(--c-feed));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:15px;letter-spacing:.02em;
+  box-shadow:0 0 0 2px var(--bg-0),0 0 0 3px var(--hair-strong);
+  flex-shrink:0;
+}
+.app-head-center{flex:1;text-align:center;min-width:0}
+.app-head-greet{font-size:11px;color:var(--ink-muted);letter-spacing:.04em;font-weight:500}
+.app-head-baby{font-family:'Instrument Serif',serif;font-size:20px;line-height:1.1;color:var(--ink);letter-spacing:-.01em}
+.app-head-age{font-size:11px;color:var(--ink-muted);margin-top:1px}
+.theme-toggle{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--surface-0);border:1px solid var(--hair);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-dim);
+  flex-shrink:0;transition:transform .18s ease,background .2s;
+}
+.theme-toggle:active{transform:scale(.94)}
+.theme-toggle svg{width:18px;height:18px}
+
+/* ---- Sections ---- */
+.sections{padding:0 18px calc(var(--nav-h) + var(--safe-bottom) + 44px)}
+.section{display:none;animation:fadeUp .35s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---- Home: Orbital hero ---- */
+.orbit-wrap{
+  position:relative;
+  margin:6px -6px 14px;
+  padding:18px 6px 10px;
+  aspect-ratio:1/1;
+  max-height:420px;
+}
+.orbit-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.orbit-ring{fill:none;stroke:var(--hair-strong);stroke-width:1;stroke-dasharray:2 4;opacity:.8}
+.orbit-arc-active{fill:none;stroke:url(#orbitGradient);stroke-width:2.5;stroke-linecap:round;filter:drop-shadow(0 0 12px rgba(167,139,250,.5))}
+.orbit-stars{position:absolute;inset:0;pointer-events:none;opacity:.5}
+.orbit-stars span{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;box-shadow:0 0 4px rgba(255,255,255,.6);opacity:.7;animation:twinkle 4s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.25}50%{opacity:.85}}
+.orbit-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 18px;
+}
+.orbit-kicker{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-muted);font-weight:600;margin-bottom:6px}
+.orbit-main{
+  font-family:'Instrument Serif',serif;
+  font-size:56px;line-height:1;color:var(--ink);letter-spacing:-.02em;
+  display:flex;align-items:baseline;gap:6px;justify-content:center;
+}
+.orbit-main small{font-family:'Inter',sans-serif;font-size:16px;color:var(--ink-muted);font-weight:500}
+.orbit-sub{font-size:12.5px;color:var(--ink-dim);margin-top:8px;max-width:240px;line-height:1.45}
+.orbit-cta{
+  margin-top:14px;padding:11px 18px;border-radius:var(--r-pill);
+  background:linear-gradient(135deg,var(--aurora),var(--indigo));
+  color:#fff;font-weight:700;font-size:13px;letter-spacing:.01em;
+  box-shadow:0 10px 28px -8px rgba(139,92,246,.6);
+  display:inline-flex;align-items:center;gap:8px;
+}
+.orbit-cta:active{transform:scale(.97)}
+.orbit-cta svg{width:14px;height:14px}
+.orbit-node{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:10.5px;font-weight:600;color:var(--ink-muted);
+  min-width:54px;text-align:center;pointer-events:none;
+}
+.orbit-node.active{color:var(--ink)}
+.orbit-node .on-dot{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--surface-1);border:1.5px solid var(--hair-strong);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.orbit-node.active .on-dot{
+  background:linear-gradient(135deg,var(--aurora),var(--indigo));border-color:var(--violet);
+  box-shadow:0 0 0 4px rgba(167,139,250,.18),0 8px 20px rgba(139,92,246,.5);
+}
+.orbit-node .on-dot svg{width:16px;height:16px;color:var(--ink-dim);stroke-width:1.8}
+.orbit-node.active .on-dot svg{color:#fff}
+.orbit-node .on-label{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;opacity:.85}
+.orbit-node .on-time{font-size:11px;font-weight:600;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.orbit-node.active .on-time{color:var(--ink)}
+
+/* ---- Home: Current status card (below orbit) ---- */
+.status-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;
+}
+.status-card{
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-sm);
+  padding:12px 13px;box-shadow:var(--shadow-card);position:relative;overflow:hidden;
+}
+.status-card::before{content:'';position:absolute;inset:auto 0 0 0;height:2px;background:var(--tone,var(--aurora));opacity:.65;border-radius:0 0 var(--r-sm) var(--r-sm)}
+.status-card .sc-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-muted);margin-bottom:4px}
+.status-card .sc-main{font-family:'Instrument Serif',serif;font-size:22px;line-height:1.1;color:var(--ink);letter-spacing:-.01em}
+.status-card .sc-sub{font-size:11px;color:var(--ink-dim);margin-top:3px;line-height:1.35}
+
+/* ---- Section heading ---- */
+.h-section{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:18px 2px 10px;
+}
+.h-section h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-muted)}
+.h-section .h-action{font-size:11px;font-weight:600;color:var(--ink-dim)}
+
+/* ---- Insight card ---- */
+.insight{
+  border-radius:var(--r-md);padding:16px 16px 14px;
+  background:linear-gradient(145deg,var(--surface-1),var(--surface-0));
+  border:1px solid var(--hair);box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;margin-bottom:14px;
+}
+.insight::after{content:'';position:absolute;top:-40%;right:-20%;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);pointer-events:none}
+.insight-kicker{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:8px;position:relative}
+.insight-title{font-family:'Instrument Serif',serif;font-size:19px;line-height:1.25;color:var(--ink);margin-bottom:6px;position:relative;letter-spacing:-.01em}
+.insight-body{font-size:13px;line-height:1.55;color:var(--ink-dim);position:relative}
+.insight-body strong{color:var(--ink);font-weight:600}
+.insight-chip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:var(--r-pill);background:rgba(139,92,246,.15);color:var(--lilac);margin-top:10px;position:relative}
+.insight-chip.warn{background:rgba(251,113,133,.14);color:#fecdd3}
+.insight-chip.ok{background:rgba(94,234,212,.14);color:var(--mint)}
+
+/* ---- Prediction list (next windows) ---- */
+.pred-list{display:flex;flex-direction:column;gap:9px}
+.pred-row{
+  display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;
+  padding:12px 13px;border-radius:var(--r-sm);
+  background:var(--surface-0);border:1px solid var(--hair);box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
+}
+.pred-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pcol,var(--aurora));opacity:.8}
+.pred-row .pico{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--pcol,var(--aurora)) 18%,transparent);
+  color:var(--pcol,var(--aurora));
+}
+.pred-row .pico svg{width:22px;height:22px;stroke-width:1.9}
+.pred-row .pmid{min-width:0}
+.pred-row .pname{font-size:13.5px;font-weight:700;color:var(--ink);letter-spacing:-.005em}
+.pred-row .psub{font-size:11.5px;color:var(--ink-muted);margin-top:2px;line-height:1.35}
+.pred-row .pbase{font-size:10px;color:var(--ink-faint);margin-top:3px;letter-spacing:.02em}
+.pred-row .ptime{text-align:right;min-width:78px}
+.pred-row .pclock{font-family:'Instrument Serif',serif;font-size:24px;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.pred-row .prange{font-size:10px;color:var(--ink-muted);margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* ---- Risk chip ---- */
+.risk{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:var(--r-pill);margin-top:5px;letter-spacing:.02em}
+.risk.low{background:rgba(94,234,212,.14);color:var(--mint)}
+.risk.mid{background:rgba(252,211,77,.14);color:var(--sun)}
+.risk.high{background:rgba(251,113,133,.14);color:#fecdd3}
+
+/* ---- Timeline (today) ---- */
+.today-rail{
+  position:relative;margin:6px 0 10px;padding:14px 0 10px;
+  overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.today-rail::-webkit-scrollbar{display:none}
+.trail-track{
+  position:absolute;top:50%;left:0;right:0;height:2px;background:var(--hair);transform:translateY(-50%);
+  background-image:linear-gradient(90deg,transparent,var(--hair-strong) 15%,var(--hair-strong) 85%,transparent);
+}
+.trail-items{display:flex;gap:10px;padding:0 4px;position:relative}
+.trail-chip{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px;
+  padding:8px 8px 6px;border-radius:var(--r-sm);
+  background:var(--surface-0);border:1px solid var(--hair);
+  position:relative;
+}
+.trail-chip .tc-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--tone,var(--aurora));box-shadow:0 4px 10px -3px color-mix(in srgb,var(--tone,var(--aurora)) 60%,transparent)}
+.trail-chip .tc-ico svg{width:18px;height:18px;stroke-width:2}
+.trail-chip .tc-time{font-size:10.5px;color:var(--ink-dim);font-variant-numeric:tabular-nums;font-weight:600}
+.trail-chip .tc-dur{font-size:9.5px;color:var(--ink-muted);font-variant-numeric:tabular-nums}
+.trail-empty{padding:20px;text-align:center;color:var(--ink-muted);font-size:12.5px;line-height:1.5;border:1px dashed var(--hair-strong);border-radius:var(--r-sm);background:var(--surface-0)}
+
+/* ---- Glance strip (4 key numbers) ---- */
+.glance{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:14px 12px;box-shadow:var(--shadow-card);
+}
+.glance-cell{text-align:center;position:relative}
+.glance-cell+.glance-cell::before{content:'';position:absolute;left:-4px;top:20%;bottom:20%;width:1px;background:var(--hair)}
+.glance-val{font-family:'Instrument Serif',serif;font-size:22px;line-height:1;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.glance-lbl{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);margin-top:6px}
+.glance-cell[data-tone="sleep"] .glance-val{color:var(--c-sleep)}
+.glance-cell[data-tone="feed"] .glance-val{color:var(--c-feed)}
+.glance-cell[data-tone="diaper"] .glance-val{color:var(--c-diaper)}
+.glance-cell[data-tone="night"] .glance-val{color:var(--c-night)}
+
+/* ---- Night summary ---- */
+.night-panel{
+  border-radius:var(--r-md);padding:18px 16px 16px;margin-bottom:14px;
+  background:linear-gradient(155deg,#0b0920 0%,#1e1b4b 40%,#312e81 100%);
+  color:#fff;border:1px solid rgba(165,180,252,.22);
+  box-shadow:0 20px 50px -18px rgba(67,56,202,.6);
+  position:relative;overflow:hidden;
+}
+.night-panel::after{content:'';position:absolute;top:-50%;right:-30%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(196,181,253,.22),transparent 70%);filter:blur(4px);pointer-events:none}
+.night-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;position:relative}
+.night-head .nh-kicker{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--lilac);opacity:.9}
+.night-head .nh-range{font-size:11.5px;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums}
+.night-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative}
+.night-metric{text-align:center;padding:10px 4px;background:rgba(255,255,255,.06);border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.08)}
+.night-metric-val{font-family:'Instrument Serif',serif;font-size:22px;line-height:1;letter-spacing:-.02em}
+.night-metric-lbl{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.78;margin-top:5px;font-weight:600}
+.night-segs{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px;position:relative}
+.nseg-pill{font-size:10px;font-weight:700;padding:4px 9px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums}
+.nseg-pill.sl{background:rgba(196,181,253,.25);color:var(--moon)}
+.nseg-pill.aw{background:rgba(252,211,77,.2);color:var(--sun)}
+.night-foot{font-size:11px;opacity:.78;line-height:1.45;margin-top:10px;position:relative}
+.day-panel{background:linear-gradient(150deg,color-mix(in srgb,var(--surface-1) 82%,var(--sun) 18%),var(--surface-0));color:var(--ink)}
+.day-panel .nh-kicker{color:var(--sun)}
+.day-panel .nh-range{color:var(--ink-dim)}
+.day-panel .night-metrics{grid-template-columns:repeat(4,1fr)}
+.day-panel .night-metric{background:rgba(255,255,255,.05);border-color:var(--hair)}
+.day-panel .night-foot{opacity:1;color:var(--ink-dim)}
+
+/* ---- Copilot CTA (home) ---- */
+.copilot-cta{
+  margin-top:6px;padding:16px 16px 14px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#1C1940 0%,#3730A3 100%);
+  color:#fff;display:flex;align-items:center;gap:14px;
+  box-shadow:0 20px 40px -18px rgba(67,56,202,.6);
+  border:1px solid rgba(165,180,252,.25);position:relative;overflow:hidden;margin-bottom:14px;
+}
+.copilot-cta::before{content:'';position:absolute;top:-50%;right:-20%;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.3),transparent 70%);pointer-events:none}
+.cc-orb{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;position:relative;
+  background:radial-gradient(circle at 30% 25%,#fff,var(--violet) 50%,var(--night) 100%);
+  box-shadow:0 0 0 2px rgba(255,255,255,.15),0 6px 18px rgba(139,92,246,.5);
+  animation:orbPulse 3.5s ease-in-out infinite;
+}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 0 2px rgba(255,255,255,.15),0 6px 18px rgba(139,92,246,.5)}50%{box-shadow:0 0 0 2px rgba(255,255,255,.25),0 8px 26px rgba(139,92,246,.75)}}
+.cc-text{flex:1;min-width:0;position:relative}
+.cc-text strong{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.005em}
+.cc-text small{display:block;font-size:11.5px;opacity:.8;margin-top:2px;line-height:1.4}
+.cc-arrow{font-size:18px;opacity:.85;position:relative}
+
+/* ---- Bottom nav with FAB ---- */
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:var(--max-w);
+  padding:10px 18px calc(var(--safe-bottom) + 10px);
+  display:grid;grid-template-columns:1fr 1fr 64px 1fr 1fr;gap:4px;
+  z-index:50;
+  background:linear-gradient(180deg,transparent 0%,var(--bg-0) 30%);
+}
+.nav::before{content:'';position:absolute;inset:auto 16px 0 16px;bottom:calc(var(--safe-bottom) + 6px);top:6px;
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:26px;
+  box-shadow:0 -4px 30px rgba(0,0,0,.28),0 0 0 1px var(--hair);pointer-events:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+[data-theme="light"] .nav::before{box-shadow:0 -6px 24px rgba(67,56,202,.12),0 0 0 1px var(--hair)}
+.nav-item{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:10px;font-weight:600;color:var(--ink-muted);padding:10px 2px;
+  transition:color .2s;letter-spacing:.02em;
+}
+.nav-item svg{width:22px;height:22px;stroke-width:1.8;transition:transform .2s}
+.nav-item.active{color:var(--ink)}
+.nav-item.active svg{transform:translateY(-2px)}
+.nav-item.active::after{content:'';position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--aurora);box-shadow:0 0 8px var(--aurora)}
+.fab{
+  position:relative;z-index:2;width:60px;height:60px;border-radius:50%;justify-self:center;
+  background:linear-gradient(140deg,var(--aurora) 0%,var(--indigo) 100%);
+  color:#fff;font-size:26px;font-weight:300;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 12px 28px -6px rgba(139,92,246,.55),0 0 0 3px var(--bg-0),0 0 0 4px rgba(139,92,246,.35);
+  margin-top:-18px;transition:transform .18s;
+}
+.fab:active{transform:scale(.94)}
+.fab svg{width:28px;height:28px;stroke-width:2}
+
+/* ---- Log sheet (bottom sheet for quick log) ---- */
+.sheet-backdrop{
+  position:fixed;inset:0;background:rgba(6,5,14,.7);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.sheet-backdrop.open{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
+  width:100%;max-width:var(--max-w);z-index:90;
+  background:var(--surface-0);border-top-left-radius:var(--r-lg);border-top-right-radius:var(--r-lg);
+  border:1px solid var(--hair);border-bottom:none;
+  padding:14px 18px calc(var(--safe-bottom) + 22px);
+  transition:transform .32s cubic-bezier(.2,.8,.2,1);
+  box-shadow:var(--shadow-float);
+  max-height:85vh;overflow-y:auto;
+}
+.sheet.open{transform:translateX(-50%) translateY(0)}
+.sheet-grab{width:40px;height:4px;border-radius:2px;background:var(--hair-strong);margin:4px auto 14px}
+.sheet-title{font-family:'Instrument Serif',serif;font-size:22px;color:var(--ink);letter-spacing:-.01em;margin-bottom:4px;text-align:center}
+.sheet-sub{font-size:12px;color:var(--ink-muted);text-align:center;margin-bottom:16px}
+
+/* ---- Log grid (tappable categories) ---- */
+.log-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.log-tile{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:16px 8px 14px;border-radius:var(--r-md);
+  background:var(--surface-1);border:1px solid var(--hair);
+  color:var(--ink);font-size:12px;font-weight:700;letter-spacing:-.005em;
+  transition:transform .14s,background .2s,border-color .2s;
+  position:relative;overflow:hidden;min-height:100px;
+}
+.log-tile::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--tile,var(--aurora)) 18%,transparent),transparent 60%);opacity:.8;pointer-events:none}
+.log-tile:active{transform:scale(.96)}
+.log-tile .lt-ico{
+  position:relative;width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  background:color-mix(in srgb,var(--tile,var(--aurora)) 100%,transparent);
+  box-shadow:0 8px 18px -6px color-mix(in srgb,var(--tile,var(--aurora)) 70%,transparent);
+}
+.log-tile .lt-ico svg{width:22px;height:22px;stroke-width:1.9}
+.log-tile .lt-lbl{position:relative}
+
+/* ---- Modal (form modal) ---- */
+.modal-backdrop{position:fixed;inset:0;background:rgba(6,5,14,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.open{display:flex}
+.modal{
+  width:100%;max-width:420px;background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-lg);
+  padding:22px 20px 20px;box-shadow:var(--shadow-float);max-height:90vh;overflow-y:auto;
+}
+.modal-title{font-family:'Instrument Serif',serif;font-size:24px;letter-spacing:-.01em;margin-bottom:14px;color:var(--ink)}
+.fgroup{margin-bottom:14px}
+.flabel{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:7px}
+.finput,.fselect{
+  width:100%;padding:13px 14px;border-radius:var(--r-sm);
+  background:var(--surface-1);border:1px solid var(--hair-strong);color:var(--ink);
+  font-size:14px;transition:border-color .18s,background .2s;
+  font-variant-numeric:tabular-nums;
+}
+.finput:focus,.fselect:focus{outline:none;border-color:var(--violet);background:var(--surface-2)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--surface-1);border:1px solid var(--hair);border-radius:var(--r-sm);padding:3px;gap:3px}
+.seg button{flex:1;padding:9px;border-radius:calc(var(--r-sm) - 3px);font-size:13px;font-weight:600;color:var(--ink-muted);transition:all .18s}
+.seg button.sel{background:linear-gradient(135deg,var(--aurora),var(--indigo));color:#fff;box-shadow:0 4px 12px -4px rgba(139,92,246,.6)}
+.btn-primary{
+  width:100%;padding:14px;border-radius:var(--r-sm);margin-top:4px;
+  background:linear-gradient(135deg,var(--aurora),var(--indigo));color:#fff;
+  font-size:14px;font-weight:700;letter-spacing:.01em;
+  box-shadow:0 10px 24px -6px rgba(139,92,246,.55);
+}
+.btn-primary:active{transform:scale(.99)}
+.btn-ghost{
+  width:100%;padding:12px;border-radius:var(--r-sm);margin-top:8px;
+  background:transparent;color:var(--ink-dim);border:1px solid var(--hair);
+  font-size:13px;font-weight:600;
+}
+
+/* ---- Onboarding (full screen) ---- */
+.onboard{
+  position:fixed;inset:0;z-index:200;display:none;
+  background:radial-gradient(900px 700px at 50% -20%,rgba(139,92,246,.35),transparent 60%),
+             linear-gradient(180deg,var(--bg-0),var(--bg-1));
+  padding:calc(var(--safe-top) + 40px) 24px calc(var(--safe-bottom) + 24px);
+  flex-direction:column;
+}
+.onboard.open{display:flex}
+.onboard-kicker{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--violet);margin-bottom:14px}
+.onboard-title{font-family:'Instrument Serif',serif;font-size:38px;line-height:1.05;color:var(--ink);letter-spacing:-.02em;margin-bottom:14px}
+.onboard-lead{font-size:15px;color:var(--ink-dim);line-height:1.5;margin-bottom:32px;max-width:360px}
+.onboard form{max-width:380px;width:100%}
+.onboard .btn-primary{margin-top:18px}
+.onboard-hint{font-size:11.5px;color:var(--ink-muted);margin-top:8px}
+
+/* ---- Late-night mode (full screen minimal) ---- */
+.lateNight{position:fixed;inset:0;z-index:220;display:none;background:#03020A;color:#fff;padding:calc(var(--safe-top) + 60px) 24px calc(var(--safe-bottom) + 24px);flex-direction:column;justify-content:space-between}
+.lateNight.open{display:flex}
+.ln-top .ln-kicker{font-size:10px;letter-spacing:.3em;color:var(--lilac);font-weight:700;margin-bottom:16px}
+.ln-top .ln-clock{font-family:'Instrument Serif',serif;font-size:72px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.ln-top .ln-since{font-size:14px;color:var(--ink-dim);margin-top:16px;line-height:1.5}
+.ln-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ln-actions button{padding:22px 10px;border-radius:var(--r-md);background:rgba(139,92,246,.18);color:#fff;font-size:15px;font-weight:700;border:1px solid rgba(139,92,246,.3)}
+.ln-actions button.primary{background:linear-gradient(135deg,var(--aurora),var(--indigo));border-color:transparent;grid-column:1/-1;padding:26px 10px;font-size:17px}
+.ln-exit{margin-top:14px;color:var(--ink-muted);font-size:12px;text-align:center;letter-spacing:.06em}
+
+/* ---- Toast ---- */
+.toast{
+  position:fixed;top:calc(var(--safe-top) + 16px);left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--surface-2);color:var(--ink);padding:11px 18px;border-radius:var(--r-pill);
+  font-size:13px;font-weight:600;box-shadow:var(--shadow-float),0 0 0 1px var(--hair-strong);
+  z-index:300;opacity:0;transition:all .28s ease;pointer-events:none;max-width:calc(100% - 36px);white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---- Stats section ---- */
+.stat-hero{
+  padding:18px 16px;border-radius:var(--r-md);margin-bottom:14px;
+  background:linear-gradient(155deg,var(--surface-1),var(--surface-0));border:1px solid var(--hair);
+  box-shadow:var(--shadow-card);position:relative;overflow:hidden;
+}
+.stat-hero-kicker{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.stat-hero-title{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.15;color:var(--ink);margin-bottom:4px;letter-spacing:-.015em}
+.stat-hero-sub{font-size:12.5px;color:var(--ink-dim);margin-bottom:14px;line-height:1.45}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-grid.cols2{grid-template-columns:repeat(2,1fr)}
+.stat-cell{background:var(--surface-1);border:1px solid var(--hair);border-radius:var(--r-sm);padding:12px 10px;text-align:center}
+.stat-cell-val{font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:-.02em;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+.stat-cell-lbl{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-top:6px}
+.chart-card{
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:16px 14px 14px;margin-bottom:14px;box-shadow:var(--shadow-card);
+}
+.chart-card h4{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:4px}
+.chart-card .ch-title{font-family:'Instrument Serif',serif;font-size:17px;color:var(--ink);margin-bottom:12px}
+.chart-card .ch-ctx{font-size:11.5px;color:var(--ink-dim);margin-top:10px;line-height:1.5}
+
+/* ---- History groups ---- */
+.hgroup{margin-bottom:22px}
+.hgroup-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.hgroup-day{font-family:'Instrument Serif',serif;font-size:20px;color:var(--ink);letter-spacing:-.01em;text-transform:capitalize}
+.hgroup-total{font-size:11px;color:var(--ink-muted);letter-spacing:.04em}
+.hlane{margin-bottom:14px}
+.hlane-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--lane,var(--ink-muted));margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.hlane-label::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--lane,var(--ink-muted))}
+.hitem{
+  display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;
+  padding:10px 12px;border-radius:var(--r-sm);background:var(--surface-0);border:1px solid var(--hair);
+  margin-bottom:6px;
+}
+.hitem .hdot{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--tone,var(--aurora))}
+.hitem .hdot svg{width:16px;height:16px;stroke-width:2}
+.hitem .hmain{min-width:0}
+.hitem .hname{font-size:13px;font-weight:600;color:var(--ink)}
+.hitem .hdetail{font-size:11px;color:var(--ink-muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.hitem .hdel{color:var(--ink-faint);font-size:18px;padding:4px 8px;line-height:1;opacity:.6;transition:opacity .15s;}
+.hitem .hdel:hover{opacity:1;color:var(--rose)}
+
+/* ---- Copilot section ---- */
+.cop-hero{
+  padding:20px 18px 18px;border-radius:var(--r-md);margin-bottom:14px;
+  background:linear-gradient(155deg,#12102A 0%,#1C1940 40%,#312E81 100%);
+  color:#fff;border:1px solid rgba(165,180,252,.24);
+  box-shadow:var(--shadow-hero);position:relative;overflow:hidden;
+}
+.cop-hero::after{content:'';position:absolute;top:-50%;right:-20%;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.25),transparent 70%);pointer-events:none;filter:blur(6px)}
+.cop-hero .ch-kick{font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--lilac);margin-bottom:6px;position:relative}
+.cop-hero .ch-title{font-family:'Instrument Serif',serif;font-size:26px;line-height:1.1;margin-bottom:6px;letter-spacing:-.02em;position:relative}
+.cop-hero .ch-sub{font-size:13px;color:rgba(255,255,255,.85);line-height:1.55;position:relative}
+.cop-hero .ch-meter{margin-top:14px;height:6px;background:rgba(255,255,255,.12);border-radius:var(--r-pill);overflow:hidden;position:relative}
+.cop-hero .ch-fill{height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--lilac),var(--c-feed));box-shadow:0 0 12px rgba(196,181,253,.5);transition:width .6s ease}
+.cop-hero .ch-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;position:relative}
+.cop-chip{font-size:10.5px;font-weight:700;padding:5px 11px;border-radius:var(--r-pill);background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.14)}
+
+.cop-block{
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card);
+}
+.cop-block h4{font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:-.01em;color:var(--ink);margin-bottom:4px}
+.cop-block .cb-kicker{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.cop-block p{font-size:13px;color:var(--ink-dim);line-height:1.55}
+.cop-block p strong{color:var(--ink);font-weight:600}
+.cop-block .cb-rule{list-style:none;padding:0;margin:10px 0 0}
+.cop-block .cb-rule li{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-dim);padding:7px 0;border-top:1px solid var(--hair)}
+.cop-block .cb-rule li:first-child{border-top:none}
+.cop-block .cb-rule li strong{font-variant-numeric:tabular-nums;color:var(--ink)}
+.cop-block .cb-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.cop-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;border-radius:var(--r-pill);
+  background:var(--surface-1);border:1px solid var(--hair-strong);
+  font-size:12.5px;font-weight:600;color:var(--ink);
+  transition:all .18s;
+}
+.cop-pill:active{transform:scale(.97)}
+.cop-pill.primary{background:linear-gradient(135deg,var(--aurora),var(--indigo));color:#fff;border-color:transparent}
+.cop-mini-line{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:7px 0;border-top:1px solid var(--hair)}
+.cop-mini-line:first-child{border-top:none}
+.cop-mini-line .cm-key{color:var(--ink-dim)}
+.cop-mini-line .cm-val{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.cop-bar{position:relative;height:6px;border-radius:var(--r-pill);background:var(--surface-1);overflow:hidden;margin-top:4px}
+.cop-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:linear-gradient(90deg,var(--aurora),var(--c-feed))}
+
+/* ---- Settings ---- */
+.set-group{
+  background:var(--surface-0);border:1px solid var(--hair);border-radius:var(--r-md);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card);
+}
+.set-group h4{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--violet);margin-bottom:12px}
+.set-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-top:1px solid var(--hair)}
+.set-row:first-of-type{border-top:none;padding-top:0}
+.set-row label{font-size:13.5px;color:var(--ink);flex:1;line-height:1.4}
+.set-row .set-hint{display:block;font-size:11.5px;color:var(--ink-muted);margin-top:3px;line-height:1.4}
+.switch{position:relative;width:46px;min-width:46px;max-width:46px;height:28px;flex-shrink:0;flex-grow:0;flex-basis:46px;display:inline-block;margin-top:2px}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch-slider{position:absolute;inset:0;background:var(--surface-2);border-radius:var(--r-pill);border:1px solid var(--hair-strong);transition:.24s;cursor:pointer;box-sizing:border-box}
+.switch-slider::before{content:'';position:absolute;left:2px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .24s ease,background .24s;box-shadow:0 2px 6px rgba(0,0,0,.28)}
+.switch input:checked+.switch-slider{background:linear-gradient(135deg,var(--aurora),var(--indigo));border-color:transparent}
+.switch input:checked+.switch-slider::before{transform:translateX(18px)}
+
+/* ---- Empty states ---- */
+.empty-pretty{
+  border-radius:var(--r-md);padding:26px 20px;text-align:center;
+  background:var(--surface-0);border:1px dashed var(--hair-strong);
+}
+.empty-pretty h4{font-family:'Instrument Serif',serif;font-size:19px;color:var(--ink);margin-bottom:6px;letter-spacing:-.01em}
+.empty-pretty p{font-size:13px;color:var(--ink-dim);line-height:1.55}
+.empty-pretty .ep-cta{margin-top:14px}
+
+/* ---- Small helpers ---- */
+.hide{display:none!important}
+#print-area{display:none}
+.link{color:var(--lilac);font-weight:600;cursor:pointer}
+.link:hover{text-decoration:underline}
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block!important;padding:24px;color:#111;font:12px/1.45 Arial,sans-serif}
+  .pr-title{font-size:22px;font-weight:700;margin-bottom:8px}
+  .pr-meta{margin-bottom:12px}
+  .pr-section{margin:12px 0 14px;break-inside:avoid;page-break-inside:avoid}
+  .pr-section h3{font-size:13px;margin-bottom:6px}
+  .pr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .pr-cell{border:1px solid #bbb;border-radius:8px;padding:8px}
+  .pr-table{width:100%;border-collapse:collapse}
+  .pr-table th,.pr-table td{border:1px solid #bbb;padding:6px;vertical-align:top;word-break:break-word}
+}
+
+/* ---- Small screens ---- */
+@media (max-width:360px){
+  .orbit-wrap{max-height:360px}
+  .orbit-main{font-size:46px}
+  .glance-val{font-size:19px}
+  .log-tile{min-height:90px}
+  .log-tile .lt-ico{width:38px;height:38px}
+  .log-tile .lt-ico svg{width:20px;height:20px}
+}
+</style>
 </head>
 <body>
 
@@ -216,9 +847,6 @@
 
   <div class="set-group">
     <h4>Plano</h4>
-    <div class="set-row"><label for="cfg-premium-local">Liberar Premium neste aparelho<span class="set-hint">Enquanto não há servidor de licenças; desative quando subir o backend.</span></label>
-      <label class="switch"><input type="checkbox" id="cfg-premium-local" onchange="applyPremiumLocalToggle()"><span class="switch-slider"></span></label>
-    </div>
     <div class="fgroup"><label class="flabel" for="cfg-license-key">Chave de licença</label><input class="finput" id="cfg-license-key" placeholder="Cole sua chave"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
       <button class="btn-primary" onclick="activateLicenseKey()" style="margin-top:0">Ativar chave</button>
@@ -319,23 +947,710 @@
 <div class="toast" id="toast"></div>
 <div id="print-area" class="hide"></div>
 
-<script src="assets/js/config.js" defer></script>
-<script src="assets/js/state.js" defer></script>
-<script src="assets/js/time-engine.js" defer></script>
-<script src="assets/js/sleep-engine.js" defer></script>
-<script src="assets/js/predict-engine.js" defer></script>
-<script src="assets/js/stale-guard.js" defer></script>
-<script src="assets/js/storage.js" defer></script>
-<script src="assets/js/render-settings.js" defer></script>
-<script src="assets/js/render-home.js" defer></script>
-<script src="assets/js/render-stats.js" defer></script>
-<script src="assets/js/render-history.js" defer></script>
-<script src="assets/js/render-copilot.js" defer></script>
-<script src="assets/js/entries.js" defer></script>
-<script src="assets/js/backup.js" defer></script>
-<script src="assets/js/debug.js" defer></script>
-<script src="assets/js/tests.js" defer></script>
-<script src="assets/js/app.js" defer></script>
+<script>
+/* ============================================================
+   NEST · JS (engine preserved, UI renderers rewritten)
+   ============================================================ */
+let entries=[];
+const APP_SCHEMA_VERSION=6;
+const STORAGE_SCHEMA_VERSION=APP_SCHEMA_VERSION;
+const APP_VERSION="2026.04.29-phase2";
+const APP_NAME='Nest';
+const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 
+const defaultCfg=()=>({
+  name:'Bebê',babyBirthDate:'',months:3,
+  lang:'pt-BR',
+  nightStart:'18:00',dayBoundary:'06:00',
+  lateNightMode:false,darkTheme:true,
+  remindNap:false,remindNight:false,
+  ctxTeething:false,ctxCold:false,ctxVaccine:false,ctxTravel:false,ctxRegression:false,ctxOther:false,ctxNote:'',
+  premiumState:'free',trialStart:null,licenseToken:'',licenseTier:'',licenseExpiresAt:null,premiumUnlockLocal:false,
+  dataSchemaVersion:APP_SCHEMA_VERSION,profileSetupDone:false
+});
+let cfg={...defaultCfg()};
+let curModal=null,state={feedType:'breast',diaperType:'wet'};
+let wwTimer=null,lnTimer=null,homeNightTimer=null,barChart=null,donutChart=null;
+
+/* ---- utils ---- */
+const $=id=>document.getElementById(id);
+const now=()=>new Date();
+const SUPPORTED_LANGS=['pt-BR','en-US'];
+const I18N={
+  'pt-BR':{home:'Início',data:'Dados',history:'Histórico',copilot:'Copiloto',settings:'Configurações',language:'Idioma',portuguese:'Português',english:'Inglês',daySummary:'Resumo do dia',nightOngoing:'Noite em andamento',totalSleep:'Sono total',periods:'Períodos',awakenings:'Despertares',feeds:'Mamadas',diapers:'Fraldas',daySleep:'Sono do dia',dayByType:'Dia em tipos',exportJson:'Exportar JSON',exportCsv:'Exportar CSV',reportPdf:'Relatório / PDF',importJson:'Importar JSON',noDataPeriod:'Sem dados suficientes para este período.',report:'Relatório',date:'Data',baby:'Bebê',events:'Eventos',sleep:'Sono',feed:'Mamada',diaper:'Fralda',awakening:'Despertar',morning:'Manhã',afternoon:'Tarde',night:'Noite',now:'Agora',statsDayCivil:'Dia civil (hoje)',dayRoutine:'Rotina diurna (hoje)'},
+  'en-US':{home:'Home',data:'Data',history:'History',copilot:'Copilot',settings:'Settings',language:'Language',portuguese:'Portuguese',english:'English',daySummary:'Day summary',nightOngoing:'Night in progress',totalSleep:'Total sleep',periods:'Periods',awakenings:'Awakenings',feeds:'Feeds',diapers:'Diapers',daySleep:'Day sleep',dayByType:'Day by type',exportJson:'Export JSON',exportCsv:'Export CSV',reportPdf:'Report / PDF',importJson:'Import JSON',noDataPeriod:'Not enough data for this period.',report:'Report',date:'Date',baby:'Baby',events:'Events',sleep:'Sleep',feed:'Feed',diaper:'Diaper',awakening:'Awakening',morning:'Morning',afternoon:'Afternoon',night:'Night',now:'Now',statsDayCivil:'Civil day (today)',dayRoutine:'Daytime routine (today)'}
+};
+
+window.__nestErrors=window.__nestErrors||[];
+window.__nestRenderErrors=window.__nestRenderErrors||[];
+window.__nestLastRenderState=window.__nestLastRenderState||{};
+window.onerror=function(msg,src,line,col,err){window.__nestErrors.push({msg:String(msg||''),src:src||'',line:line||0,col:col||0,stack:err&&err.stack?String(err.stack):'',at:new Date().toISOString()});return false;};
+window.addEventListener('unhandledrejection',ev=>{const r=ev&&ev.reason;window.__nestErrors.push({msg:r&&r.message?String(r.message):String(r||'unhandledrejection'),stack:r&&r.stack?String(r.stack):'',at:new Date().toISOString()});});
+function safeRender(name,fn,options={}){try{const out=fn();window.__nestLastRenderState[name]={ok:true,at:new Date().toISOString()};return out;}catch(err){const item={name,msg:String(err&&err.message||err),stack:err&&err.stack?String(err.stack):'',at:new Date().toISOString()};window.__nestRenderErrors.push(item);console.error('[safeRender]',name,err);const el=options&&options.containerId?$(options.containerId):null;if(el&&options.fallbackHtml)el.innerHTML=options.fallbackHtml;window.__nestLastRenderState[name]={ok:false,error:item,at:item.at};return null;}}
+function debugNestStorage(){const raw=localStorage.getItem(PROFILE_KEY);let parsed=null,parseError='';try{parsed=raw?JSON.parse(raw):null;}catch(e){parseError=String(e.message||e);}const profileCount=parsed&&typeof parsed==='object'?Object.keys(parsed).length:0;let entryCount=0;if(parsed&&typeof parsed==='object'){Object.values(parsed).forEach(p=>{entryCount+=Array.isArray(p&&p.entries)?p.entries.length:0;});}return{appName:APP_NAME,appVersion:APP_VERSION,schemaVersion:STORAGE_SCHEMA_VERSION,currentProfileId:currentProfileId(),profileCount,entryCount,hasBlob:!!raw,parseError};}
+function debugLegacyEntries(){const list=Array.isArray(entries)?entries:[];const out={total:list.length,legacyType:0,invalidDate:0,invalidTime:0};list.forEach(e=>{if(!['sleep','feed','diaper','mood','cry','gas'].includes(e.type))out.legacyType++;if(!isValidDateStr(e.date||''))out.invalidDate++;const t=e.time||e.start||'';if(t&&!isValidTime(t))out.invalidTime++;});return out;}
+function debugRenderHealth(){return{appVersion:APP_SCHEMA_VERSION,userAgent:navigator.userAgent||'',activeSection:document.querySelector('.section.active')?.id||'',renderErrors:window.__nestRenderErrors.slice(-20),globalErrors:window.__nestErrors.slice(-20),containers:{predictions:!!$('pred-wrap'),todayRail:!!$('today-rail'),stats:!!$('stats-wrap')},lastRenderState:window.__nestLastRenderState||{}};}
+function debugDateParsing(){const sample='2026-04-28';const local=new Date(2026,3,28,12,0,0,0);return{rawDateString:new Date(sample).toString(),isoMidday:new Date(sample+'T12:00:00').toString(),localConstructor:local.toString(),parseYmdValid:isValidDateStr(sample)};}
+function debugIphoneHomeState(){return{isIOS:/iPhone|iPad|iPod/i.test(navigator.userAgent||''),homeActive:document.getElementById('sec-home')?.classList.contains('active')||false,todayEvents:calendarDayEntries(todayStr()).length,hasUndefinedText:document.body&&/undefined|NaN|Infinity|Invalid Date/.test(document.body.innerText||'')};}
+
+function currentLang(){const l=cfg&&cfg.lang;return SUPPORTED_LANGS.includes(l)?l:'pt-BR';}
+function t(k){const l=currentLang();return(I18N[l]&&I18N[l][k])||I18N['pt-BR'][k]||k;}
+const todayStr=()=>new Date().toLocaleDateString('sv-SE');
+const fmtTime=d=>d.toTimeString().slice(0,5);
+const fmtDur=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
+const fmtDurShort=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?String(r).padStart(2,'0'):'')):(r+'m');};
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+const parseTime=s=>{const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d;};
+function parseTimeOnDate(timeStr,dateStr){const[h,m]=timeStr.split(':').map(Number);const d=new Date(dateStr+'T12:00:00');d.setHours(h,m,0,0);return d;}
+const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
+/** Map any numeric minute offset to 0–1439 (fixes 1440 min countdown when engine returns 1440+). */
+function normClockMin(m){const x=Math.round(Number(m));if(!Number.isFinite(x))return 0;return((x%1440)+1440)%1440;}
+const minsToTime=m=>{const mm0=normClockMin(m);const h=Math.floor(mm0/60),r=mm0%60;return String(h).padStart(2,'0')+':'+String(r).padStart(2,'0');};
+const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
+function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
+function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
+function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1];}
+function maskTime(el){let v=el.value.replace(/[^\d]/g,'');if(v.length>4)v=v.slice(0,4);if(v.length>=3){let h=parseInt(v.slice(0,2),10),m=parseInt(v.slice(2),10);if(h>23)h=23;if(v.length===4&&m>59)m=59;el.value=String(h).padStart(2,'0')+':'+v.slice(2);}else if(v.length>=1){el.value=v;}}
+function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.length<=2)el.value=d;else if(d.length<=4)el.value=d.slice(0,2)+'-'+d.slice(2);else el.value=d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4);}
+function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
+function parseBirthDisplayToIso(s){const p=/^(\d{2})-(\d{2})-(\d{4})$/.exec((s||'').trim());if(!p)return null;const dd=+p[1],mm=+p[2],yy=+p[3];if(mm<1||mm>12||dd<1||dd>31)return null;const iso=yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');return isValidDateStr(iso)?iso:null;}
+function applyI18nStatic(){
+  const map=[['nav-home-label','home'],['nav-stats-label','data'],['nav-history-label','history'],['nav-copilot-label','copilot'],['settings-title','settings'],['cfg-language-label','language'],['stats-export-title','data'],['btn-export-json','exportJson'],['btn-export-csv','exportCsv'],['btn-export-pdf','reportPdf'],['btn-import-json','importJson']];
+  map.forEach(([id,key])=>{const el=$(id);if(el)el.textContent=t(key);});
+  const langSel=$('cfg-language');if(langSel){const optPt=langSel.querySelector('option[value=\"pt-BR\"]');const optEn=langSel.querySelector('option[value=\"en-US\"]');if(optPt)optPt.textContent=t('portuguese');if(optEn)optEn.textContent=t('english');}
+}
+
+/* ---- storage ---- */
+function loadProfilesBlob(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}}
+function tryRepairBrokenProfilesBlob(){const raw=localStorage.getItem(PROFILE_KEY);if(!raw)return;try{JSON.parse(raw);}catch(e){try{localStorage.setItem(PROFILE_KEY+'_corrupt_'+Date.now(),raw);}catch(e2){}localStorage.removeItem(PROFILE_KEY);}}
+function mergeFlatStorageIntoDefaultProfile(){try{const flatE=localStorage.getItem('nz3_entries');if(!flatE)return;const ent=JSON.parse(flatE);if(!Array.isArray(ent)||!ent.length)return;let blob=loadProfilesBlob();if(!blob)blob={};const id=localStorage.getItem(CUR_PROFILE)||'default';const slot=blob[id]||{entries:[],cfg:defaultCfg()};if((slot.entries||[]).length)return;slot.entries=ent.map(normalizeEntry).filter(Boolean);const oldC=localStorage.getItem('nz3_cfg');if(oldC)try{slot.cfg={...defaultCfg(),...slot.cfg,...JSON.parse(oldC)};}catch(e){}blob[id]=slot;localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}catch(e){}}
+function migrateToProfiles(){tryRepairBrokenProfilesBlob();mergeFlatStorageIntoDefaultProfile();const blob=loadProfilesBlob();if(blob)return;const oldE=localStorage.getItem('nz3_entries'),oldC=localStorage.getItem('nz3_cfg');let ent=[];try{ent=oldE?JSON.parse(oldE):[];}catch(e){ent=[];}if(!Array.isArray(ent))ent=[];let c=defaultCfg();try{if(oldC)c={...defaultCfg(),...JSON.parse(oldC)};}catch(e){}localStorage.setItem(PROFILE_KEY,JSON.stringify({default:{entries:ent,cfg:c}}));if(!localStorage.getItem(CUR_PROFILE))localStorage.setItem(CUR_PROFILE,'default');}
+function currentProfileId(){return localStorage.getItem(CUR_PROFILE)||'default';}
+function loadProfileIntoMemory(){migrateToProfiles();const id=currentProfileId(),blob=loadProfilesBlob();const slot=(blob&&blob[id])?blob[id]:{entries:[],cfg:defaultCfg()};entries=Array.isArray(slot.entries)?slot.entries:[];cfg={...defaultCfg(),...(slot.cfg||{})};migrateDataModel();}
+function persistAll(){const id=currentProfileId();let blob=loadProfilesBlob()||{};const c={...defaultCfg(),...cfg};delete c.appName;blob[id]={entries:JSON.parse(JSON.stringify(entries)),cfg:c};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}
+function save(){persistAll();}
+
+function babyAgeMonthsFromDate(iso,tRef=new Date()){if(!iso||!isValidDateStr(iso))return null;const b=new Date(iso+'T12:00:00'),t=tRef;let m=(t.getFullYear()-b.getFullYear())*12+(t.getMonth()-b.getMonth());if(t.getDate()<b.getDate())m--;return Math.max(0,Math.min(48,Math.floor(m)));}
+function babyAgeMonths(){if(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)){const m=babyAgeMonthsFromDate(cfg.babyBirthDate,now());if(m!=null)return m;}return Math.max(0,Math.min(48,parseInt(cfg.months,10)||3));}
+function dayBoundaryMins(){const s=(cfg.dayBoundary||'06:00');return isValidTime(s)?timeToMins(s):360;}
+function nightStartMinsVal(){const s=cfg.nightStart||'18:00';return isValidTime(s)?timeToMins(s):1080;}
+function isNightContextAtClock(mins){const dB=dayBoundaryMins(),ns=nightStartMinsVal();return mins>=ns||mins<dB;}
+function isNightContextForClock(t){return isNightContextAtClock(timeToMins(t));}
+/** Sono que cruza a janela fisiológica (ex.: começa 16:30 e segue até depois de nightStart) conta como noite em todo o app. */
+function sleepTouchesNightBetween(st,en){if(!st||!en||en.getTime()<=st.getTime())return false;const step=5*60000;for(let t=st.getTime();t<en.getTime();t+=step){const d=new Date(t);const mins=d.getHours()*60+d.getMinutes();if(isNightContextAtClock(mins))return true;}return false;}
+function sleepTouchesPhysiologicalNight(e){if(!e||e.type!=='sleep'||!e.end||!isValidTime(e.end))return false;const st=sleepStartDate(e),en=sleepEndDate(e);return sleepTouchesNightBetween(st,en);}
+/** Início na janela noturna OU sono diurno que entra nela = noite (trechos curtos na madrugada = despertares, não soneca). Soneca = só o que fica inteiro no dia sem tocar a janela noturna. */
+function setSleepKind(e){if(!e||e.type!=='sleep')return e;e.sleepKind=isNightContextForClock(e.start)||sleepTouchesPhysiologicalNight(e)?'night':'nap';e.subtype=e.sleepKind==='night'?'night':'nap';return e;}
+function sleepIsNight(e){
+  if(!(e&&e.type==='sleep'))return false;
+  if(e.sleepKind==='night')return true;
+  if(isNightContextForClock(e.start))return true;
+  if(e.end&&isValidTime(e.end))return sleepTouchesPhysiologicalNight(e);
+  const st=sleepStartDate(e);
+  return sleepTouchesNightBetween(st,now());
+}
+function normalizeEntry(raw){if(!raw||typeof raw!=='object')return null;const safe={...raw};safe.id=typeof safe.id==='number'?safe.id:Date.now()+Math.floor(Math.random()*1000);safe.date=isValidDateStr(safe.date)?safe.date:todayStr();let typ=typeof safe.type==='string'?safe.type:'sleep';if(typ==='unknown'){if(safe.start&&safe.end!=null)typ='sleep';else if(safe.subtype==='wet'||safe.subtype==='dirty'||safe.subtype==='both')typ='diaper';else if(safe.subtype==='breast'||safe.subtype==='bottle')typ='feed';else typ='sleep';}safe.type=typ;if(safe.type==='mood'&&safe.subtype==='cry')safe.subtype='crying';safe.start=isValidTime(safe.start)?safe.start:fmtTime(now());if(safe.end!=null&&!isValidTime(safe.end))safe.end=null;if(safe.durationMins!=null&&(!Number.isFinite(safe.durationMins)||safe.durationMins<0))safe.durationMins=null;if(safe.type==='sleep')setSleepKind(safe);return safe;}
+function normalizeCfgForImport(rawCfg={}){const base={...defaultCfg(),...(rawCfg||{})};if(base.babyBirthDate&&isValidDateStr(base.babyBirthDate)){base.months=babyAgeMonthsFromDate(base.babyBirthDate,now());}else{base.months=Math.max(0,Math.min(36,parseInt(base.months,10)||3));}if(base.premiumUnlockLocal===true||base.entitlementSource==='legacyPremiumUnlockLocal'||(base.entitlement&&base.entitlement.source==='legacyPremiumUnlockLocal')){EntitlementService.migrateLegacyPremiumState(base);}delete base.appName;return base;}
+function normalizeEntryForImport(raw,fallbackDate){if(!raw||typeof raw!=='object')return null;const e={...raw};e.date=isValidDateStr(e.date)?e.date:fallbackDate;const typ=typeof e.type==='string'?e.type:'unknown';if(typ==='feed'){const tm=isValidTime(e.time)?e.time:(isValidTime(e.start)?e.start:'');if(tm)e.time=tm;if(!e.start&&tm)e.start=tm;e.feedType=e.feedType||e.subtype||'';e.source=e.source||'user';}
+if(typ==='diaper'){const tm=isValidTime(e.time)?e.time:(isValidTime(e.start)?e.start:'');if(tm)e.time=tm;if(!e.start&&tm)e.start=tm;e.diaperType=e.diaperType||e.subtype||'wet';e.source=e.source||'user';}
+if(typ==='sleep'){e.source=e.source||'user';if(e.end==null)e.end='';if(e.end&&isValidTime(e.end)&&!(e.durationMins>0)&&isValidTime(e.start)){const iv=sleepIntervalDateTimes({date:e.date,start:e.start,end:e.end,type:'sleep'},new Date());e.durationMins=sleepDurationMinsFromDates(iv.start,iv.end);}if(e.durationMins===0&&e.start===e.end)e.zeroDuration=true;}
+if(typ==='signal'&&e.subtype==='cry'){e.type='mood';e.subtype='crying';}
+if(typ==='mood'&&e.subtype==='cry'){e.subtype='crying';}
+return normalizeEntry(e);}
+function debugImportedBackupShape(payload){const p=(payload&&typeof payload==='object')?payload:{};const rootShape=Object.keys(p).sort();const entriesRoot=Array.isArray(p.entries)?p.entries:[];const profileIdDetected=p.activeProfileId||p.profileId||'default';const schemaVersionDetected=(Number.isFinite(p.schemaVersion)?p.schemaVersion:null)??(p.cfg&&Number.isFinite(p.cfg.dataSchemaVersion)?p.cfg.dataSchemaVersion:0);const typeCounts={};entriesRoot.forEach(e=>{const k=(e&&e.type)||'unknown';typeCounts[k]=(typeCounts[k]||0)+1;});const warnings=[];if(!Array.isArray(p.profiles)&&!entriesRoot.length)warnings.push('no profiles and no root entries');return{rootShape,hasProfiles:!!p.profiles,hasEntriesRoot:Array.isArray(p.entries),entriesCount:entriesRoot.length,cfgKeys:Object.keys(p.cfg||{}).sort(),schemaVersionDetected,profileIdDetected,typeCounts,warnings};}
+function normalizeBackupPayload(payload){const p=(payload&&typeof payload==='object')?payload:{};const warnings=[];const schemaVersion=(Number.isFinite(p.schemaVersion)?p.schemaVersion:null)??(p.cfg&&Number.isFinite(p.cfg.dataSchemaVersion)?p.cfg.dataSchemaVersion:0);const activeProfileId=(p.activeProfileId||p.profileId||'default')+'';const fallbackDate=todayStr();const outProfiles={};if(p.profiles&&typeof p.profiles==='object'){Object.keys(p.profiles).forEach(pid=>{const pr=p.profiles[pid]||{};const list=Array.isArray(pr.entries)?pr.entries:[];const norm=uniqueEntriesForMetrics(list.map(x=>normalizeEntryForImport(x,fallbackDate)).filter(Boolean));outProfiles[pid]={entries:norm,cfg:normalizeCfgForImport(pr.cfg||p.cfg||{})};});}else{const list=Array.isArray(p.entries)?p.entries:[];const norm=uniqueEntriesForMetrics(list.map(x=>normalizeEntryForImport(x,fallbackDate)).filter(Boolean));outProfiles[activeProfileId]={entries:norm,cfg:normalizeCfgForImport(p.cfg||{})};warnings.push('migrated root entries/cfg to profiles format');}
+let finalActive=activeProfileId;if(!outProfiles[finalActive]){const ids=Object.keys(outProfiles);finalActive=ids.sort((a,b)=>(outProfiles[b].entries?.length||0)-(outProfiles[a].entries?.length||0))[0]||activeProfileId;warnings.push('activeProfileId adjusted to available profile');}
+return{schemaVersion,profiles:outProfiles,activeProfileId:finalActive,migratedFrom:p.profiles?'profiles':'root',warnings};}
+function createPreImportBackup(){const stamp=fmtDateSV(now()).replace(/-/g,'_')+'_'+fmtTime(now()).replace(':','_');const key='nest_backup_before_import_'+stamp;const blob={entries:[...entries],cfg:{...cfg},exportedAt:new Date().toISOString(),profileId:currentProfileId(),appName:APP_NAME};localStorage.setItem(key,JSON.stringify(blob));return key;}
+
+function backupNestStorageBeforeMigration(reason='migration'){const stamp=fmtDateSV(now()).replace(/-/g,'_')+'_'+fmtTime(now()).replace(':','_');const key='nest_backup_before_'+reason+'_'+stamp;const payload={appVersion:APP_VERSION,schemaVersion:STORAGE_SCHEMA_VERSION,exportedAt:new Date().toISOString(),activeProfileId:currentProfileId(),profiles:loadProfilesBlob()||{},cfg:{...cfg}};localStorage.setItem(key,JSON.stringify(payload));return key;}
+function migrateLegacyDataIfNeeded(){migrateToProfiles();const blob=loadProfilesBlob()||{};let changed=false;Object.keys(blob).forEach(pid=>{const slot=blob[pid]||{};const list=Array.isArray(slot.entries)?slot.entries:[];const normalized=uniqueEntriesForMetrics(list.map(e=>normalizeEntry(e)).filter(Boolean));if(normalized.length!==list.length)changed=true;blob[pid]={entries:normalized,cfg:normalizeCfgForImport(slot.cfg||{})};if((blob[pid].cfg.dataSchemaVersion||0)<STORAGE_SCHEMA_VERSION){blob[pid].cfg.dataSchemaVersion=STORAGE_SCHEMA_VERSION;changed=true;}});if(changed){backupNestStorageBeforeMigration('legacy');localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));}}
+function exportBackupJson(){const profiles=loadProfilesBlob()||{};const payload={appName:APP_NAME,appVersion:APP_VERSION,schemaVersion:STORAGE_SCHEMA_VERSION,exportedAt:new Date().toISOString(),activeProfileId:currentProfileId(),profiles,cfg:{...cfg}};const txt=JSON.stringify(payload,null,2);try{const blob=new Blob([txt],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('Backup exportado');}catch(err){prompt('Falha no download automático (iOS/Safari). Copie o JSON abaixo:',txt);}return payload;}
+
+function refreshAppAfterDataChange(reason=''){safeRender('home',()=>renderHome());safeRender('stats',()=>renderStats());safeRender('history',()=>renderHistory());if(reason)console.log('refreshAppAfterDataChange',reason);}
+function importBackupJson(fileOrText){const text=typeof fileOrText==='string'?fileOrText:JSON.stringify(fileOrText||{});const payload=JSON.parse(text);const dbg=debugImportedBackupShape(payload);const norm=normalizeBackupPayload(payload);createPreImportBackup();localStorage.setItem(PROFILE_KEY,JSON.stringify(norm.profiles));localStorage.setItem(CUR_PROFILE,norm.activeProfileId);loadProfileIntoMemory();migrateDataModel();save();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();refreshAppAfterDataChange('import-backup');return{ok:true,debug:dbg,normalized:norm};}
+function runNestSelfTests(){const fixture={entries:[{type:'feed',date:'2026-03-23',subtype:'bottle',start:'06:40',time:'06:40'},{type:'diaper',date:'2026-03-23',subtype:'both',start:'12:05',time:'12:05',diaperType:'both'},{type:'sleep',date:'2026-03-23',subtype:'nap',start:'08:40',end:'09:04',durationMins:24,sleepKind:'nap'},{type:'sleep',date:'2026-03-24',subtype:'night',start:'23:48',end:'03:18',durationMins:210,sleepKind:'night'},{type:'sleep',date:'2026-04-02',subtype:'night',start:'02:53',end:'02:53',durationMins:0,sleepKind:'night'},{type:'signal',date:'2026-04-11',subtype:'cry',start:'21:08'},{type:'mood',date:'2026-04-28',subtype:'gas',start:'05:22'}],cfg:{name:'Azrael',babyBirthDate:'2025-07-07',months:9,nightStart:'18:00',dayBoundary:'06:00',dataSchemaVersion:6,premiumUnlockLocal:true,profileSetupDone:true,lang:'pt-BR'},exportedAt:'2026-04-29T12:06:36.790Z',profileId:'default',appName:'Nest'};const checks=[];const norm=normalizeBackupPayload(fixture);const p=norm.profiles.default||{};checks.push(['A',!!p]);checks.push(['B',norm.activeProfileId==='default']);checks.push(['C',(p.entries||[]).find(e=>e.type==='feed')?.time==='06:40']);checks.push(['D',(p.entries||[]).find(e=>e.type==='diaper')?.diaperType==='both']);checks.push(['E',(p.entries||[]).some(e=>e.type==='sleep'&&e.subtype==='nap'&&e.durationMins===24)]);checks.push(['F',(p.entries||[]).some(e=>e.type==='sleep'&&e.subtype==='night'&&e.durationMins===210)]);checks.push(['G',(p.entries||[]).some(e=>e.type==='sleep'&&e.durationMins===0)]);checks.push(['H',(p.entries||[]).some(e=>e.type==='mood'&&e.subtype==='crying')&&(p.entries||[]).some(e=>e.type==='mood'&&e.subtype==='gas')]);checks.push(['I',p.cfg?.babyBirthDate==='2025-07-07']);checks.push(['J',p.cfg?.nightStart==='18:00'&&p.cfg?.dayBoundary==='06:00']);checks.push(['K',p.cfg?.entitlement?.status==='familyLifetime'&&p.cfg?.entitlement?.source==='legacy_local']);checks.push(['B2',EntitlementService.canUsePremium('any_feature')===true]);checks.push(['C2',EntitlementService.getPremiumLabel()==='Vitalício familiar ativo']);const wrongCfg={premiumUnlockLocal:true,entitlement:{status:'devUnlocked',source:'legacyPremiumUnlockLocal'}};EntitlementService.migrateLegacyPremiumState(wrongCfg);checks.push(['D2',wrongCfg.entitlement.status==='familyLifetime']);const devCfg={entitlement:{status:'devUnlocked',source:'local_dev'}};const prevCfg=cfg;cfg=devCfg;window.DEV_MODE=false;checks.push(['E2',EntitlementService.canUsePremium('x')===false]);window.DEV_MODE=true;checks.push(['E3',EntitlementService.canUsePremium('x')===true]);cfg=prevCfg;const beforeCount=(p.entries||[]).length;const norm2=normalizeBackupPayload(fixture);checks.push(['M',(norm2.profiles.default?.entries||[]).length===beforeCount]);const passed=checks.filter(c=>c[1]).length;return{passed,total:checks.length,checks,debug:debugImportedBackupShape(fixture),warnings:norm.warnings};}
+function migrateDataModel(){cfg={...defaultCfg(),...(cfg||{})};delete cfg.appName;if(!Array.isArray(entries))entries=[];entries=entries.map(normalizeEntry).filter(Boolean);if((cfg.dataSchemaVersion||0)<APP_SCHEMA_VERSION){if(cfg.dataSchemaVersion<3)entries.forEach(e=>{if(e&&e.type==='sleep'){delete e.sleepKind;setSleepKind(e);}});if(cfg.dataSchemaVersion<4)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});if(cfg.dataSchemaVersion<5)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});if(cfg.dataSchemaVersion<6)entries.forEach(e=>{if(e&&e.type==='sleep')setSleepKind(e);});cfg.dataSchemaVersion=APP_SCHEMA_VERSION;}if(!cfg.profileSetupDone&&(entries.length>0||(cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate))))cfg.profileSetupDone=true;}
+function profileNeedsSetup(){return!cfg.profileSetupDone;}
+
+/* ---- sleep engine (dates) ---- */
+function sleepStartDate(e){if(!e||!isValidTime(e.start))return null;const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.start.split(':').map(Number);d.setHours(h,m,0,0);return d;}
+function sleepEndDate(e){const dateStr=e.date&&isValidDateStr(e.date)?e.date:todayStr();const d=new Date(dateStr+'T12:00:00');const[h,m]=e.end.split(':').map(Number);d.setHours(h,m,0,0);if(timeToMins(e.end)<timeToMins(e.start))d.setDate(d.getDate()+1);return d;}
+function gapMinutesBetweenSleeps(a,b){if(!a||!b||!a.end||!b.start)return 0;const tE=sleepEndDate(a),tS=sleepStartDate(b);if(!tE||!tS)return 0;const g=Math.round((tS-tE)/60000);return g>0&&g<720?g:0;}
+const getActiveSleep=()=>entries.filter(e=>e.type==='sleep'&&!e.end).sort((a,b)=>b.id-a.id)[0]||null;
+function sleepWakeCalendarDay(e){if(!e||e.type!=='sleep'||!e.end)return null;return fmtDateSV(sleepEndDate(e));}
+function totalSleepMinsCalendarDay(ymd){let sum=0;const nowDt=new Date();uniqueEntriesForMetrics(entries,nowDt).forEach(e=>{if(e.type!=='sleep')return;const dur=getSleepDurationForMetrics(e,nowDt);if(dur<=0)return;if(sleepIsNight(e)){if(e.end&&sleepWakeCalendarDay(e)===ymd)sum+=dur;else if(!e.end){const wd=fmtDateSV(sleepEndDate({...e,end:fmtTime(nowDt)}));if(wd===ymd)sum+=dur;}}else if(e.date===ymd)sum+=dur;});return sum;}
+function calendarDayEntries(ymd){return entries.filter(e=>{if(!e||!e.date)return false;if(e.type!=='sleep')return e.date===ymd;if(!e.end){const act=getActiveSleep();if(!act||act.id!==e.id)return false;if(!sleepIsNight(act))return act.date===ymd;return fmtDateSV(sleepEndDate({...act,end:fmtTime(now())}))===ymd;}if(sleepIsNight(e))return sleepWakeCalendarDay(e)===ymd;return e.date===ymd;});}
+function nightSegmentsOnWakeDay(ymd){
+  const prevYmd=addCalendarDaysStr(ymd,-1);
+  const wakeStart=new Date(ymd+'T00:00:00');
+  const ns=nightStartMinsVal();
+  const eveningStartOnPrev=new Date(prevYmd+'T00:00:00');
+  eveningStartOnPrev.setHours(Math.floor(ns/60),ns%60,0,0);
+  const nextMidnightFromPrev=new Date(prevYmd+'T00:00:00');
+  nextMidnightFromPrev.setDate(nextMidnightFromPrev.getDate()+1);
+  const seen=new Set(),out=[];
+  entries.forEach(e=>{
+    if(e.type!=='sleep'||!sleepIsNight(e)||!e.end)return;
+    const id=e.id!=null?String(e.id):null;
+    const wakeDay=sleepWakeCalendarDay(e);
+    if(wakeDay===ymd){
+      if(!id||!seen.has(id)){out.push(e);if(id)seen.add(id);}
+      return;
+    }
+    if(e.date!==prevYmd)return;
+    const st=sleepStartDate(e),en=sleepEndDate(e);
+    if(!st||!en)return;
+    if(en>=wakeStart)return;
+    const overlapsEvening=en>eveningStartOnPrev&&st<nextMidnightFromPrev;
+    if(!overlapsEvening)return;
+    if(!id||!seen.has(id)){out.push(e);if(id)seen.add(id);}
+  });
+  out.sort((a,b)=>{
+    const sa=sleepStartDate(a),sb=sleepStartDate(b);
+    const da=(sa?sa.getTime():0)-(sb?sb.getTime():0);
+    if(da!==0)return da;
+    return sleepEndDate(a)-sleepEndDate(b);
+  });
+  return out;
+}
+function addCalendarDaysStr(ymd,delta){const d=new Date(ymd+'T12:00:00');d.setDate(d.getDate()+delta);return fmtDateSV(d);}
+function parseYmdLocal(ymd){const[y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d,0,0,0,0);}
+function addDaysLocal(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
+function setClockLocal(baseDate,hhmm){const[h,m]=String(hhmm||'').split(':').map(Number);const d=new Date(baseDate);d.setHours(h||0,m||0,0,0);return d;}
+function getNightWindowForWakeDay(wakeYmd){const wakeDate=parseYmdLocal(wakeYmd);const prevDate=addDaysLocal(wakeDate,-1);return{start:setClockLocal(prevDate,cfg.nightStart||'18:00'),end:setClockLocal(wakeDate,cfg.dayBoundary||'06:00')};}
+function getNightWindowForDate(ymd){return getNightWindowForWakeDay(ymd);}
+function sleepIntervalDateTimes(e,nowDt=new Date()){const startBase=parseYmdLocal(e.date);const start=setClockLocal(startBase,e.start);let end=null;if(e.end){end=setClockLocal(startBase,e.end);if(end<start)end=addDaysLocal(end,1);}else if(e.type==='sleep'){end=nowDt;}return{start,end};}
+function sleepDurationMinsFromDates(startDt,endDt){if(!startDt||!endDt)return 0;const ms=endDt-startDt;if(!Number.isFinite(ms)||ms<=0)return 0;return Math.round(ms/60000);}
+function sleepIdentityKey(e,nowDt=new Date()){if(!e||e.type!=='sleep'||!e.start)return'';const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start)return'';const endKey=iv.end?iv.end.getTime():'active';return`${e.date||''}|${e.start||''}|${e.end||''}|${iv.start.getTime()}|${endKey}`;}
+function uniqueEntriesForMetrics(list,nowDt=new Date()){const out=[],seenSleep=new Set(),seenId=new Set();(Array.isArray(list)?list:[]).forEach(e=>{if(!e||!e.type)return;const idKey=e.id!=null?String(e.id):'';if(idKey&&seenId.has(idKey))return;if(e.type==='sleep'){const sk=sleepIdentityKey(e,nowDt);if(sk&&seenSleep.has(sk))return;if(sk)seenSleep.add(sk);}if(idKey)seenId.add(idKey);out.push(e);});return out;}
+function getSleepDurationForMetrics(e,nowDt=new Date()){if(!e||e.type!=='sleep')return 0;if(e.durationMins>0)return e.durationMins;if(!e.start)return 0;const iv=sleepIntervalDateTimes(e,nowDt);return sleepDurationMinsFromDates(iv.start,iv.end);}
+function isSleepEntryDuplicate(candidate,list=entries,nowDt=new Date()){if(!candidate||candidate.type!=='sleep')return false;const k=sleepIdentityKey(candidate,nowDt);if(!k)return false;return list.some(e=>e&&e.type==='sleep'&&sleepIdentityKey(e,nowDt)===k);}
+function intervalsOverlap(aStart,aEnd,bStart,bEnd){if(!aStart||!aEnd||!bStart||!bEnd)return false;return aStart<bEnd&&aEnd>bStart;}
+function eventOverlapsInterval(aStart,aEnd,bStart,bEnd){return intervalsOverlap(aStart,aEnd,bStart,bEnd);}
+function getNightIntervalsAroundDate(ymd){
+  return [getNightWindowForWakeDay(ymd),getNightWindowForWakeDay(addCalendarDaysStr(ymd,1))];
+}
+function getActiveNightInterval(nowDt=new Date()){
+  const wakeYmd=getNightReferenceWakeYmd(nowDt);const sum=getNightSummaryForWakeDay(wakeYmd,nowDt);
+  if(!sum||!sum.hasActiveSleep||!sum.segs||!sum.segs.length)return null;
+  return {start:sum.segs[0]._startDt,end:nowDt};
+}
+function isNightRelatedEvent(e,nowDt=new Date()){
+  if(!e||!e.start)return false;
+  if(e.type==='sleep'){return sleepIsNight(e);}
+  const baseYmd=e.date&&isValidDateStr(e.date)?e.date:todayStr();
+  const point=parseTimeOnDate(e.start,baseYmd);
+  const intervals=getNightIntervalsAroundDate(baseYmd);
+  const active=getActiveNightInterval(nowDt);if(active)intervals.push(active);
+  return intervals.some(iv=>point>=iv.start&&point<=iv.end);
+}
+function getDaytimeEvents(ymd,nowDt=new Date()){return calendarDayEntries(ymd).filter(e=>!isNightRelatedEvent(e,nowDt));}
+function getDaySummary(ymd,nowDt=new Date()){
+  const dayEvents=uniqueEntriesForMetrics(getDaytimeEvents(ymd,nowDt),nowDt);
+  const sleeps=dayEvents.filter(e=>e.type==='sleep');
+  const sleepDurations=sleeps.map(e=>getSleepDurationForMetrics(e,nowDt)).filter(d=>d>0);
+  const sleepTotal=sleepDurations.reduce((a,d)=>a+d,0);
+  return{events:dayEvents,sleepTotal,sleepPeriods:sleepDurations.length,feeds:dayEvents.filter(e=>e.type==='feed').length,diapers:dayEvents.filter(e=>e.type==='diaper').length,awakenings:dayEvents.filter(e=>e.type==='wake').length};
+}
+function getNightSleepSegmentsForWakeDay(wakeYmd,nowDt=new Date()){const win=getNightWindowForWakeDay(wakeYmd);const seen=new Set();return entries.filter(e=>e.type==='sleep'&&e.start).map(e=>{const iv=sleepIntervalDateTimes(e,nowDt);if(!iv.start||!iv.end)return null;const computedDuration=sleepDurationMinsFromDates(iv.start,iv.end);const effective=e.durationMins>0?e.durationMins:computedDuration;if(e.end&&effective<=0)return null;const key=sleepIdentityKey(e,nowDt);if(key&&seen.has(key))return null;if(key)seen.add(key);return{...e,_startDt:iv.start,_endDt:iv.end,_computedDurationMins:effective,_isActive:!e.end};}).filter(Boolean).filter(e=>intervalsOverlap(e._startDt,e._endDt,win.start,win.end)).sort((a,b)=>a._startDt-b._startDt);}
+function getNightSummaryForWakeDay(wakeYmd,nowDt=new Date()){const segs=getNightSleepSegmentsForWakeDay(wakeYmd,nowDt);if(!segs.length)return null;const hasActiveSleep=segs.some(e=>e._isActive);let wakesBetween=0;const gaps=[];for(let i=0;i<segs.length-1;i++){const gap=Math.round((segs[i+1]._startDt-segs[i]._endDt)/60000);if(gap>0){wakesBetween++;gaps.push(gap);}}const totalSleep=segs.reduce((acc,e)=>{if(e._isActive)return acc+Math.max(0,Math.round((nowDt-e._startDt)/60000));return acc+(e.durationMins||e._computedDurationMins||0);},0);const wakes=hasActiveSleep?wakesBetween:wakesBetween+1;return{wakeYmd,segs,hasActiveSleep,totalSleep,blocks:segs.length,wakes,wakesBetween,firstStart:segs[0].start,lastEnd:hasActiveSleep?'agora':segs[segs.length-1].end,gaps};}
+/** Normaliza cadeia de sono para métricas: une trechos sobrepostos/colados (sem criar despertar artificial). */
+function normalizeSleepChainForStats(segs){
+  if(!Array.isArray(segs)||!segs.length)return[];
+  const ord=segs.slice().sort((a,b)=>{
+    const sa=sleepStartDate(a),sb=sleepStartDate(b);
+    const da=(sa?sa.getTime():0)-(sb?sb.getTime():0);
+    if(da!==0)return da;
+    return sleepEndDate(a)-sleepEndDate(b);
+  });
+  const out=[];
+  ord.forEach(e=>{
+    const st=sleepStartDate(e),en=sleepEndDate(e);
+    if(!st||!en||en<=st)return;
+    if(!out.length){
+      out.push({...e,date:fmtDateSV(st),start:fmtTime(st),end:fmtTime(en),durationMins:sleepDurationMinsFromDates(st,en),_st:st,_en:en});
+      return;
+    }
+    const last=out[out.length-1];
+    if(st.getTime()<=last._en.getTime()){
+      if(en>last._en)last._en=en;
+      last.end=fmtTime(last._en);
+      last.durationMins=sleepDurationMinsFromDates(last._st,last._en);
+      return;
+    }
+    out.push({...e,date:fmtDateSV(st),start:fmtTime(st),end:fmtTime(en),durationMins:sleepDurationMinsFromDates(st,en),_st:st,_en:en});
+  });
+  return out.map(e=>{const x={...e};delete x._st;delete x._en;return x;});
+}
+/** Count gaps >0 between consecutive night segments (not including final morning wake). */
+function nightWakeCountBetweenSegments(ymd){const segs=normalizeSleepChainForStats(nightSegmentsOnWakeDay(ymd));if(segs.length<2)return 0;let c=0;for(let i=0;i<segs.length-1;i++){const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);if(g>0)c++;}return c;}
+/** Soneca/sono diurno no mesmo dia civil que encadeia ao 1º trecho noturno (ex.: cochilo 18h antes da noite longa) — entra no total de sono da noite e no horário de "início". */
+function nightPrepSleepBeforeFirstSegment(segs){if(!segs||!segs.length)return null;const first=segs[0];const firstStart=sleepStartDate(first);if(!firstStart)return null;const firstDate=first.date&&isValidDateStr(first.date)?first.date:todayStr();let best=null;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;if(e.id===first.id)return;if(e.date!==firstDate)return;const en=sleepEndDate(e);if(en.getTime()>=firstStart.getTime())return;const gapMin=(firstStart.getTime()-en.getTime())/60000;if(gapMin<2||gapMin>12*60)return;if(!best||en.getTime()>sleepEndDate(best).getTime())best=e;});return best;}
+/** 1 if baby was likely awake meaningfully after prior sleep before first night block (e.g. after nap before long night stretch). */
+function nightWakeLeadInCount(wakeYmd,segs){if(!segs||!segs.length)return 0;if(nightPrepSleepBeforeFirstSegment(segs))return 0;const firstStart=sleepStartDate(segs[0]);const maxLook=16*3600000;let best=null,bestEnd=0;entries.forEach(e=>{if(e.type!=='sleep'||!e.end||!e.durationMins)return;const en=sleepEndDate(e);if(en>=firstStart)return;if(firstStart.getTime()-en.getTime()>maxLook)return;const t=en.getTime();if(t>bestEnd){bestEnd=t;best=e;}});if(!best)return 0;const g=gapMinutesBetweenSleeps(best,segs[0]);return g>=10?1:0;}
+/** Full night stats for logical night ending on wake calendar day `wakeYmd`. Inclui sono diurno encadeado antes do 1º trecho noturno no total e no "início". */
+function analyzeNightOnWakeDay(wakeYmd){const segsRaw=nightSegmentsOnWakeDay(wakeYmd);if(!segsRaw.length)return null;const prep=nightPrepSleepBeforeFirstSegment(segsRaw);const chainRaw=prep?[prep,...segsRaw]:segsRaw.slice();const chain=normalizeSleepChainForStats(chainRaw);const segs=normalizeSleepChainForStats(segsRaw);const first=chain[0],last=segs[segs.length-1];const totalSleep=chain.reduce((a,e)=>a+(e.durationMins||0),0);const durs=chain.map(e=>e.durationMins||0).filter(x=>x>0);const blocks=durs.length;const maxBlock=blocks?Math.max(...durs):0;const minBlock=blocks>1?Math.min(...durs):(durs[0]||0);let wakesBetween=0;const gaps=[];for(let i=0;i<chain.length-1;i++){const g=gapMinutesBetweenSleeps(chain[i],chain[i+1]);if(g>0){wakesBetween++;if(g<600)gaps.push(g);}}const avgGap=gaps.length?Math.round(gaps.reduce((x,y)=>x+y,0)/gaps.length):0;const leadIn=nightWakeLeadInCount(wakeYmd,segsRaw);const wakes=wakesBetween+1+leadIn;return{bedYmd:first.date,bedClock:first.start,wakeYmd:wakeYmd,wakeClock:last.end,totalSleep,blocks,wakes,wakesBetween,wakesTotal:wakes,leadIn,hasPrep:!!prep,maxBlock,minBlock,avgGap,segs,chain};}
+function analyzeLastCompleteNight(){return analyzeNightOnWakeDay(todayStr());}
+function getLastCompletedSleep(){const r=entries.filter(e=>e.type==='sleep'&&e.end);r.sort((a,b)=>sleepEndDate(b)-sleepEndDate(a));return r[0]||null;}
+function getDaysWithData(){return[...new Set(entries.filter(e=>e.type==='sleep'&&e.durationMins).map(e=>e.date))].sort();}
+const wwBaseTarget=m=>{if(m<=2)return 60;if(m<=4)return 90;if(m<=6)return 120;if(m<=9)return 150;if(m<=12)return 180;return 210;};
+const wakeCountsAsDayForPredictions=lastSleepOrEnd=>{
+  if(!lastSleepOrEnd)return false;
+  if(typeof lastSleepOrEnd==='object'&&!lastSleepOrEnd.end)return false;
+  return !isNightContextForClock(fmtTime(now()));
+};
+function getSleepEngineAdjustmentFromLastNight(){const an=analyzeLastCompleteNight();if(!an)return{napAdj:0,feedAdj:0,rangeAdj:0,label:''};let napAdj=0,feedAdj=0,rangeAdj=0;const bits=[];const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;if(an.totalSleep<tgtMin*0.78){napAdj+=8;feedAdj+=4;rangeAdj+=3;bits.push('débito de sono da noite');}if(an.wakesBetween>=3){napAdj+=10;feedAdj+=5;rangeAdj+=5;bits.push('noite fragmentada');}if(an.blocks>=2&&an.minBlock<40){napAdj+=6;bits.push('blocos curtos');}return{napAdj:Math.min(28,napAdj),feedAdj:Math.min(18,feedAdj),rangeAdj:Math.min(14,rangeAdj),label:bits.join(' · ')};}
+function sleepDebtNapAdjustment(){const an=analyzeLastCompleteNight();if(!an||!an.totalSleep)return 0;const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;const shortfall=Math.max(0,tgtMin-an.totalSleep);return shortfall<90?0:-Math.min(18,Math.floor(shortfall/90));}
+/** Aprendizado por histórico recente amplo: usa até 35 dias e até 320 intervalos (cobre ~1 mês com bastante registro). */
+function getHistoricalWakeWindows(daysBack=35,maxIntervals=320){const cut=now().getTime()-daysBack*24*60*60000;const sleeps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&e.end).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));const w=[];for(let i=0;i<sleeps.length-1;i++){const a=sleeps[i],b=sleeps[i+1];if(sleepIsNight(a)||sleepIsNight(b))continue;const aEnd=sleepEndDate(a);if(!aEnd||aEnd.getTime()<cut)continue;const g=gapMinutesBetweenSleeps(a,b);if(g>0&&g<300)w.push(g);}return w.slice(-Math.max(12,maxIntervals));}
+function medianOf(arr){if(!arr||!arr.length)return null;const s=arr.slice().sort((a,b)=>a-b);return s[Math.floor(s.length/2)];}
+/** Evita "janelas curtas demais" quando há histórico consistente: piso dinâmico por idade + mediana recente do bebê. */
+function wakeWindowLowerBound(base,hw,phase){const ageFloor=Math.max(35,Math.round(base*0.72));if(!hw||hw.length<4)return ageFloor;const med=medianOf(hw);if(!Number.isFinite(med))return ageFloor;const histFloor=Math.round(med*(phase>=3?0.80:0.76));return Math.max(ageFloor,histFloor);}
+function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).slice(-limit).map(e=>timeToMins(e.start));}
+function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const n=getSleepEngineAdjustmentFromLastNight();na+=n.napAdj;fa+=n.feedAdj;ra+=n.rangeAdj;return{napAdj:Math.min(45,na),feedAdj:Math.min(35,fa),rangeAdj:Math.min(26,ra),nightLabel:n.label};}
+function getRecentSignalCount(windowMin){const cut=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{return parseTimeOnDate(e.start,e.date).getTime()>=cut;}catch{return false;}}).length;}
+function getSignalPressure(){const s30=getRecentSignalCount(30),s90=getRecentSignalCount(90);const gasToday=calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype==='gas').length;const gasBias=Math.min(8,gasToday*2);return{napBias:Math.min(20,s30*5+s90*2+gasBias),feedBias:Math.min(15,s30*4),rangeBias:Math.min(10,s90*2),hasSignals:(s90>0||gasToday>0)};}
+function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const days=getDaysWithData().length;const phase=days<4?1:days<8?2:3;const hw=getHistoricalWakeWindows(35,320);const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.68+base*0.32)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.86+base*0.14)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw+=cx.napAdj-sp.napBias;pw=Math.max(wakeWindowLowerBound(base,hw,phase),Math.round(pw));range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=normClockMin(endM+pw),lo=normClockMin(c-range),hi=normClockMin(c+range);const basisBits=[];basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');if(hw.length>=4)basisBits.push('histórico amplo (35 dias)');if(hw.length>=4)basisBits.push('respeitando piso do histórico');if(cx.nightLabel)basisBits.push(cx.nightLabel);if(sp.hasSignals)basisBits.push('sinais recentes');return{center:minsToTime(c),from:minsToTime(lo),to:minsToTime(hi),basis:basisBits.join(' · '),phase,centerMin:c,range};}
+function smartPredictNextFeed(lastStart){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);if(rf.length<4){const t=normClockMin(timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias);return{center:minsToTime(t),from:minsToTime(normClockMin(t-20-cx.rangeAdj-sp.rangeBias)),to:minsToTime(normClockMin(t+20+cx.rangeAdj+sp.rangeBias)),basis:'tabela da idade',centerMin:t};}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=normClockMin(timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias);return{center:minsToTime(t),from:minsToTime(normClockMin(t-20)),to:minsToTime(normClockMin(t+20)),basis:'tabela da idade',centerMin:t};}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=Math.round(ai*0.8+base*0.2);const t=normClockMin(timeToMins(lastStart)+bl+cx.feedAdj-sp.feedBias);const r=15+cx.rangeAdj+sp.rangeBias;return{center:minsToTime(t),from:minsToTime(normClockMin(t-r)),to:minsToTime(normClockMin(t+r)),basis:'intervalo médio do bebê',centerMin:t};}
+/** Median *bedtime* = horário de início da noite lógica por dia (`bedClock` em analyzeNightOnWakeDay), não cada trecho da madrugada — evita mediana cair no despertar. */
+function getTypicalNightStartMins(){const sorted=[...new Set(entries.map(e=>e.date).filter(d=>d&&isValidDateStr(d)))].sort().reverse();const mins=[];for(let i=0;i<Math.min(21,sorted.length);i++){const an=analyzeNightOnWakeDay(sorted[i]);if(!an||!an.bedClock||!isValidTime(an.bedClock))continue;mins.push(timeToMins(an.bedClock));}if(mins.length){mins.sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}const nsE=entries.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e));if(!nsE.length)return nightStartMinsVal();const firstStarts=[];sorted.slice(0,21).forEach(ymd=>{const segs=nightSegmentsOnWakeDay(ymd);if(segs&&segs.length&&segs[0].start&&isValidTime(segs[0].start))firstStarts.push(timeToMins(segs[0].start));});if(firstStarts.length){firstStarts.sort((a,b)=>a-b);return firstStarts[Math.floor(firstStarts.length/2)];}const arr=nsE.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return arr[Math.floor(arr.length/2)];}
+/** Median number of daytime (non-night) sleeps per calendar day over the last `days` days with data — used to learn nap count transitions from behavior. */
+function medianDaytimeNapCountRecent(days){const sorted=[...new Set(entries.map(e=>e.date).filter(d=>d&&isValidDateStr(d)))].sort().reverse();const counts=[];for(let i=0;i<Math.min(days,sorted.length);i++){counts.push(calendarDayEntries(sorted[i]).filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length);}if(!counts.length)return null;counts.sort((a,b)=>a-b);return counts[Math.floor(counts.length/2)];}
+function expectedNapCountToday(){const m=babyAgeMonths();const ageCap=m<=2?5:m<=5?4:m<=8?3:2;const med=medianDaytimeNapCountRecent(10);let hint=ageCap;if(med!=null&&med>=1)hint=Math.min(ageCap,med);const td=calendarDayEntries(todayStr());const nDone=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length;return Math.max(nDone,hint);}
+/** Raw 0–100 pressure from long gaps / fewer naps than usual (evening only for count shortfall). Used as input, not added 1:1 to clock. */
+function napMissedShiftMins(ymd){const td=calendarDayEntries(ymd);const nowM=timeToMins(fmtTime(now()));const naps=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).sort((a,b)=>timeToMins(a.start)-timeToMins(b.start));const tgt=wwCurrentTargetMinutes();let debt=0;for(let i=1;i<naps.length;i++){const g=gapMinutesBetweenSleeps(naps[i-1],naps[i]);if(g>tgt+35)debt+=Math.min(45,Math.round((g-tgt-35)*0.35));}const exp=expectedNapCountToday();if(naps.length<exp&&nowM>=nightStartMinsVal()-75)debt+=Math.min(30,(exp-naps.length)*18);return Math.min(85,Math.round(debt));}
+/** Rotina da noite: **pressão do dia** (sono diurno, janelas, cansaço agora) em torno do corte `nightStart`, com **só um pouco** de puxão da mediana de deitar — não o contrário. */
+function nightStartPrediction(){const ymd=todayStr(),td=calendarDayEntries(ymd);const histMed=getTypicalNightStartMins();const histNights=entries.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e)).length;const napMin=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).reduce((a,e)=>a+(e.durationMins||0),0);const expN=expectedNapCountToday();const goalMin=expN*42;const rawMiss=napMissedShiftMins(ymd);let dayShift=0;if(napMin<goalMin*0.74)dayShift+=14;else if(napMin<goalMin*0.88)dayShift+=7;dayShift+=Math.min(28,Math.round(rawMiss*0.32));const last=getLastCompletedSleep();if(last&&last.end&&wakeCountsAsDayForPredictions(last)){const aw=Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));const tgt=wwCurrentTargetMinutes();if(aw>tgt+30)dayShift+=Math.min(22,Math.round((aw-tgt)*0.14));}dayShift=Math.max(-28,Math.min(42,dayShift));const nsCfg=nightStartMinsVal();let dayCenter=normClockMin(nsCfg+dayShift);const histW=histNights>=8?0.26:histNights>=4?0.22:histNights>=1?0.18:0.12;let m=normClockMin(Math.round(dayCenter*(1-histW)+histMed*histW));const bedLo=Math.max(12*60,nsCfg-4*60),bedHi=23*60+30;m=Math.max(bedLo,Math.min(bedHi,m));m=Math.min(m,Math.min(bedHi,normClockMin(dayCenter+38)));const cx=getContextAdjust();const r=Math.min(40,20+cx.rangeAdj);const basis=[];basis.push('pressão do sono de hoje (sonecas + janelas)');if(histNights>=1)basis.push('refino com mediana de deitar');if(Math.abs(dayShift)>=8)basis.push(dayShift>0?'dia pede deitar um pouco mais tarde':'dia permite deitar um pouco mais cedo');if(rawMiss>=18)basis.push('janelas longas hoje');return{center:minsToTime(m),from:minsToTime(normClockMin(m-r)),to:minsToTime(normClockMin(m+r)),basis:basis.join(' · '),centerMin:m,range:r};}
+function nightVsNextNap(last,napPred){if(!napPred)return true;const c=normClockMin(napPred.centerMin!=null?napPred.centerMin:timeToMins(napPred.center));const nsM=nightStartMinsVal();if(c>=nsM)return true;const baseline=getTypicalNightStartMins();const napEnd=normClockMin(timeToMins(napPred.to));if(baseline<=napEnd+25)return false;if(napMissedShiftMins(todayStr())>=40)return true;return false;}
+function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
+function wwCurrentTargetMinutes(){return wwBaseTarget(babyAgeMonths())+Math.min(25,getContextAdjust().napAdj);}
+function getWakeRisk(minutesAwake,target){const r=target?minutesAwake/target:0;if(r<0.85)return{lvl:'low',msg:'dentro da janela'};if(r<1.1)return{lvl:'mid',msg:'próximo do limite'};return{lvl:'high',msg:'janela estourada'};}
+/** Minutes until the next real-world occurrence of clock time `centerMin` (0–1439), crossing midnight when needed. */
+function minutesUntilNextClock(centerMin,refDate){const c=normClockMin(centerMin);const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();const nowM=timeToMins(fmtTime(d0));let diff=c-nowM;if(diff>0)return diff;if(diff===0)return 0;const t=new Date(d0);t.setHours(0,0,0,0);const h=Math.floor(c/60)%24,mm=c%60;t.setHours(h,mm,0,0);if(t.getTime()<=d0.getTime())t.setDate(t.getDate()+1);return Math.max(0,Math.round((t.getTime()-d0.getTime())/60000));}
+/** Next soneca in the *same civil afternoon* must not jump to +24h when center is earlier/equal to now (fixes "1440 min" bug). Night/rotina still uses minutesUntilNextClock. */
+function minutesUntilDaytimeNap(centerMin,refDate){const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();const nowM=timeToMins(fmtTime(d0)),c=normClockMin(centerMin);const db=dayBoundaryMins(),ns=nightStartMinsVal();const inDay=m=>m>=db&&m<ns;if(inDay(c)&&inDay(nowM)){if(c>nowM)return c-nowM;return 0;}return minutesUntilNextClock(c,d0);}
+function formatTimeUntil(timeStr){return minutesUntilNextClock(timeToMins(timeStr),now());}
+function formatTimeUntilNapIfDay(timeStr){return minutesUntilDaytimeNap(timeToMins(timeStr),now());}
+function napTransitionHelp(){const nowM=timeToMins(fmtTime(now()));if(nowM>=nightStartMinsVal()-45)return'';const td=calendarDayEntries(todayStr());const done=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length;const exp=expectedNapCountToday();if(exp<=1||done>=exp)return'';const m=babyAgeMonths();const ageCap=m<=2?5:m<=5?4:m<=8?3:2;const med=medianDaytimeNapCountRecent(8);const learningDown=med!=null&&med<ageCap&&exp>done;return learningDown?' O histórico recente está com menos sonecas que a tabela da idade — transição comum. Se recusar este cochilo, não force por muito tempo (ambiente calmo, ~20–30 min), aceite e espere novo cansaço.':' Ainda faltam sonecas no “plano” do dia ('+done+'/'+exp+'). Se recusar, não force por muito tempo (ambiente calmo, ~20–30 min); observe sinais e ajuste a próxima janela.';}
+function dataMaturity(){const days=getDaysWithData().length;const sl=entries.filter(e=>e.type==='sleep'&&e.durationMins).length;const fd=entries.filter(e=>e.type==='feed').length;const score=Math.min(96,8+Math.min(34,days*5)+Math.min(28,sl*2)+Math.min(18,fd));if(!sl&&!fd)return{conf:'low',label:'Começando',score,hint:'Registre sono e mamadas por 2–3 dias e as faixas ficam bem mais suas.'};if(days<3||sl<4)return{conf:'low',label:'Calibrando',score,hint:'Cada soneca e cada noite gravada afinam o modelo.'};if(days<7)return{conf:'mid',label:'Afinando',score,hint:'Histórico + idade — as faixas estão apertando.'};return{conf:'high',label:'Firme',score,hint:'Base sólida — leituras mais assertivas.'};}
+
+/* ==============================================
+   RENDERERS
+   ============================================== */
+function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#0B0A1A':'#F7F5FF');const ti=$('theme-icon');if(ti){ti.innerHTML=cfg.darkTheme?'<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>':'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';}}
+function toggleTheme(){cfg.darkTheme=!cfg.darkTheme;save();applyTheme();syncSettingsForm();}
+function applyThemeFromCheckbox(){cfg.darkTheme=$('cfg-dark-theme').checked;save();applyTheme();}
+
+function updateHeader(){const name=cfg.name||'Bebê';const av=$('avatar');if(av)av.textContent=(name.charAt(0)||'N').toUpperCase();$('head-baby').textContent=name;const h=now().getHours();const greet=h<5?'Boa madrugada':h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';$('head-greet').textContent=greet;$('head-age').textContent=babyAgeMonths()+' meses';}
+
+/* ---- Onboarding ---- */
+function syncOnboardingUI(){const ov=$('onboard');if(!ov)return;if(profileNeedsSetup()){ov.classList.add('open');ov.setAttribute('aria-hidden','false');const n=$('onb-name'),b=$('onb-birth');if(n)n.value=(cfg.name&&cfg.name!=='Bebê')?cfg.name:'';if(b)b.value=isoToBirthDisplay(cfg.babyBirthDate);}else{ov.classList.remove('open');ov.setAttribute('aria-hidden','true');}}
+function submitBabyOnboarding(){const raw=($('onb-name')?.value||'').trim();if(!raw){showToast('Preciso do nome do bebê');return;}const bdv=$('onb-birth')?.value;if(bdv&&bdv.replace(/\D/g,'').length>0){const iso=parseBirthDisplayToIso(bdv);if(!iso){showToast('Data inválida — use DD-MM-AAAA');return;}cfg.babyBirthDate=iso;}else cfg.babyBirthDate='';cfg.name=raw.slice(0,48);cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast('Tudo pronto, '+raw.split(' ')[0]);}
+function skipBabyOnboarding(){cfg.profileSetupDone=true;save();syncOnboardingUI();updateHeader();syncSettingsForm();renderHome();showToast('Você pode completar em Configurações');}
+
+/* ---- Profiles ---- */
+function refreshProfileSelect(){const sel=$('profile-select');if(!sel)return;const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);sel.innerHTML=ids.map(i=>`<option value="${i}">${escHtml((blob[i].cfg&&blob[i].cfg.name)||i)}</option>`).join('');sel.value=currentProfileId();}
+function switchProfile(id){persistAll();localStorage.setItem(CUR_PROFILE,id);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil trocado');}
+function addNewProfile(){const n=prompt('Nome do novo bebê:');if(!n||!n.trim())return;persistAll();const slug='p'+Date.now();let blob=loadProfilesBlob()||{};blob[slug]={entries:[],cfg:{...defaultCfg(),name:n.trim(),profileSetupDone:false}};localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,slug);loadProfileIntoMemory();applyTheme();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showSec('home');showToast('Novo perfil criado');}
+function deleteCurrentProfile(){const blob=loadProfilesBlob()||{};const ids=Object.keys(blob);if(ids.length<2){showToast('Só há um perfil');return;}if(!confirm('Excluir este perfil e todos os dados?'))return;persistAll();const id=currentProfileId();delete blob[id];localStorage.setItem(PROFILE_KEY,JSON.stringify(blob));localStorage.setItem(CUR_PROFILE,Object.keys(blob)[0]);loadProfileIntoMemory();refreshProfileSelect();syncSettingsForm();syncOnboardingUI();updateHeader();renderHome();showToast('Perfil excluído');}
+
+/* ---- Settings form ---- */
+function syncSettingsForm(){$('cfg-name').value=cfg.name||'';$('cfg-birth-date').value=isoToBirthDisplay(cfg.babyBirthDate);$('months-auto-hint').textContent=cfg.babyBirthDate&&isValidDateStr(cfg.babyBirthDate)?'(automático)':'';$('cfg-months').value=cfg.months!=null?cfg.months:3;$('cfg-night-start').value=cfg.nightStart||'18:00';$('cfg-day-boundary').value=cfg.dayBoundary||'06:00';$('cfg-language').value=currentLang();$('cfg-dark-theme').checked=!!cfg.darkTheme;$('cfg-late-night').checked=!!cfg.lateNightMode;$('cfg-remind-nap').checked=!!cfg.remindNap;$('cfg-remind-night').checked=!!cfg.remindNight;$('ctx-teething').checked=!!cfg.ctxTeething;$('ctx-cold').checked=!!cfg.ctxCold;$('ctx-vaccine').checked=!!cfg.ctxVaccine;$('ctx-travel').checked=!!cfg.ctxTravel;$('ctx-regression').checked=!!cfg.ctxRegression;$('ctx-other').checked=!!cfg.ctxOther;$('ctx-note').value=cfg.ctxNote||'';$('cfg-license-key').value=cfg.licenseToken||'';$('cfg-license-api').value=localStorage.getItem('nz_license_api_base')||'';refreshProfileSelect();updatePremiumStatusText();applyI18nStatic();}
+function saveSettings(){const rawNm=($('cfg-name').value||'').trim();cfg.name=rawNm||'Bebê';if(rawNm&&rawNm!=='Bebê')cfg.profileSetupDone=true;const bdv=$('cfg-birth-date').value;const iso=parseBirthDisplayToIso(bdv);if(iso){cfg.babyBirthDate=iso;cfg.profileSetupDone=true;}else cfg.babyBirthDate='';cfg.months=Math.max(0,Math.min(36,parseInt($('cfg-months').value,10)||3));cfg.lang=SUPPORTED_LANGS.includes($('cfg-language').value)?$('cfg-language').value:'pt-BR';const ns=$('cfg-night-start').value;cfg.nightStart=isValidTime(ns)?ns:'18:00';const dbv=$('cfg-day-boundary').value;cfg.dayBoundary=isValidTime(dbv)?dbv:'06:00';cfg.lateNightMode=$('cfg-late-night').checked;cfg.darkTheme=$('cfg-dark-theme').checked;cfg.remindNap=$('cfg-remind-nap').checked;cfg.remindNight=$('cfg-remind-night').checked;cfg.ctxTeething=$('ctx-teething').checked;cfg.ctxCold=$('ctx-cold').checked;cfg.ctxVaccine=$('ctx-vaccine').checked;cfg.ctxTravel=$('ctx-travel').checked;cfg.ctxRegression=$('ctx-regression').checked;cfg.ctxOther=$('ctx-other').checked;cfg.ctxNote=($('ctx-note').value||'').slice(0,80);const apiEl=$('cfg-license-api');if(apiEl){let u=(apiEl.value||'').trim();if(u&&!/^https?:\/\//i.test(u))u='https://'+u;localStorage.setItem('nz_license_api_base',u);}applyTheme();save();updateHeader();refreshProfileSelect();applyI18nStatic();showToast('Salvo');renderHome();}
+
+/* ---- Premium ---- */
+const EntitlementService={
+  statusRank:{free:0,expired:0,trial:1,premium:2,lifetime:3,familyLifetime:3,devUnlocked:3},
+  getEntitlement(localCfg=cfg){
+    const ent=(localCfg&&typeof localCfg.entitlement==='object')?{...localCfg.entitlement}:{};
+    if(typeof localCfg?.entitlement==='string'&&!ent.status)ent.status=localCfg.entitlement;
+    ent.status=ent.status||'free';
+    ent.source=ent.source||(localCfg?.entitlementSource||'unknown');
+    return ent;
+  },
+  isTrialValid(ent){if(ent.status!=='trial')return false;const start=ent.trialStart||cfg.trialStart; if(!start)return false;const elapsed=Math.floor((Date.now()-new Date(start).getTime())/(24*3600000));return elapsed<7;},
+  canUsePremium(featureKey){const ent=this.getEntitlement(cfg);if(ent.status==='familyLifetime'||ent.status==='lifetime'||ent.status==='premium')return true;if(ent.status==='trial')return this.isTrialValid(ent);if(ent.status==='devUnlocked')return !!window.DEV_MODE;return false;},
+  getPremiumLabel(){const ent=this.getEntitlement(cfg);if(ent.status==='familyLifetime')return 'Vitalício familiar ativo';if(ent.status==='lifetime')return 'Vitalício ativo';if(ent.status==='premium')return 'Premium ativo';if(ent.status==='trial')return this.isTrialValid(ent)?'Teste grátis ativo':'Teste grátis expirado';if(ent.status==='devUnlocked'&&window.DEV_MODE)return 'Modo desenvolvimento ativo';return 'Plano gratuito';},
+  migrateLegacyPremiumState(localCfg={}){
+    if(!localCfg||typeof localCfg!=='object')return localCfg;
+    const oldString=localCfg.entitlement==='devUnlocked'&&localCfg.entitlementSource==='legacyPremiumUnlockLocal';
+    const oldObj=localCfg.entitlement&&localCfg.entitlement.status==='devUnlocked'&&localCfg.entitlement.source==='legacyPremiumUnlockLocal';
+    const shouldLegacy=localCfg.premiumUnlockLocal===true||oldString||oldObj;
+    const ent=this.getEntitlement(localCfg);
+    const existingRank=this.statusRank[ent.status]??0;
+    if(shouldLegacy&&existingRank<3){
+      localCfg.entitlement={status:'familyLifetime',source:'legacy_local',label:'Vitalício familiar ativo',grantedAt:localCfg.updatedAt||new Date().toISOString(),migratedFrom:'premiumUnlockLocal',migrationNote:'Migrado de premiumUnlockLocal=true',previousStatus:(oldString||oldObj)?'devUnlocked':(ent.status||'free')};
+      delete localCfg.entitlementSource;
+    }
+    return localCfg;
+  },
+  activateFamilyLifetime(reason){cfg.entitlement={status:'familyLifetime',source:'family_code',label:'Vitalício familiar ativo',grantedAt:new Date().toISOString(),migrationNote:reason||'manual'};save();},
+  serializeEntitlement(localCfg=cfg){return this.getEntitlement(localCfg);}
+};
+function getPremiumState(){EntitlementService.migrateLegacyPremiumState(cfg);const ent=EntitlementService.getEntitlement(cfg);if(ent.status==='familyLifetime')return{tier:'lifetime',source:'familyLifetime'};if(ent.status==='lifetime')return{tier:'lifetime',source:ent.source||'license'};if(ent.status==='premium')return{tier:'premium',source:ent.source||'license'};if(ent.status==='trial'&&EntitlementService.isTrialValid(ent)){const el=Math.floor((Date.now()-new Date((ent.trialStart||cfg.trialStart)).getTime())/(24*3600000));return{tier:'trial',source:'trial',trialDaysLeft:Math.max(0,7-el)};}if(ent.status==='trial')return{tier:'free',source:'trial_ended'};if(ent.status==='devUnlocked'&&window.DEV_MODE)return{tier:'premium',source:'dev'};return{tier:'free',source:'free'};}
+function canUsePremiumFeatures(){return EntitlementService.canUsePremium('all_features');}
+function updatePremiumStatusText(){const el=$('premium-status');if(!el)return;el.textContent='Plano: '+EntitlementService.getPremiumLabel()+'.';}
+function startPremiumTrial(){const st=getPremiumState();if(st.tier!=='free'){showToast('Plano ativo já existente');return;}if(cfg.trialUsedAt){showToast('Teste já utilizado');return;}cfg.entitlement={status:'trial',source:'unknown',trialStart:new Date().toISOString()};cfg.premiumState='trial';cfg.trialStart=cfg.entitlement.trialStart;cfg.trialUsedAt=cfg.trialStart;save();syncSettingsForm();renderHome();showToast('7 dias liberados');}
+function getLicenseApiBase(){return(localStorage.getItem('nz_license_api_base')||'').replace(/\/$/,'');}
+function getOrCreateDeviceId(){const k='nz_device_id_v1';let id=localStorage.getItem(k);if(!id){id='dev-'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,id);}return id;}
+async function activateLicenseKey(){const code=($('cfg-license-key').value||'').trim();if(!code){showToast('Cole a chave primeiro');return;}const base=getLicenseApiBase();if(!base){showToast('Configure a URL do servidor primeiro');return;}try{const res=await fetch(base+'/api/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_id:getOrCreateDeviceId()})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||('HTTP '+res.status));cfg.licenseToken=code;cfg.licenseTier=data.tier;cfg.licenseExpiresAt=data.expires_at||null;save();syncSettingsForm();renderHome();showToast(data.tier==='lifetime'?'Vitalício ativado':'Premium ativado');}catch(err){showToast('Falha: '+String(err.message||err));}}
+
+/* ---- ORBITAL HERO ---- */
+function buildOrbitNodes(){const ymd=todayStr();const today=calendarDayEntries(ymd);const nodes=[];const boundary=dayBoundaryMins(),nightSt=nightStartMinsVal();today.filter(e=>e.type==='sleep').forEach(e=>{const m=timeToMins(e.start);nodes.push({type:'sleep',icon:'moon',time:e.start,mins:m,isNight:sleepIsNight(e)});});today.filter(e=>e.type==='feed').slice(-2).forEach(e=>{nodes.push({type:'feed',icon:'bottle',time:e.start,mins:timeToMins(e.start)});});return nodes;}
+function renderOrbit(){
+  const wrap=$('orbit-wrap');if(!wrap)return;
+  const kicker=$('orbit-kicker'),main=$('orbit-main'),sub=$('orbit-sub'),ctaLbl=$('orbit-cta-label'),cta=$('orbit-cta');
+  const active=getActiveSleep();
+  const last=getLastCompletedSleep();
+  const today=calendarDayEntries(todayStr());
+  const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
+
+  // Decide what the center shows
+  let title='',subText='',ctaText='Registrar agora',ctaFn='log';
+  let predObj=null,predIsNight=false;
+  if(active){
+    // Sleeping right now
+    const st=parseTimeOnDate(active.start,active.date);
+    const mins=Math.max(0,Math.round((now()-st)/60000));
+    kicker.textContent=sleepIsNight(active)?'Noite em curso':'Soneca em curso';
+    title='<span>'+fmtDurShort(mins).replace(/^(\d+h)/, '$1 ').replace(/^(\d+m)$/, '$1')+'</span>';
+    main.innerHTML=fmtDurShort(mins).split('h').length>1 ? `${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>` : `${mins}<small>min</small>`;
+    if(sleepIsNight(active))sub.textContent='Dormiu às '+active.start+' · trechos curtos na madrugada contam como parte da noite (despertares). Soneca de dia = só o que fica inteiro antes da janela da noite (sem atravessar '+minsToTime(nightStartMinsVal())+').';
+    else sub.textContent='Dormiu às '+active.start+' · toque em Acordou quando despertar.';
+    ctaLbl.textContent='Acordou agora';
+    cta.dataset.action='wake';
+    cta.onclick=()=>{babyWoke();};
+  }else if(isNightContextForClock(fmtTime(now()))){
+    // Inside the physiological night window — suggest night sleep, don't predict it as far away
+    const mSinceLast=last?Math.max(0,Math.floor((now()-sleepEndDate(last))/60000)):null;
+    kicker.textContent='Janela noturna';
+    main.innerHTML='<span class="serif" style="font-size:36px;line-height:1.1">Hora de dormir</span>';
+    sub.textContent=mSinceLast!=null?'Desperto há '+fmtDur(mSinceLast)+'. Toque em Dormiu quando adormecer.':'Início da noite foi às '+(cfg.nightStart||'18:00')+'. Toque em Dormiu quando adormecer.';
+    ctaLbl.textContent='Dormiu agora';
+    cta.onclick=()=>{babySlept();};
+  }else if(last&&wakeCountsAsDayForPredictions(last)){
+    // Daytime — show next nap (if manual end time pushed prediction into the past, don't fake a ~24h countdown)
+    const p=smartPredictNextNap(last.end,last.durationMins||0,ts);
+    predIsNight=nightVsNextNap(last,p);
+    predObj=predIsNight?nightStartPrediction():p;
+    const nowM=timeToMins(fmtTime(now()));
+    const toM=predObj.to!=null?timeToMins(predObj.to):null;
+    const overdueNap=!predIsNight&&toM!=null&&nowM>toM;
+    const mins=predIsNight?formatTimeUntil(predObj.center):formatTimeUntilNapIfDay(predObj.center);
+    if(overdueNap){
+      const late=Math.min(24*60,nowM-toM);
+      kicker.textContent='Soneca em atraso';
+      main.innerHTML=late<60?`${late}<small>min</small>`:`${Math.floor(late/60)}<small>h</small> ${String(late%60).padStart(2,'0')}<small>min</small>`;
+      sub.textContent='Depois da faixa '+predObj.from+'–'+predObj.to+' · '+predObj.basis+(napMissedShiftMins(todayStr())>=25?' · dia com janela esticada — noite pode atrasar um pouco.':'');
+    }else{
+      kicker.textContent=predIsNight?'Rotina da noite em':'Próxima soneca em';
+      main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
+      sub.textContent='Faixa provável '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
+    }
+    ctaLbl.textContent='Dormiu agora';
+    cta.onclick=()=>{babySlept();};
+  }else if(last){
+    // Daytime (sleep ended during day) but outside active-nap logic — show night routine
+    const p=nightStartPrediction();
+    predObj=p;predIsNight=true;
+    const mins=formatTimeUntil(p.center);
+    kicker.textContent='Rotina da noite em';
+    main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
+    sub.textContent='Janela típica '+p.from+'–'+p.to+' · '+p.basis;
+    ctaLbl.textContent='Dormiu agora';
+    cta.onclick=()=>{babySlept();};
+  }else{
+    // No data yet
+    kicker.textContent='Bem-vindo';
+    main.innerHTML='—';
+    sub.textContent='Registre o primeiro sono para começarmos a aprender o ritmo.';
+    ctaLbl.textContent='Dormiu agora';
+    cta.onclick=()=>{babySlept();};
+  }
+
+  // Orbit arc: progress around the ring (sleep = elapsed vs typical nap length; awake = vs wake window target). Always 0–100% of the circle so the SVG arc stays valid.
+  const arc=$('orbit-arc');
+  if(arc){
+    const R=120,CX=150,CY=150;
+    let pct=0;
+    if(active){
+      const sleepM=Math.max(0,Math.round((now()-parseTimeOnDate(active.start,active.date))/60000));
+      if(sleepIsNight(active)){pct=Math.min(1,sleepM/(8*60));}else{const napTypical=Math.max(40,Math.min(130,15+wwBaseTarget(babyAgeMonths())));pct=Math.min(1,sleepM/Math.max(1,napTypical));}
+    }else if(last&&wakeCountsAsDayForPredictions(last)){
+      const aw=wwCurrentAwakeMinutes(),tgt=wwCurrentTargetMinutes();
+      pct=Math.min(1,aw/Math.max(1,tgt));
+    }
+    if(pct>=0.999){
+      arc.setAttribute('d',`M ${CX} ${CY-R} A ${R} ${R} 0 1 1 ${CX} ${CY+R} A ${R} ${R} 0 1 1 ${CX} ${CY-R}`);
+    }else if(pct>0.01){
+      const theta=-Math.PI/2+pct*Math.PI*2;
+      const x=CX+R*Math.cos(theta),y=CY+R*Math.sin(theta);
+      const large=pct>0.5?1:0;
+      arc.setAttribute('d',`M ${CX} ${CY-R} A ${R} ${R} 0 ${large} 1 ${x.toFixed(2)} ${y.toFixed(2)}`);
+    }else arc.setAttribute('d','');
+  }
+
+  // Orbit nodes (sleeps/feeds of today plotted on circle by time)
+  const host=$('orbit-nodes');if(host){
+    const ymd=todayStr();
+    const items=[];
+    const push=(icon,time,mins,active,subLbl,tone)=>items.push({icon,time,mins,active,subLbl,tone});
+    today.filter(e=>e.type==='sleep').forEach(e=>{push('moon',e.start,timeToMins(e.start),false,sleepIsNight(e)?'noite':'soneca','sleep');});
+    today.filter(e=>e.type==='feed').slice(-3).forEach(e=>{push('feed',e.start,timeToMins(e.start),false,'mamada','feed');});
+    if(predObj){push(predIsNight?'moon':'sun',predObj.center,predObj.centerMin,true,'próxima','next');}
+    const nowM=timeToMins(fmtTime(now()));
+    // Map mins (0-1439) -> angle on circle. Use a 12h window centered on NOW.
+    const win=12*60;const start=nowM-win/2;
+    const html=items.map(it=>{
+      let rel=it.mins-start;while(rel<0)rel+=1440;while(rel>=1440)rel-=1440;
+      if(rel>win)return '';
+      const theta=-Math.PI/2+(rel/win)*Math.PI*2;
+      const R=125;
+      const x=50+(R/3)*Math.cos(theta),y=50+(R/3)*Math.sin(theta);
+      const icon=it.icon==='moon'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>':it.icon==='sun'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>';
+      return `<div class="orbit-node ${it.active?'active':''}" style="left:${50+(Math.cos(theta)*42)}%;top:${50+(Math.sin(theta)*42)}%">
+        <div class="on-dot">${icon}</div>
+        <div class="on-time">${escHtml(it.time)}</div>
+      </div>`;
+    }).join('');
+    host.innerHTML=html;
+  }
+
+  // Twinkle stars
+  const stars=document.querySelector('.orbit-stars');
+  if(stars&&!stars.dataset.rendered){stars.dataset.rendered='1';let s='';for(let i=0;i<28;i++){const x=Math.random()*100,y=Math.random()*100,d=Math.random()*3;s+=`<span style="left:${x}%;top:${y}%;animation-delay:${d}s"></span>`;}stars.innerHTML=s;}
+}
+
+/* ---- Status cards ---- */
+function renderStatusRow(){
+  const host=$('status-row');if(!host)return;
+  const lastSleep=getLastCompletedSleep();
+  const lastFeed=entries.filter(e=>e.type==='feed').sort((a,b)=>{const da=new Date(a.date+'T12:00:00'),db=new Date(b.date+'T12:00:00');return db-da||timeToMins(b.start)-timeToMins(a.start);})[0];
+  let sleepHtml='<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">Último sono</div><div class="sc-main">—</div><div class="sc-sub">Sem registros ainda.</div></div>';
+  if(lastSleep){const mSince=Math.max(0,Math.round((now()-sleepEndDate(lastSleep))/60000));sleepHtml=`<div class="status-card" style="--tone:var(--c-sleep)"><div class="sc-label">${sleepIsNight(lastSleep)?'Última noite':'Última soneca'}</div><div class="sc-main">${fmtDurShort(lastSleep.durationMins||0)}</div><div class="sc-sub">Acordou há ${fmtDur(mSince)} · ${lastSleep.start} → ${lastSleep.end||'—'}</div></div>`;}
+  let feedHtml='<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">Última mamada</div><div class="sc-main">—</div><div class="sc-sub">Toque no + para registrar.</div></div>';
+  if(lastFeed){const since=Math.max(0,Math.round((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000));feedHtml=`<div class="status-card" style="--tone:var(--c-feed)"><div class="sc-label">Última mamada</div><div class="sc-main">${fmtDurShort(since)}</div><div class="sc-sub">${escHtml(lastFeed.subtype==='breast'?'Seio':'Mamadeira')} · ${lastFeed.start}${lastFeed.durationMins?' · '+lastFeed.durationMins+'min':''}</div></div>`;}
+  host.innerHTML=sleepHtml+feedHtml;
+}
+
+/* ---- Insight ---- */
+function buildDayFlowRead(){const ymd=todayStr(),td=calendarDayEntries(ymd);const naps=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e));const napMin=naps.reduce((a,e)=>a+(e.durationMins||0),0);const late=naps.filter(e=>timeToMins(e.start)>=nightStartMinsVal()-90);const feeds=td.filter(e=>e.type==='feed').length,di=td.filter(e=>e.type==='diaper').length;const mo=td.filter(e=>e.type==='mood').length;const g=calendarDayEntries(ymd).filter(e=>e.type==='mood'&&e.subtype==='gas').length;let flow='O dia ainda está no começo para termos uma leitura robusta.';let tone='neutral';if(naps.length>=1){if(naps.length>=4||(napMin<90&&naps.length>=2)){flow='Dia <strong>fragmentado</strong>: várias sonecas curtas. Espere humor mais sensível à tarde.';tone='warn';}else if(late.length){flow='Houve <strong>soneca tardia</strong> (perto da noite). A entrada na noite pode atrasar.';tone='warn';}else if(napMin>=90){flow='Boa <strong>base de descanso</strong> de dia — o motor abre a janela com mais folga.';tone='ok';}else{flow='Dia <strong>no ritmo</strong> para o que foi registrado até agora.';tone='ok';}}const bot=naps.length>=4?'Sonecas muitas e curtas — consolide a próxima.':(late.length?'Soneca perto do horário da noite — cuidado com o atraso.':(g>=3?'Muitos sinais de gases — pode puxar a próxima janela pra menos.':(feeds<2&&naps.length>0&&babyAgeMonths()<=3?'Poucas mamadas para o tamanho do dia.':'Sem gargalo óbvio agora.')));return{flow,bot,tone,stats:{napMin,feeds,di,mo,naps:naps.length}};}
+function renderInsight(){const host=$('home-insight');if(!host)return;const d=buildDayFlowRead();const chipCls=d.tone==='warn'?'warn':d.tone==='ok'?'ok':'';host.innerHTML=`<div class="insight"><div class="insight-kicker">Leitura do dia</div><div class="insight-title">${d.flow}</div><div class="insight-body"><strong>Atenção:</strong> ${escHtml(d.bot)}</div><div class="insight-chip ${chipCls}">${d.stats.naps} sonecas · ${d.stats.feeds} mamadas · ${d.stats.di} fraldas</div></div>`;}
+
+/* ---- Predictions list ---- */
+function renderPredictions(){
+  const list=$('pred-list'),badge=$('home-conf-badge');if(!list)return;
+  const dm=dataMaturity();if(badge){badge.textContent=dm.label;badge.style.color=dm.conf==='high'?'var(--mint)':dm.conf==='mid'?'var(--sun)':'var(--lilac)';}
+  const today=calendarDayEntries(todayStr());
+  const activeSleep=getActiveSleep();
+  const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);
+  const lastSleep=getLastCompletedSleep();
+  const preds=[];
+  const insideNight=isNightContextForClock(fmtTime(now()));
+  if(activeSleep){
+    preds.push({kind:'sleep-now',name:sleepIsNight(activeSleep)?'Noite em andamento':'Soneca em andamento',sub:'Registre Acordou quando despertar',pred:{center:activeSleep.start,from:activeSleep.start,to:activeSleep.start,basis:'sono ativo'},color:sleepIsNight(activeSleep)?'#6366F1':'#A78BFA'});
+  }else if(insideNight){
+    // Inside night window — "next window" is waking up in the morning, not a future night start
+    preds.push({kind:'night-now',name:'Janela noturna ativa',sub:'Toque em Dormiu quando adormecer',pred:{center:cfg.dayBoundary||'06:00',from:cfg.nightStart||'18:00',to:cfg.dayBoundary||'06:00',basis:'janela fisiológica configurada'},color:'#6366F1'});
+  }else if(lastSleep&&lastSleep.end){
+    if(wakeCountsAsDayForPredictions(lastSleep)){
+      const p=smartPredictNextNap(lastSleep.end,lastSleep.durationMins||0,ts);
+      if(nightVsNextNap(lastSleep,p)){const np=nightStartPrediction();preds.push({kind:'night',name:'Entrada da noite',sub:'Com base no dia + histórico',pred:np,color:'#6366F1'});}
+      else{preds.push({kind:'nap',name:'Próxima soneca',sub:'A partir do último despertar',pred:p,color:'#A78BFA'});const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Hora de desacelerar',pred:np,color:'#6366F1'});}
+    }else{const np=nightStartPrediction();preds.push({kind:'night',name:'Rotina da noite',sub:'Fim do dia se aproximando',pred:np,color:'#6366F1'});}
+  }
+  const lf=today.filter(e=>e.type==='feed').sort((a,b)=>timeToMins(b.start)-timeToMins(a.start))[0]||entries.filter(e=>e.type==='feed').sort((a,b)=>b.id-a.id)[0];
+  if(lf){const p=smartPredictNextFeed(lf.start);preds.push({kind:'feed',name:'Próxima mamada',sub:insideNight?'Noturna — bebês pequenos ainda mamam de madrugada':'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE'});}
+  if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
+  const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
+  list.innerHTML=preds.map(p=>{
+    const risk=p.kind==='nap'?getWakeRisk(wwCurrentAwakeMinutes(),wwCurrentTargetMinutes()):null;
+    const ico=iconSvg[p.kind==='night-now'?'night':p.kind==='sleep-now'?'sleep':p.kind]||iconSvg.nap;
+    let right;
+    if(p.kind==='night-now'||p.kind==='sleep-now'){
+      right=`<div class="pclock" style="font-size:16px">agora</div><div class="prange">desperta ~${escHtml(p.pred.center)}</div>`;
+    }else{
+      const nowM=timeToMins(fmtTime(now())),centerM=normClockMin(timeToMins(p.pred.center));
+      const nowDay=nowM>=dayBoundaryMins()&&nowM<nightStartMinsVal();
+      const centerDay=centerM>=dayBoundaryMins()&&centerM<nightStartMinsVal();
+      const overdueMin=(p.kind==='nap'&&nowDay&&centerDay&&centerM<nowM)?(nowM-centerM):0;
+      const diffMin=p.kind==='nap'&&nowDay&&centerDay?minutesUntilDaytimeNap(centerM,now()):(centerM>=nowM?centerM-nowM:centerM-nowM+1440);
+      const timeLbl=overdueMin>0?`<span style="color:var(--rose)">atrasada ~${overdueMin} min</span>`:`em ${diffMin} min · ${escHtml(p.pred.from)}–${escHtml(p.pred.to)}`;
+      right=`<div class="pclock">${escHtml(p.pred.center)}</div><div class="prange">${timeLbl}</div>`;
+    }
+    return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime">${right}</div></div>`;
+  }).join('');
+}
+
+/* ---- Glance ---- */
+function renderGlance(){const host=$('glance');if(!host)return;const ymd=todayStr();const td=calendarDayEntries(ymd);const total=totalSleepMinsCalendarDay(ymd);const anN=analyzeLastCompleteNight();const wakeShow=anN&&anN.wakes!=null?anN.wakes:nightWakeCountBetweenSegments(ymd);host.innerHTML=`<div class="glance-cell" data-tone="sleep"><div class="glance-val">${fmtDurShort(total)}</div><div class="glance-lbl">Sono</div></div><div class="glance-cell" data-tone="feed"><div class="glance-val">${td.filter(e=>e.type==='feed').length}</div><div class="glance-lbl">Mamadas</div></div><div class="glance-cell" data-tone="diaper"><div class="glance-val">${td.filter(e=>e.type==='diaper').length}</div><div class="glance-lbl">Fraldas</div></div><div class="glance-cell" data-tone="night"><div class="glance-val">${wakeShow}</div><div class="glance-lbl">Despertares (noite)</div></div>`;}
+
+/* ---- Night panel ---- */
+function getNightReferenceWakeYmd(nowDt=new Date()){const ymd=todayStr();if(timeToMins(fmtTime(nowDt))>=nightStartMinsVal())return fmtDateSV(addDaysLocal(parseYmdLocal(ymd),1));return ymd;}
+function nightCardHasActiveSleep(nowDt=new Date()){const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);return !!(an&&an.hasActiveSleep);}
+function ensureNightCardAutoRefresh(nowDt=new Date()){const needs=nightCardHasActiveSleep(nowDt);if(needs&&!homeNightTimer){homeNightTimer=setInterval(()=>{if(document.hidden)return;renderHome();},60000);}else if(!needs&&homeNightTimer){clearInterval(homeNightTimer);homeNightTimer=null;}}
+function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const nowDt=new Date();const wakeYmd=getNightReferenceWakeYmd(nowDt);const an=getNightSummaryForWakeDay(wakeYmd,nowDt);if(!an){host.innerHTML='';return;}const waves=[];for(let i=0;i<an.segs.length;i++){const seg=an.segs[i];const segDur=seg._isActive?Math.max(0,Math.round((nowDt-seg._startDt)/60000)):(seg.durationMins||seg._computedDurationMins||0);waves.push(`<span class="nseg-pill sl">${fmtDurShort(segDur)}</span>`);if(i<an.segs.length-1){const gap=Math.round((an.segs[i+1]._startDt-an.segs[i]._endDt)/60000);if(gap>0)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(gap)}</span>`);}}const kicker=t('nightOngoing');const wakeMetricVal=an.hasActiveSleep?an.wakesBetween:an.wakes;const wakeMetricLbl=an.hasActiveSleep?'Entre trechos':t('awakenings');const nightFoot=an.hasActiveSleep?`${t('nightOngoing')}: ${t('sleep').toLowerCase()} ativo em tempo real. ${wakeMetricLbl} = pausas entre trechos (despertar final entra ao fechar a noite).`:`${t('periods')} = janela ${escHtml(cfg.nightStart||'18:00')} → ${escHtml(cfg.dayBoundary||'06:00')}.`;host.innerHTML=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">${escHtml(kicker)}</span><span class="nh-range">${escHtml(an.firstStart)} → ${escHtml(an.lastEnd||'—')}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(an.totalSleep)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${an.blocks}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${wakeMetricVal}</div><div class="night-metric-lbl">${escHtml(wakeMetricLbl)}</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">${nightFoot}</p></div>`;}
+function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary(ymd,new Date());host.innerHTML=`<div class="night-panel day-panel"><div class="night-head"><span class="nh-kicker">${escHtml(t('daySummary'))}</span><span class="nh-range">${escHtml(ymd)}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal)}</div><div class="night-metric-lbl">${escHtml(t('totalSleep'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods}</div><div class="night-metric-lbl">${escHtml(t('periods'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds}</div><div class="night-metric-lbl">${escHtml(t('feeds'))}</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers}</div><div class="night-metric-lbl">${escHtml(t('diapers'))}</div></div></div><p class="night-foot">${escHtml(t('daySummary'))}: ${sum.events.length} ${escHtml(t('events').toLowerCase())}.</p></div>`;}
+
+/* ---- Today rail (horizontal timeline) ---- */
+function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';if(!ev.length){host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
+
+/* ---- COPILOT ---- */
+function moodCountToday(sub){return calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype===sub).length;}
+function renderCopilot(){
+  const dm=dataMaturity();
+  const hero=$('cop-hero');if(hero){hero.innerHTML=`<div class="ch-kick">Copiloto</div><h2 class="ch-title">${dm.score<35?'Está começando a entender o bebê':dm.score<65?'Já estou lendo padrões':'Leitura firme do seu ritmo'}</h2><p class="ch-sub">${escHtml(dm.hint)}</p><div class="ch-meter"><div class="ch-fill" style="width:${dm.score}%"></div></div><div class="ch-chips"><span class="cop-chip">${dm.label}</span><span class="cop-chip">${getDaysWithData().length} dias · ${entries.filter(e=>e.type==='sleep'&&e.durationMins).length} sonos</span><span class="cop-chip">${babyAgeMonths()} meses</span></div>`;}
+
+  // Agora
+  const now_=$('cop-now');if(now_){const active=getActiveSleep();const last=getLastCompletedSleep();let title,body,rule=[];if(active){title=sleepIsNight(active)?'Sono noturno em curso':'Soneca em curso';if(sleepIsNight(active)){body=`Começou às <strong>${active.start}</strong>. Qualquer trecho nesta janela entra como <strong>noite</strong> (inclui despertares curtos). Soneca de dia = sono que <strong>não atravessa</strong> a janela da noite (a partir de <strong>${minsToTime(nightStartMinsVal())}</strong> ou antes de <strong>${minsToTime(dayBoundaryMins())}</strong>).`;}else{body=`Dormiu às <strong>${active.start}</strong>. Quando acordar, registre em Acordou.`;}}else if(last&&wakeCountsAsDayForPredictions(last)){const aw=wwCurrentAwakeMinutes();const tgt=wwCurrentTargetMinutes();const r=getWakeRisk(aw,tgt);const tsDay=calendarDayEntries(todayStr()).filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const p=smartPredictNextNap(last.end,last.durationMins||0,tsDay);const miss=napMissedShiftMins(todayStr());title=r.lvl==='high'?'Janela estourando':r.lvl==='mid'?'Janela apertando':'Dentro da janela';if(nightVsNextNap(last,p)){const nw=nightStartPrediction();body=`Acordado há <strong>${fmtDur(aw)}</strong> (ref. ~${tgt} min). Próximo foco: <strong>noite</strong> ~ <strong>${nw.center}</strong>${miss>=30?' — janelas longas hoje tendem a atrasar um pouco a noite.':''}.`;rule=[['Acordado',fmtDur(aw)],['Alvo aprox.',tgt+' min'],['Risco',r.msg],['Noite (~)',nw.center]];}else{const trans=napTransitionHelp();body=`Acordado há <strong>${fmtDur(aw)}</strong> (ref. ~${tgt} min). Próxima <strong>soneca</strong> ~ <strong>${p.center}</strong>${miss>=30?' — se pulou/atrasou soneca, espere cansaço mais cedo.':''}.${trans?trans:''}`;rule=[['Acordado',fmtDur(aw)],['Alvo aprox.',tgt+' min'],['Risco',r.msg],['Soneca (~)',p.center]];}}else{title='Sem janela diurna agora';body='Ou o bebê está dormindo, ou ainda estamos no ritmo noturno.';}now_.innerHTML=`<div class="cop-block"><div class="cb-kicker">Agora</div><h4>${escHtml(title)}</h4><p>${body}</p>${rule.length?'<ul class="cb-rule">'+rule.map(r=>`<li><span>${escHtml(r[0])}</span><strong>${escHtml(r[1])}</strong></li>`).join('')+'</ul>':''}</div>`;}
+
+  // Próxima janela
+  const winEl=$('cop-window');if(winEl){const last=getLastCompletedSleep();const today=calendarDayEntries(todayStr());const ts=today.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);const active=getActiveSleep();if(active&&sleepIsNight(active)){const startRef=active.start||minsToTime(nightStartMinsVal());const endRef=cfg.dayBoundary||'06:00';winEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Próxima janela</div><h4>Janela noturna ativa</h4><p>O sono noturno começou às <strong>${escHtml(startRef)}</strong>. Até <strong>${escHtml(endRef)}</strong>, os trechos contam como noite.</p><ul class="cb-rule"><li><span>Início observado</span><strong>${escHtml(startRef)}</strong></li><li><span>Fim da janela</span><strong>${escHtml(endRef)}</strong></li></ul></div>`;}else if(!last){winEl.innerHTML='';}else{let p,label;if(wakeCountsAsDayForPredictions(last)){const np=smartPredictNextNap(last.end,last.durationMins||0,ts);if(nightVsNextNap(last,np)){p=nightStartPrediction();label='Entrada da noite';}else{p=np;label='Próxima soneca';}}else{p=nightStartPrediction();label='Rotina da noite';}const nowM=timeToMins(fmtTime(now()));const napOver=label==='Próxima soneca'&&p.to!=null&&nowM>timeToMins(p.to);const mins=label==='Próxima soneca'?formatTimeUntilNapIfDay(p.center):formatTimeUntil(p.center);const head=napOver?(`${escHtml(label)} · atrasada ~${fmtDur(nowM-timeToMins(p.to))}`):(mins===0&&label==='Próxima soneca'?`${escHtml(label)} · janela agora`:`${escHtml(label)} em ${mins} min`);const napExtra=label==='Próxima soneca'?napTransitionHelp():'';winEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Próxima janela</div><h4>${head}</h4><p>Faixa provável <strong>${escHtml(p.from)}–${escHtml(p.to)}</strong>. Base: ${escHtml(p.basis)}.</p><ul class="cb-rule"><li><span>Hora central</span><strong>${escHtml(p.center)}</strong></li><li><span>Tolerância</span><strong>±${p.range||20} min</strong></li></ul><p style="margin-top:10px;font-size:11.5px;color:var(--ink-muted)">Se atrasar muito além da faixa, a próxima soneca tende a ficar curta e a noite pode fragmentar.${napExtra?escHtml(napExtra):''}</p></div>`;}}
+
+  // Leitura do dia
+  const dayEl=$('cop-day');if(dayEl){const d=buildDayFlowRead();dayEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Leitura do dia</div><h4>${d.tone==='warn'?'Sinais de atenção':d.tone==='ok'?'Dia fluindo bem':'Dia sem muita sinalização'}</h4><p>${d.flow}</p><p style="margin-top:8px"><strong>Gargalo provável:</strong> ${escHtml(d.bot)}</p><ul class="cb-rule"><li><span>Sonecas</span><strong>${d.stats.naps}</strong></li><li><span>Sono diurno</span><strong>${fmtDur(d.stats.napMin)}</strong></li><li><span>Mamadas</span><strong>${d.stats.feeds}</strong></li><li><span>Sinais de humor</span><strong>${d.stats.mo}</strong></li></ul></div>`;}
+
+  // Leitura da noite
+  const nEl=$('cop-night');if(nEl){const an=analyzeLastCompleteNight();if(!an){nEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Última noite</div><h4>Nenhuma noite fechada ainda</h4><p>Registre <strong>Acordou</strong> de manhã para o Copiloto calcular total, despertares e maior bloco.</p></div>`;}else{const wq=an.wakesBetween===0?'Noite contínua — ótima referência para o dia.':an.wakesBetween>=3?'Noite fragmentada — pressão extra hoje.':'Noite dentro do comum para a idade.';const leadNote=an.hasPrep?`<li><span>Encadeamento</span><strong>trecho anterior colado ao 1º sono da noite (soma no total)</strong></li>`:(an.leadIn?`<li><span>Antes do 1º trecho</span><strong>pausa longa após sono anterior (+1 no total)</strong></li>`:'');nEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Última noite</div><h4>${fmtDur(an.totalSleep)} em ${an.blocks} trecho(s)</h4><p>${wq} Maior bloco <strong>${fmtDur(an.maxBlock)}</strong>.</p><ul class="cb-rule"><li><span>Início da noite</span><strong>${escHtml(an.bedClock)}</strong></li><li><span>Despertar final</span><strong>${escHtml(an.wakeClock)}</strong></li><li><span>Despertares no total</span><strong>${an.wakes}</strong> <small style="color:var(--ink-muted)">(entre trechos + manhã)</small></li><li><span>Só entre trechos</span><strong>${an.wakesBetween}</strong></li>${leadNote}<li><span>Média acordado entre trechos</span><strong>${an.avgGap?fmtDur(an.avgGap):'—'}</strong></li></ul></div>`;}}
+
+  // Interpretação de choro (ranking)
+  const cryEl=$('cop-cry');if(cryEl){cryEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Interpretação de choro</div><h4>O que pode estar acontecendo?</h4><p>Toque no contexto mais recente para ver o ranking — fome, cansaço, gases, desconforto e estímulo ponderados pelos seus registros.</p><div class="cb-actions"><button class="cop-pill primary" onclick="runCryDiagnosis()">Calcular agora</button></div><div id="cry-out" style="margin-top:12px"></div></div>`;}
+
+  // Simulações
+  const simEl=$('cop-sim');if(simEl){simEl.innerHTML=`<div class="cop-block"><div class="cb-kicker">Simulações</div><h4>E se eu…</h4><p>Rápidas projeções com base na idade e no que foi registrado.</p><div class="cb-actions"><button class="cop-pill" onclick="runSim('skipNap')">Pular soneca</button><button class="cop-pill" onclick="runSim('lateNap')">Atrasar soneca</button><button class="cop-pill" onclick="runSim('earlyNight')">Noite mais cedo</button><button class="cop-pill" onclick="runSim('shortFeed')">Mamada curta</button></div><div id="sim-out" style="margin-top:12px;padding:12px;border-radius:var(--r-sm);background:var(--surface-1);font-size:12.5px;color:var(--ink-dim);line-height:1.55;display:none"></div></div>`;}
+}
+
+function runCryDiagnosis(){
+  const out=$('cry-out');if(!out)return;
+  const mAge=babyAgeMonths(),tgt=wwBaseTarget(mAge);
+  const lastFeed=entries.filter(e=>e.type==='feed').sort((a,b)=>{const da=new Date(a.date+'T12:00:00'),db=new Date(b.date+'T12:00:00');return db-da||timeToMins(b.start)-timeToMins(a.start);})[0];
+  const lastSleep=getLastCompletedSleep();
+  const feedM=lastFeed?Math.max(0,Math.round((now()-parseTimeOnDate(lastFeed.start,lastFeed.date))/60000)):999;
+  const sleepM=lastSleep?Math.max(0,Math.floor((now()-sleepEndDate(lastSleep))/60000)):999;
+  const gas=moodCountToday('gas'),fuss=moodCountToday('fussy'),cry=moodCountToday('crying');
+  const feedRaw=lastFeed?Math.min(80,5+Math.max(0,feedM-45)*0.4+(feedM>150?25:0)):8;
+  const sleepRaw=lastSleep&&wakeCountsAsDayForPredictions(lastSleep)?Math.min(85,8+Math.max(0,sleepM-tgt*0.75)*0.45+(lastSleep.durationMins<35?12:0)):6;
+  const gasRaw=Math.min(55,4+gas*12+fuss*5);
+  const coldBias=(cfg.ctxCold||cfg.ctxTeething||cfg.ctxOther)?10:0;
+  const disRaw=12+coldBias+Math.min(18,cry*3);
+  const overRaw=8+fuss*4;
+  const h=[{k:'Fome',s:feedRaw,hint:lastFeed?feedM+' min desde a última mamada':'sem mamada registrada'},{k:'Cansaço',s:sleepRaw,hint:lastSleep?'acordado há '+sleepM+' min':'—'},{k:'Gases / barriga',s:gasRaw,hint:gas+' registros de gases hoje'},{k:'Desconforto',s:disRaw,hint:(cfg.ctxCold||cfg.ctxTeething)?'contexto marcado':'geral (temperatura, fralda, dor)'},{k:'Muito estímulo',s:overRaw,hint:fuss+' irritações hoje'}].sort((a,b)=>b.s-a.s);
+  const max=h[0].s||1;h.forEach(x=>{x.pct=Math.round((x.s/max)*100);});
+  out.innerHTML=h.map((x,i)=>`<div style="margin-bottom:10px"><div class="cop-mini-line"><span class="cm-key">${i+1}. ${escHtml(x.k)} <small style="color:var(--ink-muted);font-weight:500">· ${escHtml(x.hint)}</small></span><span class="cm-val">${x.pct}%</span></div><div class="cop-bar"><div class="cop-bar-fill" style="width:${x.pct}%"></div></div></div>`).join('')+'<p style="font-size:11px;color:var(--ink-muted);margin-top:8px">Estimativa ponderada com horários reais — não é diagnóstico médico.</p>';
+}
+
+function runSim(kind){
+  const out=$('sim-out');if(!out)return;
+  const m=babyAgeMonths(),base=wwBaseTarget(m),last=getLastCompletedSleep();
+  const aw=last&&wakeCountsAsDayForPredictions(last)?wwCurrentAwakeMinutes():0;
+  const map={skipNap:`Pulando a soneca agora: o fim do dia costuma ficar mais difícil. Com ${m} meses, janela típica ~${base} min; dobrá-la frequentemente aumenta a chance de fragmentar a noite. Se puder, proteja o primeiro sono da manhã amanhã.`,lateNap:`Atrasando a soneca: entrar na noite já cansado puxa o horário da rotina pra trás e pode encurtar o primeiro bloco da noite. Tente não ultrapassar a faixa superior de previsão em mais de 25 min.`,earlyNight:`Adiantando a noite: em dias com débito, entrar 30–40 min antes pode virar noite longa. Atenção à possibilidade de despertar precoce no dia seguinte.`,shortFeed:`Mamada curta agora costuma adiantar a próxima em 30–45 min. Observe sinais de fome na próxima janela — pode puxar a previsão de mamada pra antes.`};
+  out.style.display='block';out.textContent=map[kind]||'—';
+}
+
+/* ---- WW timer for header update ---- */
+function tickOrbit(){renderOrbit();renderStatusRow();}
+
+/* ---- STATS ---- */
+function renderStats(){
+  const hero=$('stat-hero'),charts=$('stats-charts');if(!hero||!charts)return;
+  const an=analyzeLastCompleteNight();
+  const ymd=todayStr();
+  const td=uniqueEntriesForMetrics(calendarDayEntries(ymd),new Date());
+  const daySummary=getDaySummary(ymd,new Date());
+  const napM=daySummary.sleepTotal;
+  const nightCal=td.filter(e=>e.type==='sleep'&&sleepIsNight(e)).reduce((a,e)=>a+getSleepDurationForMetrics(e,new Date()),0);
+  const totalCal=totalSleepMinsCalendarDay(ymd);
+  if(!an){hero.innerHTML=`<div class="stat-hero-kicker">Última noite</div><h2 class="stat-hero-title">Nenhuma noite fechada ainda</h2><p class="stat-hero-sub">Quando o bebê dormir à noite e você registrar o despertar da manhã, aparece aqui o resumo completo — do início do sono noturno até o acordar.</p>`;}
+  else{const bedLbl=an.bedYmd===an.wakeYmd?formatShortDate(an.bedYmd):formatShortDate(an.bedYmd)+' → '+formatShortDate(an.wakeYmd);hero.innerHTML=`<div class="stat-hero-kicker">Última noite (referência)</div><h2 class="stat-hero-title">${fmtDur(an.totalSleep)} em ${an.blocks} trecho${an.blocks>1?'s':''}</h2><p class="stat-hero-sub">${escHtml(bedLbl)} · ${escHtml(an.bedClock)} → ${escHtml(an.wakeClock)}</p><div class="stat-grid"><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.totalSleep)}</div><div class="stat-cell-lbl">Total</div></div><div class="stat-cell"><div class="stat-cell-val">${an.wakes}</div><div class="stat-cell-lbl">Despertares</div></div><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.maxBlock)}</div><div class="stat-cell-lbl">Maior bloco</div></div><div class="stat-cell"><div class="stat-cell-val">${an.blocks>1?fmtDur(an.minBlock):'—'}</div><div class="stat-cell-lbl">Menor bloco</div></div><div class="stat-cell"><div class="stat-cell-val">${an.avgGap?fmtDur(an.avgGap):'—'}</div><div class="stat-cell-lbl">Entre blocos</div></div><div class="stat-cell"><div class="stat-cell-val">${fmtDur(an.totalSleep-an.maxBlock)}</div><div class="stat-cell-lbl">Outros</div></div></div>`;}
+
+  charts.innerHTML=`<div class="chart-card"><h4>${escHtml(t('dayRoutine'))}</h4><div class="ch-title">${fmtDur(napM)} ${escHtml(t('daySleep').toLowerCase())}</div><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${daySummary.sleepPeriods}</div><div class="stat-cell-lbl">${escHtml(t('periods'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.feeds}</div><div class="stat-cell-lbl">${escHtml(t('feeds'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.diapers}</div><div class="stat-cell-lbl">${escHtml(t('diapers'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${daySummary.awakenings}</div><div class="stat-cell-lbl">${escHtml(t('awakenings'))}</div></div></div></div><div class="chart-card"><h4>${escHtml(t('statsDayCivil'))}</h4><div class="ch-title">${fmtDur(totalCal)} ${escHtml(t('sleep').toLowerCase())}</div><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${fmtDur(nightCal)}</div><div class="stat-cell-lbl">${escHtml(t('night'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='feed').length}</div><div class="stat-cell-lbl">${escHtml(t('feeds'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.filter(e=>e.type==='diaper').length}</div><div class="stat-cell-lbl">${escHtml(t('diapers'))}</div></div><div class="stat-cell"><div class="stat-cell-val">${td.length}</div><div class="stat-cell-lbl">${escHtml(t('events'))}</div></div></div></div><div class="chart-card"><h4>${escHtml(t('dayByType'))}</h4><div id="donut-wrap" style="position:relative;height:160px;max-width:170px;margin:12px auto 0"><canvas id="donutChart"></canvas></div><p class="ch-ctx">${escHtml(t('statsDayCivil'))}</p></div>`;
+
+  // Charts
+  const sleeps=td.filter(e=>e.type==='sleep'&&e.durationMins);
+  const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+'h');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}
+  if(barChart)barChart.destroy();const ctxBar=$('barChart');if(ctxBar){barChart=new Chart(ctxBar,{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:(c)=>{const grad=c.chart.ctx.createLinearGradient(0,0,0,150);grad.addColorStop(0,'#A78BFA');grad.addColorStop(1,'rgba(167,139,250,.15)');return grad;},borderRadius:8,borderSkipped:false,barThickness:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C1940',titleFont:{size:11},bodyFont:{size:11},callbacks:{label:c=>c.parsed.y+' min'}}},scales:{y:{max:60,ticks:{callback:v=>v+'m',color:'#8B87B8',font:{size:10}},grid:{color:'rgba(148,163,255,.08)'}},x:{ticks:{color:'#8B87B8',font:{size:10}},grid:{display:false}}}}});}
+  const fc=td.filter(e=>e.type==='feed').length,dc=td.filter(e=>e.type==='diaper').length,sc=td.filter(e=>e.type==='sleep').filter(e=>getSleepDurationForMetrics(e,new Date())>0).length;
+  if(donutChart)donutChart.destroy();const ctxD=$('donutChart');
+  if(ctxD&&sc+fc+dc>0){donutChart=new Chart(ctxD,{type:'doughnut',data:{labels:[t('sleep'),t('feed'),t('diaper')],datasets:[{data:[sc,fc,dc],backgroundColor:['#A78BFA','#22D3EE','#F59E0B'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}});}
+  else{const wrap=$('donut-wrap');if(wrap)wrap.innerHTML=`<div class="trail-empty">${escHtml(t('noDataPeriod'))}</div>`;}
+}
+
+/* ---- HISTORY ---- */
+function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!host)return;if(!entries.length){host.innerHTML='<div class="empty-pretty"><h4>Histórico vazio</h4><p>Os eventos registrados aparecem aqui agrupados por dia e por tipo.</p></div>';if(count)count.textContent='';return;}const byDay={};entries.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});const days=Object.keys(byDay).sort().reverse();if(count)count.textContent=entries.length+' eventos em '+days.length+' dias';const tone={sleep:'var(--c-sleep)',feed:'var(--c-feed)',diaper:'var(--c-diaper)',mood:'var(--c-mood)'};const lanes=[['sleep','Sono','var(--c-sleep)'],['feed','Mamadas','var(--c-feed)'],['diaper','Fraldas','var(--c-diaper)'],['mood','Humor / sinais','var(--c-mood)']];const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 15c1 1 4 1 6 0"/></svg>'};let html='';days.forEach(day=>{const ev=byDay[day].slice().sort((a,b)=>timeToMins(b.start||'00:00')-timeToMins(a.start||'00:00'));const dayD=new Date(day+'T12:00:00');const dayLbl=dayD.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});const sleepMins=ev.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);html+=`<div class="hgroup"><div class="hgroup-head"><div class="hgroup-day">${escHtml(dayLbl)}</div><div class="hgroup-total">${ev.length} eventos · ${fmtDur(sleepMins)} sono</div></div>`;lanes.forEach(([k,lbl,col])=>{const items=ev.filter(e=>e.type===k);if(!items.length)return;html+=`<div class="hlane"><div class="hlane-label" style="--lane:${col}">${escHtml(lbl)}</div>`;items.forEach(e=>{let name=k==='sleep'?(sleepIsNight(e)?'Sono noturno':'Soneca'):k==='feed'?(e.subtype==='breast'?'Seio':'Mamadeira'):k==='diaper'?(e.subtype==='wet'?'Xixi':e.subtype==='dirty'?'Cocô':'Ambos'):(e.subtype==='crying'?'Choro':e.subtype==='gas'?'Gases':'Irritação');let detail='';if(k==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento')+(e.durationMins?' · '+fmtDur(e.durationMins):'');}else if(k==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+' min':'');}else{detail=e.start;}html+=`<div class="hitem"><div class="hdot" style="--tone:${col}">${icon[k]}</div><div class="hmain"><div class="hname">${escHtml(name)}</div><div class="hdetail">${escHtml(detail)}</div></div><button class="hdel" onclick="deleteEntry(${e.id})" aria-label="Excluir">×</button></div>`;});html+='</div>';});html+='</div>';});host.innerHTML=html;}
+
+/* ---- MASTER RENDER ---- */
+function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();safeRender('renderPredictions',()=>renderPredictions(),{containerId:'pred-wrap',fallbackHtml:'<div class="pred-empty">Previsões indisponíveis no momento.</div>'});renderDaySleepPanel();renderNightPanel();safeRender('renderTodayRail',()=>renderTodayRail(),{containerId:'today-rail',fallbackHtml:'<div class="trail-empty">Linha do dia indisponível no momento.</div>'});ensureNightCardAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
+function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')safeRender('renderStats',()=>renderStats(),{containerId:'sec-stats',fallbackHtml:'<div class="card"><h3>Dados</h3><p class="muted">Falha ao renderizar gráficos. Recarregue o app.</p></div>'});if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
+
+/* ---- actions ---- */
+let sleepActionLockUntil=0;
+function quickSleep(){if(getActiveSleep()){showToast('Já tem sono em andamento');return;}babySlept();}
+function babySlept(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const nowMs=Date.now();if(nowMs<sleepActionLockUntil)return;sleepActionLockUntil=nowMs+900;if(getActiveSleep()){showToast('Já tem sono em andamento');return;}const t=fmtTime(now());const e={id:Date.now(),date:todayStr(),type:'sleep',start:t,end:null};if(isSleepEntryDuplicate(e)){showToast('Sono já registrado');return;}setSleepKind(e);entries.push(e);save();showToast((sleepIsNight(e)?'Noite':'Soneca')+' iniciada às '+t);renderHome();}
+function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const active=getActiveSleep();if(!active){showToast('Nenhum sono em andamento');return;}const t=fmtTime(now());const idx=entries.findIndex(e=>e.id===active.id);entries[idx].end=t;const iv=sleepIntervalDateTimes(entries[idx],new Date());entries[idx].durationMins=sleepDurationMinsFromDates(iv.start,iv.end);setSleepKind(entries[idx]);save();showToast('Acordou às '+t+' · '+fmtDur(entries[idx].durationMins));renderHome();}
+function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t});save();const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);renderHome();}
+function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistory();showToast('Registro excluído');}
+
+function orbitCtaClick(){const cta=$('orbit-cta');if(cta&&cta.onclick)cta.onclick();}
+
+/* ---- Log sheet (FAB) ---- */
+function openLogSheet(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=$('tile-sleep-lbl');if(t)t.textContent=getActiveSleep()?'Acordou':'Dormiu';const shb=$('sheet-backdrop'),sh=$('log-sheet');if(!shb||!sh)return;shb.classList.add('open');sh.classList.add('open');}
+function closeLogSheet(){$('sheet-backdrop').classList.remove('open');$('log-sheet').classList.remove('open');}
+function quickSleepOrWake(){if(getActiveSleep())babyWoke();else babySlept();}
+// The tile for Dormiu triggers: if active, wake instead
+document.addEventListener('DOMContentLoaded',()=>{});
+
+/* ---- Modal (form) ---- */
+function openLog(type){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}curModal=type;['feed','diaper','sleep-manual'].forEach(t=>$('mf-'+t).classList.toggle('hide',t!==type));$('modal-title-el').textContent={feed:'Registrar mamada',diaper:'Registrar fralda','sleep-manual':'Sono manual'}[type]||'Registrar';const t=fmtTime(now()),td=todayStr();if(type==='feed'){$('f-feed-date').value=td;$('f-feed-time').value=t;$('f-feed-dur').value='';}if(type==='diaper'){$('f-diaper-date').value=td;$('f-diaper-time').value=t;}if(type==='sleep-manual'){$('f-manual-date').value=td;$('f-manual-start').value=t;$('f-manual-end').value='';}$('modal-backdrop').classList.add('open');}
+function closeModal(){$('modal-backdrop').classList.remove('open');}
+function saveEntry(){let e={id:Date.now()};if(curModal==='feed'){const date=$('f-feed-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-feed-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='feed';e.subtype=state.feedType;e.start=t;e.durationMins=parseInt($('f-feed-dur').value)||null;}else if(curModal==='diaper'){const date=$('f-diaper-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const t=$('f-diaper-time').value;if(!isValidTime(t)){showToast('Horário inválido');return;}e.date=date;e.type='diaper';e.subtype=state.diaperType;e.start=t;}else if(curModal==='sleep-manual'){const date=$('f-manual-date').value||todayStr();if(!isValidDateStr(date)){showToast('Data inválida');return;}const s=$('f-manual-start').value,en=$('f-manual-end').value;if(!isValidTime(s)){showToast('Início inválido');return;}e.date=date;e.type='sleep';e.start=s;e.end=isValidTime(en)?en:null;if(!e.end&&getActiveSleep()){showToast('Já tem sono em andamento');return;}if(e.end){const iv=sleepIntervalDateTimes(e,new Date());e.durationMins=sleepDurationMinsFromDates(iv.start,iv.end);}if(isSleepEntryDuplicate(e)){showToast('Sono duplicado');return;}setSleepKind(e);}entries.push(e);save();closeModal();showToast('Registro salvo');renderHome();}
+
+/* ---- Segmented buttons (in forms) ---- */
+function initSegs(){[['seg-feed','feedType'],['seg-diaper','diaperType']].forEach(([sid,key])=>{const seg=$(sid);if(!seg)return;seg.querySelectorAll('button').forEach(btn=>{btn.addEventListener('click',function(e){e.preventDefault();seg.querySelectorAll('button').forEach(b=>b.classList.remove('sel'));this.classList.add('sel');state[key]=this.dataset.val;});});});}
+
+/* ---- Toast ---- */
+let toastT=null;
+function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+
+/* ---- Late night mode ---- */
+function inLateNightWindow(){const m=timeToMins(fmtTime(now()));return m>=0&&m<6*60;}
+function maybeEnforceLateNight(){if(!cfg.lateNightMode||!inLateNightWindow())return;if(profileNeedsSetup())return;try{if(sessionStorage.getItem('nest_ln_dismiss_'+todayStr()))return;}catch{}openLateNight();}
+function openLateNight(){const o=$('lateNight');if(!o)return;o.classList.add('open');o.setAttribute('aria-hidden','false');updateLateNight();if(lnTimer)clearInterval(lnTimer);lnTimer=setInterval(updateLateNight,15000);}
+function dismissLateNight(){const o=$('lateNight');if(o){o.classList.remove('open');o.setAttribute('aria-hidden','true');}try{sessionStorage.setItem('nest_ln_dismiss_'+todayStr(),'1');}catch{}if(lnTimer){clearInterval(lnTimer);lnTimer=null;}}
+function updateLateNight(){const c=$('ln-clock'),s=$('ln-since');if(!c)return;c.textContent=fmtTime(now());const active=getActiveSleep();const last=getLastCompletedSleep();if(active){const mins=Math.round((now()-parseTimeOnDate(active.start,active.date))/60000);s.textContent='Dormindo há '+fmtDur(mins)+' (desde '+active.start+')';}else if(last){const mins=Math.round((now()-sleepEndDate(last))/60000);s.textContent='Acordado há '+fmtDur(mins);}else s.textContent='Registre o primeiro sono para começar.';}
+
+/* ---- Export / Import ---- */
+function eventTypeLabel(e){if(!e)return'';if(e.type==='sleep')return t('sleep');if(e.type==='feed')return t('feed');if(e.type==='diaper')return t('diaper');if(e.type==='wake')return t('awakening');return e.type||'';}
+function exportData(){const payload=exportBackupJson();if(payload)showToast('JSON exportado');}
+function csvEscape(s){if(s==null)return'';const t=String(s);if(/[",\n]/.test(t))return'"'+t.replace(/"/g,'""')+'"';return t;}
+function exportCsv(){const rows=[[t('date'),t('events'),'subtype','start','end','durationMins'].map(csvEscape).join(',')];entries.slice().sort((a,b)=>a.id-b.id).forEach(e=>rows.push([e.date?new Date(e.date+'T12:00:00').toLocaleDateString(currentLang()):'',eventTypeLabel(e),e.subtype||'',e.start||'',e.end||'',e.durationMins!=null?e.durationMins:''].map(csvEscape).join(',')));const blob=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nest-'+todayStr()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('CSV exportado');}
+function printReport(){const lines=entries.slice().sort((a,b)=>b.id-a.id).slice(0,300);const daySum=getDaySummary(todayStr(),new Date());const nightSum=getNightSummaryForWakeDay(getNightReferenceWakeYmd(new Date()),new Date());let html=`<div class="pr-title">${escHtml(t('report'))}</div><div class="pr-meta"><strong>${escHtml(t('date'))}:</strong> ${escHtml(new Date().toLocaleString(currentLang()))}<br><strong>${escHtml(t('baby'))}:</strong> ${escHtml(cfg.name||'—')}</div><div class="pr-section"><h3>${escHtml(t('daySummary'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(daySum.sleepTotal))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${daySum.sleepPeriods}</div><div class="pr-cell">${escHtml(t('feeds'))}: ${daySum.feeds}</div><div class="pr-cell">${escHtml(t('diapers'))}: ${daySum.diapers}</div></div></div>`;
+  if(nightSum){html+=`<div class="pr-section"><h3>${escHtml(t('nightOngoing'))}</h3><div class="pr-grid"><div class="pr-cell">${escHtml(t('totalSleep'))}: ${escHtml(fmtDur(nightSum.totalSleep))}</div><div class="pr-cell">${escHtml(t('periods'))}: ${nightSum.blocks}</div><div class="pr-cell">${escHtml(t('awakenings'))}: ${nightSum.wakes}</div></div></div>`;}
+  html+=`<div class="pr-section"><h3>${escHtml(t('events'))}</h3><table class="pr-table"><thead><tr><th>${escHtml(t('date'))}</th><th>${escHtml(t('events'))}</th><th>Detalhe</th></tr></thead><tbody>`;
+  lines.forEach(e=>{const detail=[e.start||'',e.end?('→ '+e.end):'',e.durationMins!=null?fmtDur(e.durationMins):'',e.subtype||''].filter(Boolean).join(' ');html+=`<tr><td>${escHtml(e.date||'')}</td><td>${escHtml(eventTypeLabel(e))}</td><td>${escHtml(detail)}</td></tr>`;});
+  html+='</tbody></table></div>';
+  $('print-area').innerHTML=html;$('print-area').classList.remove('hide');window.print();setTimeout(()=>{$('print-area').innerHTML='';$('print-area').classList.add('hide');},300);}
+function importData(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=(e)=>{try{if(!confirm('Isso vai substituir os dados deste perfil. Continuar?'))return;const res=importBackupJson(e.target.result);if(!res||!res.ok){showToast('Arquivo inválido');return;}showToast('Importado');}catch(err){const pasted=prompt('Falha ao importar arquivo. Cole o JSON do backup:','');if(pasted){try{const res=importBackupJson(pasted);if(res&&res.ok)showToast('Importado por texto');else showToast('JSON inválido');}catch(e2){showToast('Erro no JSON colado');}}else showToast('Erro ao importar');}};r.readAsText(f);ev.target.value='';}
+
+/* ---- PWA ---- */
+function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}}
+
+/* ---- init ---- */
+function init(){
+  migrateLegacyDataIfNeeded();
+  loadProfileIntoMemory();applyTheme();syncSettingsForm();updateHeader();syncOnboardingUI();initSegs();
+  applyI18nStatic();
+  registerPWA();
+  renderHome();
+  // Refresh orbit every 30s so timers "tick"
+  setInterval(tickOrbit,30000);
+  // Modal close on backdrop click
+  $('modal-backdrop').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  // Visibility: recheck late night
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){maybeEnforceLateNight();renderHome();}});
+  maybeEnforceLateNight();
+}
+init();
+</script>
 </body>
 </html>
