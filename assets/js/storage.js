@@ -42,3 +42,5 @@ function persistAll(){const p=getCurrentProfile();const blob=loadProfilesBlob()|
 function save(){persistAll();}
 function profileNeedsSetup(){return !cfg.profileSetupDone;}
 function refreshProfileSelect(){}
+
+window.profileNeedsSetup=profileNeedsSetup;
