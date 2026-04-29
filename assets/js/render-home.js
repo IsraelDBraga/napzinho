@@ -38,7 +38,7 @@ function renderOrbit(){
     const nowM=timeToMins(fmtTime(now()));
     const toM=predObj.to!=null?timeToMins(p.to):null;
     const overdueNap=!fallsNight&&toM!=null&&nowM>toM;
-    const mins=formatTimeUntil(predObj.center);
+    const mins=fallsNight?formatTimeUntil(predObj.center):formatTimeUntilNapIfDay(predObj.center);
     if(overdueNap){
       const late=Math.min(24*60,nowM-toM);
       kicker.textContent='Soneca em atraso';
@@ -76,11 +76,23 @@ function renderOrbit(){
     const R=120,CX=150,CY=150;
     let pct=0;
     if(active){pct=Math.min(1,Math.round((now()-parseTimeOnDate(active.start,active.date))/60000)/60);}
-    else if(last&&wakeCountsAsDayForPredictions(last)){const aw=wwCurrentAwakeMinutes();const tgt=wwCurrentTargetMinutes();pct=Math.min(1.1,aw/tgt);}
+    else if(last&&wakeCountsAsDayForPredictions(last)){
+      const aw=wwCurrentAwakeMinutes();
+      const tgt=Math.max(1,wwCurrentTargetMinutes()||0);
+      // Arc: clamp for normal rendering; if overdue, draw a full ring (Safari can glitch on >1).
+      const ratio=aw/tgt;
+      pct=Math.min(1,Math.max(0,ratio));
+    }
+    if(pct>=0.999){
+      // Full circle path (two arcs) to avoid SVG elliptical arc edge cases.
+      arc.setAttribute('d',`M ${CX} ${CY-R} A ${R} ${R} 0 1 1 ${CX} ${CY+R} A ${R} ${R} 0 1 1 ${CX} ${CY-R}`);
+      // continue to nodes
+    }else{
     const theta=-Math.PI/2+pct*Math.PI*2;
     const x=CX+R*Math.cos(theta),y=CY+R*Math.sin(theta);
     const large=pct>0.5?1:0;
     arc.setAttribute('d',pct>0.01?`M ${CX} ${CY-R} A ${R} ${R} 0 ${large} 1 ${x.toFixed(2)} ${y.toFixed(2)}`:'');
+    }
   }
 
   // Orbit nodes (sleeps/feeds of today plotted on circle by time)
@@ -141,6 +153,17 @@ function renderPredictions(){
   const nsM=nightStartMinsVal();
   const preds=[];
   const insideNight=isNightContextForClock(fmtTime(now()));
+  // ActiveSleepGuard: warn when an active sleep is implausibly long (never auto-close).
+  try{
+    const st=(typeof ActiveSleepGuard!=='undefined'&&ActiveSleepGuard.getActiveSleepStatus)?ActiveSleepGuard.getActiveSleepStatus(now()):null;
+    if(st&&st.needsConfirmation&&st.actions&&st.actions.length){
+      const title='Esse sono ainda está em andamento?';
+      const sub=`Ele começou há ${fmtDurShort(st.activeMins)}.`;
+      const body='Se o bebê já acordou, registre o horário para manter as previsões corretas.';
+      const btns=st.actions.map(a=>`<button type="button" class="cop-pill ${a.variant==='primary'?'primary':''}" onclick="handleActiveSleepGuardAction('${escHtml(a.action)}')">${escHtml(a.label)}</button>`).join('');
+      preds.push({kind:'active-sleep-guard',_html:`<div class="cop-block" style="margin-bottom:12px"><div class="cb-kicker">Confirmação</div><h4>${escHtml(title)}</h4><p>${escHtml(sub)}</p><p style="margin-top:8px">${escHtml(body)}</p><div class="cb-actions">${btns}</div></div>`});
+    }
+  }catch(e){}
   if(activeSleep){
     preds.push({kind:'sleep-now',name:sleepIsNight(activeSleep)?'Noite em andamento':'Soneca em andamento',sub:'Registre Acordou quando despertar',pred:{center:activeSleep.start,from:activeSleep.start,to:activeSleep.start,basis:'sono ativo'},color:sleepIsNight(activeSleep)?'#6366F1':'#A78BFA'});
   }else if(insideNight){
@@ -158,6 +181,7 @@ function renderPredictions(){
   if(!preds.length){listHtml='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';}
   else{const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   listHtml=preds.map(p=>{
+    if(p.kind==='active-sleep-guard' && p._html) return p._html;
     const risk=p.kind==='nap'?getWakeRisk(wwCurrentAwakeMinutes(),wwCurrentTargetMinutes()):null;
     const ico=iconSvg[p.kind==='night-now'?'night':p.kind==='sleep-now'?'sleep':p.kind]||iconSvg.nap;
     let right;
