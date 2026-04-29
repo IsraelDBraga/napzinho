@@ -205,11 +205,8 @@ function renderPredictions(){
 function renderGlance(){const host=$('glance');if(!host)return;const ymd=todayStr();const td=calendarDayEntries(ymd);const total=totalSleepMinsCalendarDay(ymd);const html=`<div class="glance-cell" data-tone="sleep"><div class="glance-val">${fmtDurShort(total)}</div><div class="glance-lbl">Sono</div></div><div class="glance-cell" data-tone="feed"><div class="glance-val">${td.filter(e=>e.type==='feed').length}</div><div class="glance-lbl">Mamadas</div></div><div class="glance-cell" data-tone="diaper"><div class="glance-val">${td.filter(e=>e.type==='diaper').length}</div><div class="glance-lbl">Fraldas</div></div><div class="glance-cell" data-tone="night"><div class="glance-val">${nightWakeCountBetweenSegments(ymd)}</div><div class="glance-lbl">Despertares</div></div>`;host.innerHTML=html;}
 
 /* ---- Night panel ---- */
-function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const an=analyzeLastCompleteNight();const ymd=todayStr();const segs=nightSegmentsOnWakeDay(ymd);if(!segs.length){host.innerHTML='';return;}const first=segs[0],last=segs[segs.length-1];const total=segs.reduce((a,e)=>a+(e.durationMins||0),0);const waves=[];for(let i=0;i<segs.length;i++){waves.push(`<span class="nseg-pill sl">${fmtDurShort(segs[i].durationMins||0)}</span>`);if(i<segs.length-1){const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);if(g)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(g)}</span>`);}}const wakes=an?an.wakes:Math.max(0,segs.length-1);const html=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">Noite — referência principal</span><span class="nh-range">${first.start} → ${last.end||'—'}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(total)}</div><div class="night-metric-lbl">Total</div></div><div class="night-metric"><div class="night-metric-val">${segs.length}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${wakes}</div><div class="night-metric-lbl">Despertares</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">A noite não reseta na meia-noite — começa no primeiro sono após ${cfg.nightStart} e fecha quando o bebê acorda de manhã.</p></div>`;host.innerHTML=html;}
-
 function renderNightPanel(){
   const host=$('night-panel-wrap');if(!host)return;
-  const ymd=todayStr();
   const active=getActiveSleep&&getActiveSleep();
 
   // If a night sleep is active, show an "in progress" panel (otherwise the section looks broken).
@@ -240,8 +237,9 @@ function renderNightPanel(){
     return;
   }
 
-  const an=analyzeLastCompleteNight();
-  const segs=nightSegmentsOnWakeDay(ymd);
+  // Completed night: group from the first sleep after nightStart (bedYmd) across midnight.
+  const an=(typeof analyzeLastCompleteNight==='function')?analyzeLastCompleteNight(now()):null;
+  const segs=Array.isArray(an?.segs)?an.segs:[];
   if(!segs.length){host.innerHTML='';return;}
   const first=segs[0],last=segs[segs.length-1];
   const total=segs.reduce((a,e)=>a+(e.durationMins||0),0);
@@ -257,7 +255,7 @@ function renderNightPanel(){
   const html=`<div class="night-panel">
     <div class="night-head">
       <span class="nh-kicker">Noite — referência principal</span>
-      <span class="nh-range">${first.start} → ${last.end||'—'}</span>
+      <span class="nh-range">${escHtml(first.start)} → ${escHtml(last.end||'—')}</span>
     </div>
     <div class="night-metrics">
       <div class="night-metric"><div class="night-metric-val">${fmtDurShort(total)}</div><div class="night-metric-lbl">Total</div></div>
@@ -265,7 +263,7 @@ function renderNightPanel(){
       <div class="night-metric"><div class="night-metric-val">${wakes}</div><div class="night-metric-lbl">Despertares</div></div>
     </div>
     <div class="night-segs">${waves.join('')}</div>
-    <p class="night-foot">A noite não reseta na meia-noite — começa no primeiro sono após ${cfg.nightStart} e fecha quando o bebê acorda de manhã.</p>
+    <p class="night-foot">A noite começa no <strong>primeiro sono após ${escHtml(cfg.nightStart||'18:00')}</strong> e fecha quando o bebê acorda de manhã (atravessa meia-noite).</p>
   </div>`;
   host.innerHTML=html;
 }
