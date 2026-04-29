@@ -213,6 +213,27 @@ function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count'
 /* ---- WW timer for header update ---- */
 function tickOrbit(){renderOrbit();renderStatusRow();}
 
+/* ---- Master refresh (after any data change) ---- */
+function refreshAppAfterDataChange(reason=''){
+  // This centralizes all home re-renders so retroactive entries, imports, and
+  // edge-case errors don't leave the UI blank after a successful save.
+  const sr=(typeof safeRender==='function')?safeRender:(name,fn)=>{try{return fn();}catch(e){console.error('[render]',name,e);return null;}};
+  sr('renderOrbit',()=>renderOrbit(),{containerId:'orbit-wrap'});
+  sr('renderStatusRow',()=>renderStatusRow(),{containerId:'status-row'});
+  sr('renderInsight',()=>renderInsight(),{containerId:'home-insight'});
+  sr('renderPredictions',()=>renderPredictions(),{containerId:'pred-list',fallbackHtml:'<div class="empty-pretty"><h4>Não foi possível renderizar agora</h4><p>Tente recarregar o app. Seus dados continuam salvos.</p></div>'});
+  sr('renderDaySleepPanel',()=>renderDaySleepPanel(),{containerId:'day-sleep-panel-wrap'});
+  sr('renderNightPanel',()=>renderNightPanel(),{containerId:'night-panel-wrap'});
+  sr('renderTodayRail',()=>renderTodayRail(),{containerId:'today-rail',fallbackHtml:'<div class="trail-empty">Falha ao renderizar a linha do dia. Recarregue o app.</div>'});
+
+  // Keep these in sync too if the user navigates away and back.
+  if(typeof updateHeader==='function') sr('updateHeader',()=>updateHeader());
+  if(typeof syncSettingsForm==='function') sr('syncSettingsForm',()=>syncSettingsForm());
+
+  return {ok:true,reason};
+}
+window.refreshAppAfterDataChange=refreshAppAfterDataChange;
+
 
 function fmtDateBrYmd(ymd){if(!ymd||!/^\d{4}-\d{2}-\d{2}$/.test(ymd))return ymd||'';const [y,m,d]=ymd.split('-');return `${d}/${m}/${y}`;}
 
