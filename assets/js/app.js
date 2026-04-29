@@ -19,7 +19,7 @@ function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.
 /* ---- init ---- */
 function init(){
   nestInitErrorCapture();
-  migrateToProfiles();loadProfileIntoMemory();applyTheme();syncSettingsForm();updateHeader();syncOnboardingUI();initSegs();
+  migrateToProfiles();loadProfileIntoMemory();applyTheme();safeRender('syncSettingsForm',syncSettingsForm);updateHeader();syncOnboardingUI();initSegs();
   registerPWA();
   renderHome();
   // Refresh orbit every 30s so timers "tick"
@@ -33,4 +33,4 @@ function init(){
 init();
 
 
-window.showSec=showSec;window.openLog=openLog;window.openLogSheet=openLogSheet;window.babySlept=babySlept;window.babyWoke=babyWoke;window.renderCopilot=renderCopilot;window.runNestSelfTests=runNestSelfTests;window.debugNestVersion=debugNestVersion;window.debugNestStorage=debugNestStorage;window.debugRenderHealth=debugRenderHealth;window.debugDateParsing=debugDateParsing;window.debugIphoneHomeState=debugIphoneHomeState;window.copyDiagnostics=copyDiagnostics;window.tickOrbit=tickOrbit;
+window.showSec=showSec;window.openLog=openLog;window.openLogSheet=openLogSheet;window.babySlept=babySlept;window.babyWoke=babyWoke;window.renderCopilot=renderCopilot;window.runNestSelfTests=runNestSelfTests;window.debugNestVersion=debugNestVersion;window.debugNestStorage=debugNestStorage;window.debugRenderHealth=debugRenderHealth;window.debugDateParsing=debugDateParsing;window.debugIphoneHomeState=debugIphoneHomeState;window.debugSettingsDomMap=debugSettingsDomMap;window.copyDiagnostics=copyDiagnostics;window.tickOrbit=tickOrbit;
