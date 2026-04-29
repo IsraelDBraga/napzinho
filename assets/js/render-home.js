@@ -207,6 +207,69 @@ function renderGlance(){const host=$('glance');if(!host)return;const ymd=todaySt
 /* ---- Night panel ---- */
 function renderNightPanel(){const host=$('night-panel-wrap');if(!host)return;const an=analyzeLastCompleteNight();const ymd=todayStr();const segs=nightSegmentsOnWakeDay(ymd);if(!segs.length){host.innerHTML='';return;}const first=segs[0],last=segs[segs.length-1];const total=segs.reduce((a,e)=>a+(e.durationMins||0),0);const waves=[];for(let i=0;i<segs.length;i++){waves.push(`<span class="nseg-pill sl">${fmtDurShort(segs[i].durationMins||0)}</span>`);if(i<segs.length-1){const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);if(g)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(g)}</span>`);}}const wakes=an?an.wakes:Math.max(0,segs.length-1);const html=`<div class="night-panel"><div class="night-head"><span class="nh-kicker">Noite — referência principal</span><span class="nh-range">${first.start} → ${last.end||'—'}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(total)}</div><div class="night-metric-lbl">Total</div></div><div class="night-metric"><div class="night-metric-val">${segs.length}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${wakes}</div><div class="night-metric-lbl">Despertares</div></div></div><div class="night-segs">${waves.join('')}</div><p class="night-foot">A noite não reseta na meia-noite — começa no primeiro sono após ${cfg.nightStart} e fecha quando o bebê acorda de manhã.</p></div>`;host.innerHTML=html;}
 
+function renderNightPanel(){
+  const host=$('night-panel-wrap');if(!host)return;
+  const ymd=todayStr();
+  const active=getActiveSleep&&getActiveSleep();
+
+  // If a night sleep is active, show an "in progress" panel (otherwise the section looks broken).
+  if(active && !active.end && sleepIsNight(active)){
+    const st=parseTimeOnDate(active.start,active.date);
+    const mins=Math.max(0,Math.round((now()-st)/60000));
+    host.innerHTML=`<div class="night-panel night-panel-active">
+      <div class="night-head">
+        <span class="nh-kicker">Noite em andamento</span>
+        <span class="nh-range">${escHtml(active.start)} → agora</span>
+      </div>
+      <div class="night-metrics">
+        <div class="night-metric">
+          <div class="night-metric-val">${fmtDurShort(mins)}</div>
+          <div class="night-metric-lbl">Até agora</div>
+        </div>
+        <div class="night-metric">
+          <div class="night-metric-val">1</div>
+          <div class="night-metric-lbl">Trecho</div>
+        </div>
+        <div class="night-metric">
+          <div class="night-metric-val">—</div>
+          <div class="night-metric-lbl">Despertares</div>
+        </div>
+      </div>
+      <p class="night-foot">Quando o bebê acordar, registre <strong>Acordou</strong> para fechar a noite e calcular total e despertares.</p>
+    </div>`;
+    return;
+  }
+
+  const an=analyzeLastCompleteNight();
+  const segs=nightSegmentsOnWakeDay(ymd);
+  if(!segs.length){host.innerHTML='';return;}
+  const first=segs[0],last=segs[segs.length-1];
+  const total=segs.reduce((a,e)=>a+(e.durationMins||0),0);
+  const waves=[];
+  for(let i=0;i<segs.length;i++){
+    waves.push(`<span class="nseg-pill sl">${fmtDurShort(segs[i].durationMins||0)}</span>`);
+    if(i<segs.length-1){
+      const g=gapMinutesBetweenSleeps(segs[i],segs[i+1]);
+      if(g)waves.push(`<span class="nseg-pill aw">↑ ${fmtDurShort(g)}</span>`);
+    }
+  }
+  const wakes=an?an.wakes:Math.max(0,segs.length-1);
+  const html=`<div class="night-panel">
+    <div class="night-head">
+      <span class="nh-kicker">Noite — referência principal</span>
+      <span class="nh-range">${first.start} → ${last.end||'—'}</span>
+    </div>
+    <div class="night-metrics">
+      <div class="night-metric"><div class="night-metric-val">${fmtDurShort(total)}</div><div class="night-metric-lbl">Total</div></div>
+      <div class="night-metric"><div class="night-metric-val">${segs.length}</div><div class="night-metric-lbl">Trechos</div></div>
+      <div class="night-metric"><div class="night-metric-val">${wakes}</div><div class="night-metric-lbl">Despertares</div></div>
+    </div>
+    <div class="night-segs">${waves.join('')}</div>
+    <p class="night-foot">A noite não reseta na meia-noite — começa no primeiro sono após ${cfg.nightStart} e fecha quando o bebê acorda de manhã.</p>
+  </div>`;
+  host.innerHTML=html;
+}
+
 /* ---- Today rail (horizontal timeline) ---- */
 function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';let inner;if(!ev.length){inner='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';}else{const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};inner='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||e.time||'00:00')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}host.innerHTML=inner;}
 
