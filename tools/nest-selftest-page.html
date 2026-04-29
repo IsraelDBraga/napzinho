@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Nest runNestSelfTests</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="../assets/css/styles.css">
+<script src="../assets/js/app.js" defer></script>
+</head>
+<body>
+<div id="sec-home"></div>
+<div id="pred-list"></div>
+<div id="today-rail"></div>
+<div id="stats-charts"></div>
+<script defer>
+window.addEventListener('load', function () {
+  var r = window.runNestSelfTests();
+  document.body.setAttribute('data-selftest', r.ok ? 'ok' : 'fail');
+  document.body.setAttribute('data-selftest-json', JSON.stringify(r));
+  document.title = r.ok ? 'selftest-ok' : 'selftest-fail';
+});
+</script>
+</body>
+</html>
