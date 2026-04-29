@@ -109,11 +109,8 @@
   <div class="h-section"><h3>Próximas janelas</h3><span class="h-action" id="home-conf-badge">—</span></div>
   <div class="pred-list" id="pred-list"></div>
 
-  <!-- Glance (4 key numbers of the day) -->
-  <div class="h-section"><h3>Hoje em um olhar</h3><span class="h-action">dia civil</span></div>
-  <div class="glance" id="glance"></div>
-
-  <!-- Night panel (only if has night data for today) -->
+  <!-- Day / night summary panels -->
+  <div id="day-sleep-panel-wrap"></div>
   <div id="night-panel-wrap"></div>
 
   <!-- Today rail (horizontal timeline) -->
@@ -135,6 +132,16 @@
 <section class="section" id="sec-stats">
   <div class="stat-hero" id="stat-hero"></div>
   <div id="stats-charts"></div>
+  <div class="set-group" id="stats-export-box">
+    <h4 id="stats-export-title">Dados</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn-ghost" onclick="exportData()" style="margin-top:0" id="btn-export-json">Exportar JSON</button>
+      <button class="btn-ghost" onclick="exportCsv()" style="margin-top:0" id="btn-export-csv">Exportar CSV</button>
+      <button class="btn-ghost" onclick="printReport()" style="margin-top:0" id="btn-export-pdf">Relatório / PDF</button>
+      <button class="btn-ghost" onclick="document.getElementById('import-file').click()" style="margin-top:0" id="btn-import-json">Importar JSON</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" class="hide" onchange="importData(event)">
+  </div>
 </section>
 
 <!-- HISTORY -->
@@ -156,7 +163,7 @@
 
 <!-- SETTINGS -->
 <section class="section" id="sec-settings">
-  <div class="h-section" style="margin-top:2px"><h3>Configurações</h3></div>
+  <div class="h-section" style="margin-top:2px"><h3 id="settings-title">Configurações</h3></div>
 
   <div class="set-group">
     <h4>Perfil do bebê</h4>
@@ -173,12 +180,13 @@
 
   <div class="set-group">
     <h4>Janelas do dia</h4>
-    <div class="fgroup"><label class="flabel" for="cfg-night-start">Início da noite fisiológica</label><input class="finput" id="cfg-night-start" type="text" inputmode="numeric" placeholder="18:00" maxlength="5" oninput="maskTime(this)"><p class="set-hint">A partir deste horário, um sono entra na <strong>noite lógica</strong>. Ex.: 20:10 com início 18:00 = noite, continua depois da meia-noite.</p></div>
+    <div class="fgroup"><label class="flabel" for="cfg-night-start">Início da noite fisiológica</label><input class="finput" id="cfg-night-start" type="text" inputmode="numeric" placeholder="18:00" maxlength="5" oninput="maskTime(this)"><p class="set-hint">A partir deste horário o app entra na <strong>janela noturna</strong>. Sono longo aqui conta como <strong>noite</strong>; se acabar cedo, conta como <strong>soneca</strong> (o limite depende da idade). Continua depois da meia-noite se for o caso.</p></div>
     <div class="fgroup"><label class="flabel" for="cfg-day-boundary">Fim da noite (manhã)</label><input class="finput" id="cfg-day-boundary" type="text" inputmode="numeric" placeholder="06:00" maxlength="5" oninput="maskTime(this)"><p class="set-hint">Antes disso ainda é noite. Depois, o sono é classificado como soneca.</p></div>
   </div>
 
   <div class="set-group">
     <h4>Aparência</h4>
+    <div class="fgroup"><label class="flabel" for="cfg-language" id="cfg-language-label">Idioma</label><select class="fselect" id="cfg-language"><option value="pt-BR">Português</option><option value="en-US">English</option></select></div>
     <div class="set-row"><label for="cfg-dark-theme">Tema escuro<span class="set-hint">Noturno por padrão, com contraste alto e cores suaves.</span></label>
       <label class="switch"><input type="checkbox" id="cfg-dark-theme" onchange="applyThemeFromCheckbox()"><span class="switch-slider"></span></label>
     </div>
@@ -220,17 +228,6 @@
     <div class="fgroup" style="margin-top:12px"><label class="flabel" for="cfg-license-api">URL do servidor de licenças</label><input class="finput" id="cfg-license-api" placeholder="https://seu-servidor.com"></div>
   </div>
 
-  <div class="set-group">
-    <h4>Dados</h4>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn-ghost" onclick="exportData()" style="margin-top:0">Exportar JSON</button>
-      <button class="btn-ghost" onclick="exportCsv()" style="margin-top:0">Exportar CSV</button>
-      <button class="btn-ghost" onclick="printReport()" style="margin-top:0">Relatório / PDF</button>
-      <button class="btn-ghost" onclick="document.getElementById('import-file').click()" style="margin-top:0">Importar JSON</button>
-    </div>
-    <input type="file" id="import-file" accept=".json" class="hide" onchange="importData(event)">
-  </div>
-
   <button class="btn-primary" onclick="saveSettings()" style="margin-top:12px">Salvar configurações</button>
 </section>
 </main>
@@ -239,22 +236,22 @@
 <nav class="nav" aria-label="Navegação principal">
   <button type="button" class="nav-item active" id="nav-home" onclick="showSec('home')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1V11z"/></svg>
-    <span>Início</span>
+    <span id="nav-home-label">Início</span>
   </button>
   <button type="button" class="nav-item" id="nav-stats" onclick="showSec('stats')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10M9 20V4M15 20v-8M21 20v-4"/></svg>
-    <span>Dados</span>
+    <span id="nav-stats-label">Dados</span>
   </button>
   <button type="button" class="fab" onclick="openLogSheet()" aria-label="Registrar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
   </button>
   <button type="button" class="nav-item" id="nav-history" onclick="showSec('history')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-    <span>Histórico</span>
+    <span id="nav-history-label">Histórico</span>
   </button>
   <button type="button" class="nav-item" id="nav-copilot" onclick="showSec('copilot')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9"/><path d="M12 3v1M12 20v1M3 12h1M20 12h1"/></svg>
-    <span>Copiloto</span>
+    <span id="nav-copilot-label">Copiloto</span>
   </button>
 </nav>
 
