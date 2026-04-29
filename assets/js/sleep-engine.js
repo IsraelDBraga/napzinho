@@ -79,6 +79,13 @@ function nightBedYmdForSleep(e){
   const ns=nightStartMinsVal();
   const db=dayBoundaryMins();
   const stMin=timeToMins(e.start);
+  // Rule: if it starts before nightStart but crosses into the night window, it counts as that night's bedYmd.
+  // Example: 17:40→18:30 with nightStart 18:00 belongs to the same day's night.
+  if(stMin<ns && stMin>=db && e.end && isValidTime(e.end)){
+    const endMin=timeToMins(e.end);
+    const crossesNightStart=endMin>=ns; // same-day end that reaches nightStart
+    if(crossesNightStart) return e.date;
+  }
   if(stMin>=ns) return e.date;
   if(stMin<db){
     // after midnight: belongs to previous evening's night
