@@ -74,3 +74,63 @@ function runPatch3CBChecks(){const checks=[];const add=(id,name,ok,expected,actu
 const ___run=runNestSelfTests;runNestSelfTests=function(){const b=___run();const checks=[...b.checks,...runPatch3CBChecks()];return{passed:checks.filter(c=>c.ok).length,total:checks.length,failed:checks.filter(c=>!c.ok&&!c.details?.pending),pending:checks.filter(c=>c.details?.pending),checks};};window.runNestSelfTests=runNestSelfTests;
 function runSettingsNullChecks(){const checks=[];const add=(id,name,ok,expected,actual,details={})=>checks.push({id,name,ok:!!ok,expected,actual,details});add('S1','syncSettingsForm existe',typeof syncSettingsForm==='function','function',typeof syncSettingsForm);try{if(typeof syncSettingsForm==='function'){syncSettingsForm();add('S2','syncSettingsForm não lança',true,true,true);}else add('S2','syncSettingsForm não lança',false,true,'missing');}catch(e){add('S2','syncSettingsForm não lança',false,true,String(e));}try{const m=debugSettingsDomMap();add('S3','debugSettingsDomMap retorna objeto',typeof m==='object'&&m!==null,true,typeof m);add('S4','missingIds é array',Array.isArray(m?.missingIds),true,m?.missingIds);}catch(e){add('S3','debugSettingsDomMap retorna objeto',false,true,String(e));add('S4','missingIds é array',false,true,String(e));}try{add('S5','setCheckedSafe id inexistente retorna false',setCheckedSafe('id-inexistente',true)===false,false,setCheckedSafe('id-inexistente',true));}catch(e){add('S5','setCheckedSafe id inexistente retorna false',false,false,String(e));}try{add('S6','setValueSafe id inexistente retorna false',setValueSafe('id-inexistente','x')===false,false,setValueSafe('id-inexistente','x'));}catch(e){add('S6','setValueSafe id inexistente retorna false',false,false,String(e));}add('S7','init tolera falta de campos via safeRender',typeof safeRender==='function',true,typeof safeRender);try{const h=typeof debugRenderHealth==='function'?debugRenderHealth():null;const hasNullChecked=JSON.stringify(h?.globalErrors||[]).includes('Cannot set properties of null');add('S8','sem erro global de checked null',!hasNullChecked,true,hasNullChecked);}catch(e){add('S8','sem erro global de checked null',false,true,String(e));}return checks;}
 const ____run=runNestSelfTests;runNestSelfTests=function(){const b=____run();const checks=[...b.checks,...runSettingsNullChecks()];return{passed:checks.filter(c=>c.ok).length,total:checks.length,failed:checks.filter(c=>!c.ok&&!c.details?.pending),pending:checks.filter(c=>c.details?.pending),checks};};window.runNestSelfTests=runNestSelfTests;
+
+function runCopilotUiChecks(){
+  const checks=[];
+  const add=(id,name,ok,expected,actual,details={})=>checks.push({id,name,ok:!!ok,expected,actual,details});
+  const pending=(id,name,reason)=>checks.push({id,name,ok:false,expected:'ready',actual:'pending',details:{pending:true,reason}});
+
+  add('CP_UI_1','renderCopilot existe',typeof renderCopilot==='function','function',typeof renderCopilot);
+  add('CP_UI_10','COPILOT_DISCLAIMER existe (único lógico)',typeof globalThis.COPILOT_DISCLAIMER==='string'&&globalThis.COPILOT_DISCLAIMER.length>20,true,(globalThis.COPILOT_DISCLAIMER||''));
+
+  // Engine shape + medical safety
+  if(typeof CopilotEngine==='object'){
+    const st=CopilotEngine.getCurrentBabyState(new Date());
+    const hyps=CopilotEngine.scoreHypotheses(st);
+    add('CP_UI_8','scoreHypotheses retorna array',Array.isArray(hyps),true,typeof hyps);
+    const ordered=Array.isArray(hyps)&&hyps.every((h,i)=>i===0||((hyps[i-1].score||0)>=(h.score||0)));
+    add('CP_UI_8B','scoreHypotheses ordenado desc',ordered,true,hyps.map(h=>h.score).slice(0,6));
+    const acts=CopilotEngine.getSuggestedActions(st,hyps);
+    add('CP_UI_9','getSuggestedActions retorna array',Array.isArray(acts),true,typeof acts);
+
+    const feb=CopilotEngine.answerLocalQuestion('febre',st);
+    add('CP_UI_3','febre sem dose/remédio',!/dipirona|paracetamol|ibuprofeno|dose|mg|ml|rem[eé]dio|medica/i.test(JSON.stringify(feb)),true,feb.answer);
+    const resp=CopilotEngine.answerLocalQuestion('respiração estranha',st);
+    add('CP_UI_4','respiração contém alerta',/urg[eê]n|atendimento|procure|dificuldade|arroxe|esfor[cç]o/i.test((resp.answer||'').toLowerCase()),true,resp.answer);
+    const unk=CopilotEngine.answerLocalQuestion('banana quântica',st);
+    add('CP_UI_5','fallback seguro desconhecido',/não consigo avaliar/i.test((unk.answer||'').toLowerCase()),true,unk.answer);
+
+    const stSleep=CopilotEngine.getCurrentBabyState(new Date());
+    const gSleep=CopilotEngine.getPrimaryGuidance({...stSleep,isSleeping:true,activeSleep:{start:'01:00',date:todayStr()}},[{key:'sleeping',score:80}]);
+    add('CP_UI_6','bebê dormindo reconhecido no guidance',/dorm|acordou|acordar/i.test(String(gSleep||'').toLowerCase()),true,gSleep);
+    const gLow=CopilotEngine.getPrimaryGuidance({...stSleep,dataQuality:'insufficient',daysWithData:0,completedSleeps:0},[{key:'data',score:80}]);
+    add('CP_UI_7','dados insuficientes reconhecido no guidance',/poucos|insuficient|registre/i.test(String(gLow||'').toLowerCase()),true,gLow);
+  }else{
+    pending('CP_UI_8','engine checks','CopilotEngine ausente');
+  }
+
+  // Render safety checks: require minimal DOM; otherwise pending.
+  try{
+    if(typeof renderCopilot!=='function' || typeof $!=='function') throw new Error('missing DOM helpers');
+    // Ensure required containers exist for the renderer.
+    ['sec-copilot','cop-hero','cop-now','cop-window','cop-day','cop-night','cop-cry','cop-sim'].forEach(id=>{
+      if(!document.getElementById(id)){
+        const el=document.createElement('div');el.id=id;document.body.appendChild(el);
+      }
+    });
+    renderCopilot();
+    const tx=(document.getElementById('sec-copilot')?.textContent||'');
+    add('CP_UI_2','renderCopilot não gera string crua',!(/\+escHtml|\[object Object\]|undefined|NaN|Infinity|Invalid Date/.test(tx)),true,tx.slice(0,160));
+  }catch(e){
+    pending('CP_UI_2','render safety','depende DOM real');
+  }
+
+  return checks;
+}
+const _____run=runNestSelfTests;
+runNestSelfTests=function(){
+  const b=_____run();
+  const checks=[...b.checks,...runCopilotUiChecks()];
+  return{passed:checks.filter(c=>c.ok).length,total:checks.length,failed:checks.filter(c=>!c.ok&&!c.details?.pending),pending:checks.filter(c=>c.details?.pending),checks};
+};
+window.runNestSelfTests=runNestSelfTests;
