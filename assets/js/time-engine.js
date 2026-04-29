@@ -29,3 +29,11 @@ function maskDateBirth(el){let d=el.value.replace(/[^\d]/g,'').slice(0,8);if(d.l
 function isoToBirthDisplay(iso){if(!iso||!isValidDateStr(iso))return'';const p=iso.split('-');return p[2]+'-'+p[1]+'-'+p[0];}
 function parseBirthDisplayToIso(s){const p=/^(\d{2})-(\d{2})-(\d{4})$/.exec((s||'').trim());if(!p)return null;const dd=+p[1],mm=+p[2],yy=+p[3];if(mm<1||mm>12||dd<1||dd>31)return null;const iso=yy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');return isValidDateStr(iso)?iso:null;}
 
+
+
+function parseYmdLocal(ymd){const d=TimeEngine.parseYmdLocalSafe(ymd);if(!d)return new Date();d.setHours(0,0,0,0);return d;}
+const TimeEngine={
+  parseYmdLocalSafe(ymd){if(!isValidDateStr(ymd))return null;const [y,m,d]=ymd.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0);},
+  resolveClockOnDate(ymd,hhmm){const base=this.parseYmdLocalSafe(ymd);if(!base||!isValidTime(hhmm))return null;const [h,m]=hhmm.split(':').map(Number);return new Date(base.getFullYear(),base.getMonth(),base.getDate(),h,m,0,0);},
+  resolveWindowOnDate(ymd,startHHMM,endHHMM){const start=this.resolveClockOnDate(ymd,startHHMM),end0=this.resolveClockOnDate(ymd,endHHMM);if(!start||!end0)return null;const end=new Date(end0);if(end<=start)end.setDate(end.getDate()+1);return{start,end};}
+};
