@@ -20,6 +20,20 @@ function wwCurrentTargetMinutes(){return wwBaseTarget(babyAgeMonths())+Math.min(
 function getWakeRisk(minutesAwake,target){const r=target?minutesAwake/target:0;if(r<0.85)return{lvl:'low',msg:'dentro da janela'};if(r<1.1)return{lvl:'mid',msg:'próximo do limite'};return{lvl:'high',msg:'janela estourada'};}
 /** Minutes until the next real-world occurrence of clock time `centerMin` (0–1439), crossing midnight when needed. */
 function minutesUntilNextClock(centerMin,refDate){const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();const nowM=timeToMins(fmtTime(d0));let diff=centerMin-nowM;if(diff>0)return diff;const t=new Date(d0);t.setHours(0,0,0,0);const h=Math.floor(centerMin/60)%24,mm=centerMin%60;t.setHours(h,mm,0,0);if(t.getTime()<=d0.getTime())t.setDate(t.getDate()+1);return Math.max(0,Math.round((t.getTime()-d0.getTime())/60000));}
+// For daytime naps, never show a +24h countdown if the target clock is already passed today.
+function minutesUntilDaytimeNap(centerMin,refDate){
+  const d0=refDate instanceof Date?new Date(refDate.getTime()):new Date();
+  const nowM=timeToMins(fmtTime(d0));
+  const c=normClockMin(centerMin);
+  const db=dayBoundaryMins(),ns=nightStartMinsVal();
+  const inDay=m=>m>=db&&m<ns;
+  if(inDay(c)&&inDay(nowM)){
+    if(c>nowM)return c-nowM;
+    return 0;
+  }
+  return minutesUntilNextClock(c,d0);
+}
 function formatTimeUntil(timeStr){return minutesUntilNextClock(timeToMins(timeStr),now());}
+function formatTimeUntilNapIfDay(timeStr){return minutesUntilDaytimeNap(timeToMins(timeStr),now());}
 function dataMaturity(){const days=getDaysWithData().length;const sl=entries.filter(e=>e.type==='sleep'&&e.durationMins).length;const fd=entries.filter(e=>e.type==='feed').length;const score=Math.min(96,8+Math.min(34,days*5)+Math.min(28,sl*2)+Math.min(18,fd));if(!sl&&!fd)return{conf:'low',label:'Começando',score,hint:'Registre sono e mamadas por 2–3 dias e as faixas ficam bem mais suas.'};if(days<3||sl<4)return{conf:'low',label:'Calibrando',score,hint:'Cada soneca e cada noite gravada afinam o modelo.'};if(days<7)return{conf:'mid',label:'Afinando',score,hint:'Histórico + idade — as faixas estão apertando.'};return{conf:'high',label:'Firme',score,hint:'Base sólida — leituras mais assertivas.'};}
 

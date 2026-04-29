@@ -1,13 +1,15 @@
 /* ---- Exposto para handlers inline (onclick / oninput / onchange) ---- */
 function nestExposeGlobalsForInlineHandlers(){
-  const map={
-    skipBabyOnboarding,submitBabyOnboarding,babySlept,babyWoke,dismissLateNight,openLog,showSec,toggleTheme,orbitCtaClick,
-    addNewProfile,deleteCurrentProfile,activateLicenseKey,startPremiumTrial,exportData,exportCsv,printReport,saveSettings,
-    openLogSheet,closeLogSheet,quickSleep,logMoodQuick,saveEntry,closeModal,copyNestDebugReport,maskDateBirth,maskTime,
-    switchProfile,applyThemeFromCheckbox,applyPremiumLocalToggle,importData,runCryDiagnosis,runSim,deleteEntry,
-    showDebugPanel,quickSleepOrWake
-  };
-  Object.entries(map).forEach(([k,v])=>{window[k]=v;});
+  // Use names (strings) to avoid ReferenceError when some features
+  // are absent in minimal/headless environments.
+  const names=[
+    'skipBabyOnboarding','submitBabyOnboarding','babySlept','babyWoke','dismissLateNight','openLog','showSec','toggleTheme','orbitCtaClick',
+    'addNewProfile','deleteCurrentProfile','activateLicenseKey','startPremiumTrial','exportData','exportCsv','printReport','saveSettings',
+    'openLogSheet','closeLogSheet','quickSleep','logMoodQuick','saveEntry','closeModal','copyNestDebugReport','maskDateBirth','maskTime',
+    'switchProfile','applyThemeFromCheckbox','applyPremiumLocalToggle','importData','runCryDiagnosis','runSim','deleteEntry',
+    'showDebugPanel','quickSleepOrWake','handleActiveSleepGuardAction'
+  ];
+  names.forEach(k=>{try{const v=globalThis[k];if(typeof v==='function')window[k]=v;}catch(e){}});
 }
 
 /** Smoke checks para desenvolvimento (console). Não altera dados. */

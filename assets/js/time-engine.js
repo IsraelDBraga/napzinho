@@ -1,7 +1,15 @@
 /* ---- utils ---- */
 const $=id=>document.getElementById(id);
 const now=()=>new Date();
-const todayStr=()=>new Date().toLocaleDateString('sv-SE');
+function ymdFromDateLocal(d){
+  if(!(d instanceof Date)||!Number.isFinite(d.getTime()))return '';
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+// Must not rely on locale-specific formatting (Safari/iOS sensitivity).
+const todayStr=()=>ymdFromDateLocal(new Date());
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
 const fmtDurShort=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?String(r).padStart(2,'0'):'')):(r+'m');};
@@ -12,7 +20,7 @@ const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
 /** Minute-of-day 0–1439 for clock math. */
 function normClockMin(m){const x=Math.round(Number(m));if(!Number.isFinite(x))return 0;return((x%1440)+1440)%1440;}
 const minsToTime=m=>{const mm0=normClockMin(m);const h=Math.floor(mm0/60),r=mm0%60;return String(h).padStart(2,'0')+':'+String(r).padStart(2,'0');};
-const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
+const fmtDateSV=d=>ymdFromDateLocal(d);
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1];}
