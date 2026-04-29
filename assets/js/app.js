@@ -32,5 +32,3 @@ function init(){
 }
 init();
 
-
-
