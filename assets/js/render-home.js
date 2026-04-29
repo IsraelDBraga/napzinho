@@ -237,4 +237,17 @@ window.refreshAppAfterDataChange=refreshAppAfterDataChange;
 
 function fmtDateBrYmd(ymd){if(!ymd||!/^\d{4}-\d{2}-\d{2}$/.test(ymd))return ymd||'';const [y,m,d]=ymd.split('-');return `${d}/${m}/${y}`;}
 
-function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary?getDaySummary(ymd,new Date()):{sleepTotal:totalSleepMinsCalendarDay(ymd),sleepPeriods:calendarDayEntries(ymd).filter(e=>e.type==='sleep').length,feeds:calendarDayEntries(ymd).filter(e=>e.type==='feed').length,diapers:calendarDayEntries(ymd).filter(e=>e.type==='diaper').length,events:calendarDayEntries(ymd)};host.innerHTML=`<div class="night-panel day-panel" style="margin-top:14px;margin-bottom:10px"><div class="night-head"><span class="nh-kicker">Resumo do Dia</span><span class="nh-range">${escHtml(fmtDateBrYmd(ymd))}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal||0)}</div><div class="night-metric-lbl">Sono</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods||0}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds||0}</div><div class="night-metric-lbl">Mamadas</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers||0}</div><div class="night-metric-lbl">Fraldas</div></div></div><p class="night-foot">Resumo do dia: ${(sum.events||[]).length} eventos.</p></div>`;}
+function renderDaySleepPanel(){
+  const host=$('day-sleep-panel-wrap');if(!host)return;
+  const ymd=todayStr();
+  const sum=(typeof getDaySummary==='function')
+    ? getDaySummary(ymd,new Date())
+    : {
+        sleepTotal:totalSleepMinsCalendarDay(ymd),
+        sleepPeriods:calendarDayEntries(ymd).filter(e=>e.type==='sleep').length,
+        feeds:calendarDayEntries(ymd).filter(e=>e.type==='feed').length,
+        diapers:calendarDayEntries(ymd).filter(e=>e.type==='diaper').length,
+        events:calendarDayEntries(ymd)
+      };
+  host.innerHTML=`<div class="night-panel day-panel" style="margin-top:14px;margin-bottom:10px"><div class="night-head"><span class="nh-kicker">Resumo do Dia</span><span class="nh-range">${escHtml(fmtDateBrYmd(ymd))}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal||0)}</div><div class="night-metric-lbl">Sono</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods||0}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds||0}</div><div class="night-metric-lbl">Mamadas</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers||0}</div><div class="night-metric-lbl">Fraldas</div></div></div><p class="night-foot">Resumo do dia: ${(sum.events||[]).length} eventos.</p></div>`;
+}
