@@ -1044,7 +1044,14 @@ const I18N={
 };
 function currentLang(){const l=cfg&&cfg.lang;return SUPPORTED_LANGS.includes(l)?l:'pt-BR';}
 function t(k){const l=currentLang();return(I18N[l]&&I18N[l][k])||I18N['pt-BR'][k]||k;}
-const todayStr=()=>new Date().toLocaleDateString('sv-SE');
+function ymdFromDateLocal(d){
+  if(!(d instanceof Date)||!Number.isFinite(d.getTime()))return '';
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+const todayStr=()=>ymdFromDateLocal(new Date());
 const fmtTime=d=>d.toTimeString().slice(0,5);
 const fmtDur=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?' '+r+'m':'')):(r+'m');};
 const fmtDurShort=m=>{if(m==null||m<0)m=0;const h=Math.floor(m/60),r=Math.round(m%60);return h>0?(h+'h'+(r>0?String(r).padStart(2,'0'):'')):(r+'m');};
@@ -1077,7 +1084,65 @@ const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
 /** Map any numeric minute offset to 0–1439 (fixes 1440 min countdown when engine returns 1440+). */
 function normClockMin(m){const x=Math.round(Number(m));if(!Number.isFinite(x))return 0;return((x%1440)+1440)%1440;}
 const minsToTime=m=>{const mm0=normClockMin(m);const h=Math.floor(mm0/60),r=mm0%60;return String(h).padStart(2,'0')+':'+String(r).padStart(2,'0');};
-const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
+const fmtDateSV=d=>ymdFromDateLocal(d);
+if(!window.__nestRenderErrors)window.__nestRenderErrors=[];
+function safeRender(name,fn,fallback){
+  try{return fn();}
+  catch(err){
+    const item={name:String(name||'unknown'),message:String(err&&err.message||err),stack:String(err&&err.stack||''),time:new Date().toISOString()};
+    try{window.__nestRenderErrors.push(item);if(window.__nestRenderErrors.length>120)window.__nestRenderErrors.shift();}catch(e){}
+    console.error('Render error:',name,err);
+    if(typeof fallback==='function'){try{return fallback(err);}catch(e2){}}
+    return null;
+  }
+}
+function debugDateParsing(){
+  const ua=(typeof navigator!=='undefined'&&navigator.userAgent)?navigator.userAgent:'';
+  const samples=[
+    ['new Date("2026-04-28")',()=>new Date('2026-04-28')],
+    ['new Date("2026-04-28T12:00:00")',()=>new Date('2026-04-28T12:00:00')],
+    ['new Date("2026-04-28 12:00")',()=>new Date('2026-04-28 12:00')],
+    ['TimeEngine.parseYmdLocalSafe("2026-04-28")',()=>TimeEngine.parseYmdLocalSafe('2026-04-28')],
+    ['TimeEngine.resolveClockOnDate("2026-04-28","15:40")',()=>TimeEngine.resolveClockOnDate('2026-04-28','15:40')],
+    ['TimeEngine.resolveWindowOnDate("2026-04-28","18:00","06:00")',()=>{
+      const w=TimeEngine.resolveWindowOnDate('2026-04-28','18:00','06:00');
+      return {start:w.startDt,end:w.endDt};
+    }]
+  ];
+  const rows=samples.map(([name,getter])=>{
+    try{
+      const v=getter();
+      if(v&&v.start instanceof Date&&v.end instanceof Date){
+        return{
+          test:name,
+          validStart:Number.isFinite(v.start.getTime()),
+          validEnd:Number.isFinite(v.end.getTime()),
+          startIso:Number.isFinite(v.start.getTime())?v.start.toISOString():'',
+          endIso:Number.isFinite(v.end.getTime())?v.end.toISOString():'',
+          tzOffset:(new Date()).getTimezoneOffset()
+        };
+      }
+      const d=v instanceof Date?v:null;
+      const ok=!!(d&&Number.isFinite(d.getTime()));
+      return{
+        test:name,
+        valid:ok,
+        iso:ok?d.toISOString():'',
+        year:ok?d.getFullYear():'',
+        month:ok?(d.getMonth()+1):'',
+        day:ok?d.getDate():'',
+        hour:ok?d.getHours():'',
+        tzOffset:(new Date()).getTimezoneOffset()
+      };
+    }catch(err){
+      return{test:name,valid:false,error:String(err&&err.message||err)};
+    }
+  });
+  const out={userAgent:ua,rows};
+  try{console.table(rows);}catch(e){}
+  return out;
+}
+window.debugDateParsing=debugDateParsing;
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
 function formatShortDate(ymd){if(!ymd)return'';const p=ymd.split('-');if(p.length!==3)return ymd;return p[2]+'/'+p[1];}
@@ -1855,6 +1920,61 @@ function runNestSelfTests(){
     const c=fmtStaleSince(138*60+51);
     if(/138h/.test(c))throw new Error('should not show hours');
   });
+  // --- iOS/Safari HOTFIX tests ---
+  push('iOS A: calendarDayEntries day match is canonical string-only for non-sleep',()=>{
+    const src=String(calendarDayEntries);
+    if(src.includes('new Date(entry.date)')||src.includes("new Date(e.date)")||src.includes('toLocaleDateString('))throw new Error('unsafe day compare in calendarDayEntries');
+  });
+  push('iOS B: feed with date 2026-04-28 appears in rail day 2026-04-28',()=>{
+    const prevEntries=entries;
+    entries=[{id:1,type:'feed',date:'2026-04-28',start:'10:20',time:'10:20',subtype:'breast'}];
+    const day=calendarDayEntries('2026-04-28');
+    entries=prevEntries;
+    if(!day.some(e=>e.type==='feed'&&e.date==='2026-04-28'))throw new Error('feed missing from day');
+  });
+  push('iOS C: nap with date 2026-04-28 appears in rail day 2026-04-28',()=>{
+    withCfg({nightStart:'18:00',dayBoundary:'06:00'},()=>{
+      const prevEntries=entries;
+      entries=[{id:1,type:'sleep',date:'2026-04-28',start:'15:40',end:'16:10'}];
+      const day=calendarDayEntries('2026-04-28');
+      entries=prevEntries;
+      if(!day.some(e=>e.type==='sleep'))throw new Error('sleep missing from day');
+    });
+  });
+  push('iOS D: renderTodayRail with today entries does not show only dash',()=>{
+    const prevEntries=entries;
+    const y=todayStr();
+    entries=[{id:1,type:'feed',date:y,start:'10:00',time:'10:00',subtype:'breast'}];
+    const day=calendarDayEntries(y);
+    entries=prevEntries;
+    if(!day.length)throw new Error('today rail source empty');
+    if(day.some(e=>(e.start||e.time||'')==='—'))throw new Error('source has dash-only clock');
+  });
+  push('iOS E: renderPredictions with valid lastFeed is not empty',()=>{
+    const prevEntries=entries,prevCfg={...cfg};
+    const y=todayStr();
+    cfg.profileSetupDone=true;
+    entries=[{id:1,type:'feed',date:y,start:'10:00',time:'10:00',subtype:'breast'}];
+    const months=babyAgeMonths();
+    const st=StalePredictionGuard.getFeedStaleness(entries[0],now(),months,150);
+    const p=smartPredictNextFeed('10:00',{staleness:st,nowDt:now()});
+    entries=prevEntries;cfg=prevCfg;
+    if(!p||!p.center||!TimeEngine.isValidHHMM(p.center))throw new Error('invalid feed prediction');
+  });
+  push('iOS F: invalid prediction falls back, does not break whole render',()=>{
+    const prev=window.resolvePredictionDates;
+    const r=safeRender('ios-test-fallback',()=>{throw new Error('boom');},()=> 'fallback-ok');
+    window.resolvePredictionDates=prev;
+    if(r!=='fallback-ok')throw new Error('safe fallback not applied');
+  });
+  push('iOS G: TimeEngine.resolveClockOnDate returns valid Date',()=>{
+    const d=TimeEngine.resolveClockOnDate('2026-04-28','15:40');
+    if(!(d instanceof Date)||!Number.isFinite(d.getTime()))throw new Error('invalid resolveClockOnDate');
+  });
+  push('iOS H: rendered text contains no Invalid Date/NaN/undefined/Infinity',()=>{
+    const text=[String(($('pred-list')&&$('pred-list').innerHTML)||''),String(($('today-rail')&&$('today-rail').innerHTML)||'')].join(' ');
+    if(/Invalid Date|NaN|undefined|Infinity/.test(text))throw new Error('invalid render token');
+  });
 
   // --- HOTFIX: DaySleepStats must count active daytime naps + avoid duplicates ---
   push('HOTFIX A: active daytime nap counts in DaySleepStats',()=>{
@@ -2419,7 +2539,6 @@ function runNestSelfTests(){
       if(day.totalSleepDayMins!==30||day.napCount!==1)throw new Error('expected 30m/1');
     });
   });
-
   const results={passed:0,failed:0,details:[]};
   tests.forEach(t=>{
     try{
@@ -3979,6 +4098,7 @@ function renderInsight(){const host=$('home-insight');if(!host)return;const d=bu
 
 /* ---- Predictions list ---- */
 function renderPredictions(){
+  return safeRender('renderPredictions',()=>{
   const list=$('pred-list'),badge=$('home-conf-badge');if(!list)return;
   const dm=dataMaturity();if(badge){badge.textContent=dm.label;badge.style.color=dm.conf==='high'?'var(--mint)':dm.conf==='mid'?'var(--sun)':'var(--lilac)';}
   const today=calendarDayEntries(todayStr());
@@ -3989,6 +4109,7 @@ function renderPredictions(){
   const lastSleep=getLastCompletedSleep();
   const preds=[];
   const nowDt=now();
+  const invalidPredTokens=[];
   const insideNight=isNightContextForClock(fmtTime(now()));
   // Temporary dismiss for stale/missing cards (until next new event).
   if(!window.__dismissStale)window.__dismissStale={sig:'',at:0};
@@ -4064,7 +4185,13 @@ function renderPredictions(){
     const p=smartPredictNextFeed(lf.start,{staleness:feedSt,nowDt});
     preds.push({kind:'feed',name:'Próxima mamada',sub:insideNight?'Noturna — bebês pequenos ainda mamam de madrugada':'Ritmo dos últimos intervalos',pred:p,color:'#22D3EE',dataQuality:feedSt.dataQuality||'good',needsUserConfirmation:!!feedSt.needsUserConfirmation});
   }
-  if(!preds.length){list.innerHTML='<div class="empty-pretty"><h4>Vamos começar a medir</h4><p>Registre um sono com início e fim, e uma mamada. A próxima janela aparece aqui com faixa e motivo.</p></div>';return;}
+  if(!preds.length){
+    const nightCtx=isNightContextForClock(fmtTime(nowDt));
+    list.innerHTML=nightCtx
+      ?'<div class="empty-pretty"><h4>Janela noturna ativa</h4><p>Sem próxima janela calculada agora.</p></div>'
+      :'<div class="empty-pretty"><h4>Sem próxima janela calculada agora.</h4><p>Registre mamada/sono para calibrar.</p></div>';
+    return;
+  }
   const iconSvg={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',nap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>',night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6zM10 11h4"/></svg>'};
   list.innerHTML=preds.map(p=>{
     if(p.kind==='active-sleep-guard'){
@@ -4111,6 +4238,12 @@ function renderPredictions(){
     }else{
       const baseYmd=todayStr();
       const r=resolvePredictionDates(p.pred,baseYmd,nowDt);
+      if(!(r.centerDt instanceof Date)||!Number.isFinite(r.centerDt.getTime()))invalidPredTokens.push({kind:p.kind,field:'center',value:p&&p.pred&&p.pred.center});
+      if(!(r.winStartDt instanceof Date)||!Number.isFinite(r.winStartDt.getTime()))invalidPredTokens.push({kind:p.kind,field:'from',value:p&&p.pred&&p.pred.from});
+      if(!(r.winEndDt instanceof Date)||!Number.isFinite(r.winEndDt.getTime()))invalidPredTokens.push({kind:p.kind,field:'to',value:p&&p.pred&&p.pred.to});
+      if(invalidPredTokens.length){
+        return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name||'Próxima janela')}</div><div class="psub">Sem próxima janela calculada agora.</div><div class="pbase">dados de horário incompletos</div></div><div class="ptime"><div class="pclock">—</div><div class="prange">Registre mamada/sono para calibrar.</div></div></div>`;
+      }
       const tStatus=TimeEngine.getTemporalStatus(r.centerDt,nowDt,{toleranceMin:1});
       const wStatus=getWindowStatus(r.winStartDt,r.winEndDt,nowDt);
       // Display rules (formatter only):
@@ -4127,6 +4260,12 @@ function renderPredictions(){
     }
     return `<div class="pred-row" style="--pcol:${p.color}"><div class="pico">${ico}</div><div class="pmid"><div class="pname">${escHtml(p.name)}</div><div class="psub">${escHtml(p.sub)}</div><div class="pbase">${escHtml(p.pred.basis||'')}</div>${risk?`<span class="risk ${risk.lvl}">${escHtml(risk.msg)}</span>`:''}</div><div class="ptime">${right}</div></div>`;
   }).join('');
+  if(invalidPredTokens.length){
+    console.error('Invalid prediction dates detected',invalidPredTokens);
+  }
+  },()=>{
+    if(list)list.innerHTML='<div class="empty-pretty"><h4>Sem próxima janela calculada agora.</h4><p>Registre mamada/sono para calibrar.</p></div>';
+  });
 }
 
 /* ---- Glance ---- */
@@ -4197,7 +4336,83 @@ function renderDaySleepPanel(){
 }
 
 /* ---- Today rail (horizontal timeline) ---- */
-function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count');if(!host)return;const ymd=todayStr();const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{const ta=a.start||'00:00',tb=b.start||'00:00';return timeToMins(ta)-timeToMins(tb);});if(count)count.textContent=ev.length+' eventos';if(!ev.length){host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda — toque em + para começar.</div>';return;}const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{const t=e.type;const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(e.start||'—')}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;}).join('')+'</div>';}
+function renderTodayRail(){
+  const host=$('today-rail'),count=$('today-rail-count');
+  if(!host)return;
+  safeRender('renderTodayRail:inner',()=>{
+    const ymd=todayStr();
+    const ev=calendarDayEntries(ymd).slice().sort((a,b)=>{
+      const ta=a.start||a.time||'00:00',tb=b.start||b.time||'00:00';
+      return timeToMins(ta)-timeToMins(tb);
+    });
+    if(count)count.textContent=ev.length+' eventos';
+    if(!ev.length){
+      host.innerHTML='<div class="trail-empty">Nenhum registro hoje ainda.</div>';
+      return;
+    }
+    const tone={sleep:'#A78BFA',feed:'#22D3EE',diaper:'#F59E0B',mood:'#F472B6'};
+    const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/></svg>'};
+    host.innerHTML='<div class="trail-track"></div><div class="trail-items">'+ev.map(e=>{
+      const t=e.type;
+      const clock=e.start||e.time||'--:--';
+      const dur=e.type==='sleep'&&e.durationMins?fmtDurShort(e.durationMins):'';
+      return `<div class="trail-chip" style="--tone:${tone[t]||'#A78BFA'}"><span class="tc-ico">${icon[t]||icon.sleep}</span><span class="tc-time">${escHtml(clock)}</span>${dur?`<span class="tc-dur">${escHtml(dur)}</span>`:''}</div>`;
+    }).join('')+'</div>';
+  },()=>{
+    if(count)count.textContent='0 eventos';
+    host.innerHTML='<div class="trail-empty">Não foi possível renderizar a Linha do Dia agora.</div>';
+  });
+}
+function debugIphoneHomeState(){
+  const nowDt=now();
+  const todayYmd=todayStr();
+  const todayEntries=calendarDayEntries(todayYmd);
+  const byType=todayEntries.reduce((a,e)=>{const k=e&&e.type?e.type:'unknown';a[k]=(a[k]||0)+1;return a;},{});
+  const lastFeed=(entries||[]).filter(e=>e&&e.type==='feed').sort((a,b)=>(b.id||0)-(a.id||0))[0]||null;
+  const lastSleep=getLastCompletedSleep()||getActiveSleepEntry(entries)||null;
+  const daySleepStats=SleepEngine.getDaySleepStats(todayYmd,nowDt);
+  const wakeYmd=SleepEngine.getNightReferenceWakeYmd(nowDt);
+  const nightSleepStats=SleepEngine.getNightSleepStats(wakeYmd,nowDt);
+  const predList=$('pred-list');
+  const railHost=$('today-rail');
+  const predRows=predList?predList.querySelectorAll('.pred-row,.missing-card,.empty-pretty').length:0;
+  const railRows=railHost?railHost.querySelectorAll('.trail-chip,.trail-empty').length:0;
+  const invalidDatesFound=(entries||[]).filter(e=>{
+    if(!e||typeof e!=='object')return true;
+    if(!TimeEngine.isValidYmd(e.date||''))return true;
+    const clk=e.start||e.time||'';
+    if(clk && !TimeEngine.isValidHHMM(clk))return true;
+    if(e.type==='sleep' && e.end && !TimeEngine.isValidHHMM(e.end))return true;
+    return false;
+  }).slice(0,100);
+  const todayNorm=todayEntries.map(e=>({
+    id:e.id,type:e.type,date:e.date,start:e.start||e.time||'',end:e.end||'',durationMins:e.durationMins??null
+  }));
+  try{console.table(todayNorm);}catch(e){}
+  const out={
+    appVersion:APP_SCHEMA_VERSION,
+    userAgent:(navigator&&navigator.userAgent)||'',
+    nowRaw:String(nowDt),
+    todayYmd,
+    activeProfileId:currentProfileId(),
+    totalEntries:(entries||[]).length,
+    entriesTodayCount:todayEntries.length,
+    entriesTodayByType:byType,
+    lastFeed,
+    lastSleep,
+    daySleepStats,
+    nightSleepStats,
+    predictionsRaw:{predRows},
+    predictionsRenderedCount:predRows,
+    todayRailItemsRaw:todayNorm,
+    todayRailRenderedCount:railRows,
+    renderErrors:(window.__nestRenderErrors||[]).slice(-20),
+    invalidDatesFound
+  };
+  return out;
+}
+window.debugDateParsing=debugDateParsing;
+window.debugIphoneHomeState=debugIphoneHomeState;
 
 /* ---- COPILOT ---- */
 function moodCountToday(sub){return calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype===sub).length;}
@@ -4287,7 +4502,29 @@ function renderStats(){
 function renderHistory(){const host=$('history-list'),count=$('hist-count');if(!host)return;if(!entries.length){host.innerHTML='<div class="empty-pretty"><h4>Histórico vazio</h4><p>Os eventos registrados aparecem aqui agrupados por dia e por tipo.</p></div>';if(count)count.textContent='';return;}const byDay={};entries.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});const days=Object.keys(byDay).sort().reverse();if(count)count.textContent=entries.length+' eventos em '+days.length+' dias';const tone={sleep:'var(--c-sleep)',feed:'var(--c-feed)',diaper:'var(--c-diaper)',mood:'var(--c-mood)'};const lanes=[['sleep','Sono','var(--c-sleep)'],['feed','Mamadas','var(--c-feed)'],['diaper','Fraldas','var(--c-diaper)'],['mood','Humor / sinais','var(--c-mood)']];const icon={sleep:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>',feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v4H9zM7 6h10l-1 15a2 2 0 01-2 2h-4a2 2 0 01-2-2L7 6z"/></svg>',diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>',mood:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 15c1 1 4 1 6 0"/></svg>'};let html='';days.forEach(day=>{const ev=byDay[day].slice().sort((a,b)=>timeToMins(b.start||'00:00')-timeToMins(a.start||'00:00'));const dayD=new Date(day+'T12:00:00');const dayLbl=dayD.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});const sleepMins=ev.filter(e=>e.type==='sleep'&&e.durationMins).reduce((a,e)=>a+(e.durationMins||0),0);html+=`<div class="hgroup"><div class="hgroup-head"><div class="hgroup-day">${escHtml(dayLbl)}</div><div class="hgroup-total">${ev.length} eventos · ${fmtDur(sleepMins)} sono</div></div>`;lanes.forEach(([k,lbl,col])=>{const items=ev.filter(e=>e.type===k);if(!items.length)return;html+=`<div class="hlane"><div class="hlane-label" style="--lane:${col}">${escHtml(lbl)}</div>`;items.forEach(e=>{let name=k==='sleep'?(sleepIsNight(e)?'Sono noturno':'Soneca'):k==='feed'?(e.subtype==='breast'?'Seio':'Mamadeira'):k==='diaper'?(e.subtype==='wet'?'Xixi':e.subtype==='dirty'?'Cocô':'Ambos'):(e.subtype==='crying'?'Choro':e.subtype==='gas'?'Gases':'Irritação');let detail='';if(k==='sleep'){detail=e.start+(e.end?' → '+e.end:' → em andamento')+(e.durationMins?' · '+fmtDur(e.durationMins):'');}else if(k==='feed'){detail=e.start+(e.durationMins?' · '+e.durationMins+' min':'');}else{detail=e.start;}html+=`<div class="hitem"><div class="hdot" style="--tone:${col}">${icon[k]}</div><div class="hmain"><div class="hname">${escHtml(name)}</div><div class="hdetail">${escHtml(detail)}</div></div><button class="hdel" onclick="deleteEntry(${e.id})" aria-label="Excluir">×</button></div>`;});html+='</div>';});html+='</div>';});host.innerHTML=html;}
 
 /* ---- MASTER RENDER ---- */
-function renderHome(){updateHeader();renderOrbit();renderStatusRow();renderInsight();renderPredictions();renderDaySleepPanel();renderNightPanel();renderTodayRail();ensureNightCardAutoRefresh();ensureHomeActiveSleepAutoRefresh();const cc=$('cc-sub');if(cc){const dm=dataMaturity();cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';}}
+function renderHome(){
+  safeRender('updateHeader',()=>updateHeader());
+  safeRender('renderOrbit',()=>renderOrbit());
+  safeRender('renderStatusRow',()=>renderStatusRow());
+  safeRender('renderInsight',()=>renderInsight());
+  safeRender('renderPredictions',()=>renderPredictions(),()=>{
+    const list=$('pred-list');
+    if(list)list.innerHTML='<div class="empty-pretty"><h4>Sem próxima janela calculada agora.</h4><p>Registre mamada/sono para calibrar.</p></div>';
+  });
+  safeRender('renderDaySleepPanel',()=>renderDaySleepPanel());
+  safeRender('renderNightPanel',()=>renderNightPanel());
+  safeRender('renderTodayRail',()=>renderTodayRail(),()=>{
+    const host=$('today-rail');
+    if(host)host.innerHTML='<div class="trail-empty">Não foi possível renderizar a Linha do Dia agora.</div>';
+  });
+  safeRender('ensureNightCardAutoRefresh',()=>ensureNightCardAutoRefresh());
+  safeRender('ensureHomeActiveSleepAutoRefresh',()=>ensureHomeActiveSleepAutoRefresh());
+  const cc=$('cc-sub');
+  if(cc){
+    const dm=dataMaturity();
+    cc.textContent=dm.label+' · '+dm.hint.split('.')[0]+'.';
+  }
+}
 function showSec(name){
   if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
