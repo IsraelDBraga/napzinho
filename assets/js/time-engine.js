@@ -37,3 +37,14 @@ const TimeEngine={
   resolveClockOnDate(ymd,hhmm){const base=this.parseYmdLocalSafe(ymd);if(!base||!isValidTime(hhmm))return null;const [h,m]=hhmm.split(':').map(Number);return new Date(base.getFullYear(),base.getMonth(),base.getDate(),h,m,0,0);},
   resolveWindowOnDate(ymd,startHHMM,endHHMM){const start=this.resolveClockOnDate(ymd,startHHMM),end0=this.resolveClockOnDate(ymd,endHHMM);if(!start||!end0)return null;const end=new Date(end0);if(end<=start)end.setDate(end.getDate()+1);return{start,end};}
 };
+
+// Birthdate helpers (used by storage/config). Keep global for non-module scripts.
+function babyAgeMonthsFromDate(birthIso,refDate=new Date()){
+  if(!birthIso||!isValidDateStr(birthIso))return 0;
+  const b=TimeEngine.parseYmdLocalSafe(birthIso);
+  const t=(refDate instanceof Date && Number.isFinite(refDate.getTime()))?refDate:new Date();
+  if(!(b instanceof Date)||!Number.isFinite(b.getTime()))return 0;
+  let m=(t.getFullYear()-b.getFullYear())*12+(t.getMonth()-b.getMonth());
+  if(t.getDate()<b.getDate())m--;
+  return Math.max(0,Math.min(48,Math.floor(m)));
+}

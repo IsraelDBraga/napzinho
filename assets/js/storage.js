@@ -20,14 +20,49 @@ const EntitlementService={
   canUsePremium(featureKey){const ent=this.getEntitlement(cfg);if(ent.status==='familyLifetime'||ent.status==='lifetime'||ent.status==='premium')return true;if(ent.status==='devUnlocked')return !!window.DEV_MODE;return false;}
 };
 
-function normalizeCfgForImport(rawCfg={}){const base={...defaultCfg(),...(rawCfg||{})};if(base.babyBirthDate&&isValidDateStr(base.babyBirthDate)){base.months=babyAgeMonthsFromDate(base.babyBirthDate,now());}else{base.months=Math.max(0,Math.min(36,parseInt(base.months,10)||3));}EntitlementService.migrateLegacyPremiumState(base);delete base.appName;return base;}
+function normalizeCfgForImport(rawCfg={}){
+  const base={...defaultCfg(),...(rawCfg||{})};
+  if(base.babyBirthDate&&isValidDateStr(base.babyBirthDate)){
+    base.months=babyAgeMonthsFromDate(base.babyBirthDate,now());
+  }else{
+    base.months=Math.max(0,Math.min(36,parseInt(base.months,10)||3));
+  }
+  EntitlementService.migrateLegacyPremiumState(base);
+  delete base.appName;
+  return base;
+}
 function canonicalDateFromAny(e){return [e.date,e.dateStr,e.day,e.ymd].find(v=>isValidDateStr(v))||todayStr();}
 function canonicalTimeFromAny(e){const t=[e.time,e.start,e.at,e.hour,e.clock].find(v=>isValidTime(v));return t||fmtTime(now());}
+// Compatibility: render-settings/updateHeader and older code paths expect this helper.
+function babyAgeMonths(){return Math.max(0,Math.min(48,parseInt(cfg&&cfg.months,10)||3));}
 function normalizeEntry(raw){if(!raw||typeof raw!=='object')return null;const e={...raw};const t=String(e.type||'').toLowerCase();const id=typeof e.id==='number'?e.id:Date.now()+Math.floor(Math.random()*1000);const date=canonicalDateFromAny(e);if(['feed','feeding','mamada','bottle','breast'].includes(t)){const time=canonicalTimeFromAny(e);const subtype=e.subtype||e.feedType||'';return{id,type:'feed',date,time,feedType:e.feedType||subtype,subtype,durationMins:Number.isFinite(e.durationMins)?e.durationMins:null,createdAt:e.createdAt||null,updatedAt:e.updatedAt||null,source:e.source||'user',start:time};}
 if(['diaper','fralda'].includes(t)){const time=canonicalTimeFromAny(e);const diaperType=e.diaperType||e.subtype||'wet';return{id,type:'diaper',date,time,diaperType,subtype:e.subtype||diaperType,createdAt:e.createdAt||null,updatedAt:e.updatedAt||null,source:e.source||'user',start:time};}
 if(['sleep','sono','nap','soneca'].includes(t)||e.start||e.end||e.sleepStart||e.sleepEnd){const start=[e.start,e.startTime,e.sleepStart].find(v=>isValidTime(v))||fmtTime(now());const end0=[e.end,e.endTime,e.sleepEnd,e.endedAt].find(v=>v===''||isValidTime(v));const end=end0==null?'':end0;const out={id,type:'sleep',date,start,end,durationMins:Number.isFinite(e.durationMins)?e.durationMins:null,sleepKind:e.sleepKind||e.subtype||'',subtype:e.subtype||e.sleepKind||'',createdAt:e.createdAt||null,updatedAt:e.updatedAt||null,source:e.source||'user'};if(out.durationMins===0&&out.start===out.end)out.zeroDuration=true;setSleepKind(out);return out;}
 if(t==='signal'&&e.subtype==='cry'){return normalizeEntry({...e,type:'mood',subtype:'crying'});} if(t==='mood'){return{...e,id,date,type:'mood',subtype:e.subtype==='cry'?'crying':(e.subtype||'note'),start:e.start&&isValidTime(e.start)?e.start:canonicalTimeFromAny(e),source:e.source||'user'};}
 console.warn('normalizeEntry: unsupported entry kept as mood note',e);return{...e,id,date,type:'mood',subtype:'note',start:canonicalTimeFromAny(e),source:e.source||'legacy'};
+}
+
+// Minimal dedupe for imported/migrated data. Keeps first occurrence.
+// - De-duplicates by `id` when present.
+// - For sleep, also de-duplicates by canonical identity (date|start|end).
+function uniqueEntriesForMetrics(list){
+  const arr=Array.isArray(list)?list:[];
+  const out=[];
+  const seenId=new Set();
+  const seenSleep=new Set();
+  for(const e of arr){
+    if(!e||typeof e!=='object'||!e.type) continue;
+    const idKey=(e.id!=null)?String(e.id):'';
+    if(idKey && seenId.has(idKey)) continue;
+    if(e.type==='sleep'){
+      const sk=[e.date||'',e.start||'',e.end||''].join('|');
+      if(sk!=='||' && seenSleep.has(sk)) continue;
+      if(sk!=='||') seenSleep.add(sk);
+    }
+    if(idKey) seenId.add(idKey);
+    out.push(e);
+  }
+  return out;
 }
 
 function getCurrentProfile(){const blob=loadProfilesBlob()||{};const current=currentProfileId();if(blob[current])return{id:current,slot:blob[current]};const ids=Object.keys(blob);if(!ids.length)return{id:'default',slot:{entries:[],cfg:defaultCfg()}};const best=ids.sort((a,b)=>(blob[b]?.entries?.length||0)-(blob[a]?.entries?.length||0))[0];localStorage.setItem(CUR_PROFILE,best);return{id:best,slot:blob[best]};}
