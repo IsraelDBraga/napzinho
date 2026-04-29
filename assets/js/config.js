@@ -1,4 +1,4 @@
-const APP_SCHEMA_VERSION=3;
+const APP_SCHEMA_VERSION=4;
 const APP_NAME='Nest';
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
 

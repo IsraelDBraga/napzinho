@@ -9,7 +9,9 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
 const parseTime=s=>{const[h,m]=s.split(':').map(Number);const d=new Date();d.setHours(h,m,0,0);return d;};
 function parseTimeOnDate(timeStr,dateStr){const[h,m]=timeStr.split(':').map(Number);const d=new Date(dateStr+'T12:00:00');d.setHours(h,m,0,0);return d;}
 const timeToMins=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
-const minsToTime=m=>{const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');};
+/** Minute-of-day 0–1439 for clock math. */
+function normClockMin(m){const x=Math.round(Number(m));if(!Number.isFinite(x))return 0;return((x%1440)+1440)%1440;}
+const minsToTime=m=>{const mm0=normClockMin(m);const h=Math.floor(mm0/60),r=mm0%60;return String(h).padStart(2,'0')+':'+String(r).padStart(2,'0');};
 const fmtDateSV=d=>d.toLocaleDateString('sv-SE');
 function isValidTime(s){if(!s)return false;const p=/^(\d{1,2}):(\d{2})$/.exec(s);if(!p)return false;const h=+p[1],m=+p[2];return h>=0&&h<=23&&m>=0&&m<=59;}
 function isValidDateStr(s){if(!s)return false;const p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(!p)return false;const d=new Date(s+'T12:00:00');return d.getFullYear()==+p[1]&&d.getMonth()+1==+p[2]&&d.getDate()==+p[3];}
