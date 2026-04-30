@@ -1,5 +1,6 @@
 /* Napzinho service worker — cache shell for offline PWA */
-const CACHE = 'nest-v5';
+// Bump this string whenever app JS/CSS changes so iOS/Safari PWAs don't keep stale bundles.
+const CACHE = 'nest-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -11,10 +12,12 @@ const ASSETS = [
   './assets/js/predict-engine.js',
   './assets/js/stale-guard.js',
   './assets/js/storage.js',
+  './assets/js/exports.js',
   './assets/js/render-settings.js',
   './assets/js/render-home.js',
   './assets/js/render-stats.js',
   './assets/js/render-history.js',
+  './assets/js/copilot-engine.js',
   './assets/js/render-copilot.js',
   './assets/js/entries.js',
   './assets/js/backup.js',
