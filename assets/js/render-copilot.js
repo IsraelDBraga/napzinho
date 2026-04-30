@@ -5,7 +5,6 @@ function renderCopilot(){
   const state=(typeof CopilotEngine==='object'&&CopilotEngine.getCurrentBabyState)?CopilotEngine.getCurrentBabyState(now()):null;
   const hyps=(typeof CopilotEngine==='object'&&CopilotEngine.scoreHypotheses&&state)?CopilotEngine.scoreHypotheses(state):[];
   const guidance=(typeof CopilotEngine==='object'&&CopilotEngine.getPrimaryGuidance&&state)?CopilotEngine.getPrimaryGuidance(state,hyps):'';
-  const actions=(typeof CopilotEngine==='object'&&CopilotEngine.getSuggestedActions&&state)?CopilotEngine.getSuggestedActions(state,hyps):[];
   const quality=(typeof CopilotEngine==='object'&&CopilotEngine.getDataQualitySummary&&state)?CopilotEngine.getDataQualitySummary(state):{badge:{label:dm.label,tone:dm.conf||'low'},summary:dm.hint,details:[]};
 
   function toneClass(t){return t==='ok'?'ok':t==='warn'?'warn':t==='danger'?'danger':'neutral';}
@@ -28,17 +27,6 @@ function renderCopilot(){
         ${reasons.length?`<ul class="cop-list">${reasons.slice(0,4).map(x=>`<li>${escHtml(x)}</li>`).join('')}</ul>`:''}
         ${caut?`<div class="cop-caution">${escHtml(caut)}</div>`:''}
       </div>`;
-    }).join('')+`</div>`;
-  }
-  function hasFn(name){return typeof window[name]==='function';}
-  function renderActionButtons(list){
-    const arr=Array.isArray(list)?list:[];
-    const filtered=arr.filter(a=>a&&a.label&&(a.handler==null||hasFn(a.handler)));
-    if(!filtered.length)return `<div class="cop-empty">Sem ações automáticas agora. Se precisar, registre um evento recente para melhorar o contexto.</div>`;
-    return `<div class="cop-actions">`+filtered.map(a=>{
-      const cls=a.variant==='primary'?'cop-pill primary':'cop-pill';
-      const on=a.handler?`onclick="${escHtml(a.handler)}()"`:'';
-      return `<button type="button" class="${cls}" ${on}>${escHtml(a.label)}</button>`;
     }).join('')+`</div>`;
   }
   function quickQBtn(q){return `<button type="button" class="cop-pill" onclick="copilotQuickAsk('${escHtml(q)}')">${escHtml(q)}</button>`;}
@@ -161,16 +149,10 @@ function renderCopilot(){
     </div>`;
   }
 
-  // O que tentar agora (ações práticas)
+  // Perguntas / resposta / sinais de alerta
   const simEl=$('cop-sim');
   if(simEl){
     simEl.innerHTML=`<div class="cop-block copilot-section">
-      <div class="cb-kicker">O que tentar agora</div>
-      <h4>Ações práticas</h4>
-      <p>Essas ações usam os fluxos existentes do app (sem atalhos paralelos).</p>
-      ${renderActionButtons(actions)}
-    </div>
-    <div class="cop-block copilot-section">
       <div class="cb-kicker">Perguntas rápidas</div>
       <h4>Respostas rápidas (seguras)</h4>
       <p>Escolha uma pergunta para receber orientação local com base no contexto atual.</p>
