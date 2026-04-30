@@ -90,6 +90,7 @@ function runCopilotUiChecks(){
     add('CP_UI_8','scoreHypotheses retorna array',Array.isArray(hyps),true,typeof hyps);
     const ordered=Array.isArray(hyps)&&hyps.every((h,i)=>i===0||((hyps[i-1].score||0)>=(h.score||0)));
     add('CP_UI_8B','scoreHypotheses ordenado desc',ordered,true,hyps.map(h=>h.score).slice(0,6));
+    // UI may choose not to render suggested actions; engine should still return an array.
     const acts=CopilotEngine.getSuggestedActions(st,hyps);
     add('CP_UI_9','getSuggestedActions retorna array',Array.isArray(acts),true,typeof acts);
 
