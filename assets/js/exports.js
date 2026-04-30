@@ -120,28 +120,35 @@ function exportCsv(){
 
 function printReport(){
   // "PDF" is produced via the browser print dialog (Save as PDF).
-  const w=window.open('','nest-report','noopener,noreferrer');
+  let w=null;
+  try{
+    // Avoid noopener/noreferrer here: some browsers restrict document access and can yield a blank window.
+    w=window.open('', 'nest-report');
+  }catch{}
   if(!w){
     try{showToast('Não foi possível abrir o relatório (bloqueado).');}catch{}
     return {ok:false,error:'popup_blocked'};
   }
-  const locale=getAppLocale();
-  const name=(cfg&&cfg.name)||'Bebê';
-  const ymd=(typeof todayStr==='function')?todayStr():'';
-  const day=typeof getDaySummary==='function'?getDaySummary(ymd,new Date()):null;
-  const night=typeof analyzeLastCompleteNight==='function'?analyzeLastCompleteNight(new Date()):null;
   const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const fmtMins=m=>{const n=Math.max(0,Math.round(Number(m)||0));const h=Math.floor(n/60),r=n%60;return h?`${h}h ${String(r).padStart(2,'0')}m`:`${r}m`;};
-  const entriesCount=Array.isArray(entries)?entries.length:0;
-  const rows=(Array.isArray(entries)?entries:[]).slice(-120).map(e=>{
-    const t=e.type||'';
-    const when=(e.start||e.time||'');
-    const dur=(e.type==='sleep'&&e.durationMins)?fmtMins(e.durationMins):'';
-    const sub=e.subtype||e.feedType||e.diaperType||'';
-    return `<tr><td>${esc(formatDateForLocale(e.date, locale))}</td><td>${esc(when)}</td><td>${esc(t)}</td><td>${esc(sub)}</td><td style="text-align:right">${esc(dur)}</td></tr>`;
-  }).join('');
-  w.document.open();
-  w.document.write(`<!doctype html>
+
+  try{
+    const locale=getAppLocale();
+    const name=(cfg&&cfg.name)|| (isPt(locale)?'Bebê':'Baby');
+    const ymd=(typeof todayStr==='function')?todayStr():'';
+    const day=typeof getDaySummary==='function'?getDaySummary(ymd,new Date()):null;
+    const night=typeof analyzeLastCompleteNight==='function'?analyzeLastCompleteNight(new Date()):null;
+    const entriesCount=Array.isArray(entries)?entries.length:0;
+    const rows=(Array.isArray(entries)?entries:[]).slice(-120).map(e=>{
+      const t=e.type||'';
+      const when=(e.start||e.time||'');
+      const dur=(e.type==='sleep'&&e.durationMins)?fmtMins(e.durationMins):'';
+      const sub=e.subtype||e.feedType||e.diaperType||'';
+      return `<tr><td>${esc(formatDateForLocale(e.date, locale))}</td><td>${esc(when)}</td><td>${esc(t)}</td><td>${esc(sub)}</td><td style="text-align:right">${esc(dur)}</td></tr>`;
+    }).join('');
+
+    w.document.open();
+    w.document.write(`<!doctype html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Relatório — Nest</title>
@@ -187,11 +194,27 @@ function printReport(){
     <p class="muted" style="margin-top:10px">Obs.: Este relatório é um resumo. O Nest não substitui orientação médica.</p>
   </div>
 </body></html>`);
-  w.document.close();
-  // Don't auto-print: iOS often blocks prints not triggered directly by user gesture.
-  try{w.focus();}catch{}
-  try{showToast('Relatório aberto. Toque em “Imprimir / Salvar como PDF”.');}catch{}
-  return {ok:true,mode:'report_window'};
+    w.document.close();
+    // Don't auto-print: iOS often blocks prints not triggered directly by user gesture.
+    try{w.focus();}catch{}
+    try{showToast(isPt(locale)?'Relatório aberto. Toque em “Imprimir / Salvar como PDF”.':'Report opened. Tap “Print / Save as PDF”.');}catch{}
+    return {ok:true,mode:'report_window'};
+  }catch(err){
+    // Never leave a blank window.
+    try{
+      w.document.open();
+      w.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nest — Relatório</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;color:#111}pre{white-space:pre-wrap;background:#f6f6f6;border:1px solid #ddd;border-radius:12px;padding:12px}</style>
+</head><body>
+<h1>Falha ao montar o relatório</h1>
+<p>O relatório não pôde ser gerado por um erro interno. Atualize o app e tente novamente.</p>
+<pre>${esc(String(err&&err.stack||err&&err.message||err))}</pre>
+</body></html>`);
+      w.document.close();
+    }catch{}
+    try{showToast('Falha ao gerar relatório.');}catch{}
+    return {ok:false,error:String(err&&err.message||err)};
+  }
 }
 
 window.exportData=exportData;
