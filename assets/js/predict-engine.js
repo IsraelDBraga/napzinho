@@ -6,7 +6,21 @@ const wakeCountsAsDayForPredictions=lastSleepOrEnd=>{
 };
 function getSleepEngineAdjustmentFromLastNight(){const an=analyzeLastCompleteNight();if(!an)return{napAdj:0,feedAdj:0,rangeAdj:0,label:''};let napAdj=0,feedAdj=0,rangeAdj=0;const bits=[];const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;if(an.totalSleep<tgtMin*0.78){napAdj+=8;feedAdj+=4;rangeAdj+=3;bits.push('débito de sono da noite');}if(an.wakes>=3){napAdj+=10;feedAdj+=5;rangeAdj+=5;bits.push('noite fragmentada');}if(an.blocks>=2&&an.minBlock<40){napAdj+=6;bits.push('blocos curtos');}return{napAdj:Math.min(28,napAdj),feedAdj:Math.min(18,feedAdj),rangeAdj:Math.min(14,rangeAdj),label:bits.join(' · ')};}
 function sleepDebtNapAdjustment(){const an=analyzeLastCompleteNight();if(!an||!an.totalSleep)return 0;const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;const shortfall=Math.max(0,tgtMin-an.totalSleep);return shortfall<90?0:-Math.min(18,Math.floor(shortfall/90));}
-function getHistoricalWakeWindows(limit=10){const sleeps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&e.end).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));const w=[];for(let i=0;i<sleeps.length-1;i++){const g=gapMinutesBetweenSleeps(sleeps[i],sleeps[i+1]);if(g>0&&g<300)w.push(g);}return w.slice(-limit);}
+function getHistoricalWakeWindows(limit=10){
+  // IMPORTANT: Only use daytime wake windows between *naps*.
+  // Night sleep is often fragmented (micro-wakes), which would artificially shrink
+  // the historical wake window and make the next window too short.
+  const naps=entries
+    .filter(e=>e && e.type==='sleep' && e.durationMins && e.end && !sleepIsNight(e))
+    .sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));
+  const w=[];
+  for(let i=0;i<naps.length-1;i++){
+    const g=gapMinutesBetweenSleeps(naps[i],naps[i+1]);
+    // Keep realistic daytime wake windows. Avoid tiny gaps and allow longer windows (older babies).
+    if(g>=30 && g<600) w.push(g);
+  }
+  return w.slice(-limit);
+}
 function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).slice(-limit).map(e=>timeToMins(e.start));}
 function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const n=getSleepEngineAdjustmentFromLastNight();na+=n.napAdj;fa+=n.feedAdj;ra+=n.rangeAdj;return{napAdj:Math.min(45,na),feedAdj:Math.min(35,fa),rangeAdj:Math.min(26,ra),nightLabel:n.label};}
 function getRecentSignalCount(windowMin){const cut=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{return parseTimeOnDate(e.start,e.date).getTime()>=cut;}catch{return false;}}).length;}
