@@ -25,7 +25,68 @@ function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&
 function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const n=getSleepEngineAdjustmentFromLastNight();na+=n.napAdj;fa+=n.feedAdj;ra+=n.rangeAdj;return{napAdj:Math.min(45,na),feedAdj:Math.min(35,fa),rangeAdj:Math.min(26,ra),nightLabel:n.label};}
 function getRecentSignalCount(windowMin){const cut=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{return parseTimeOnDate(e.start,e.date).getTime()>=cut;}catch{return false;}}).length;}
 function getSignalPressure(){const s30=getRecentSignalCount(30),s90=getRecentSignalCount(90);const gasToday=calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype==='gas').length;const gasBias=Math.min(8,gasToday*2);return{napBias:Math.min(20,s30*5+s90*2+gasBias),feedBias:Math.min(15,s30*4),rangeBias:Math.min(10,s90*2),hasSignals:(s90>0||gasToday>0)};}
-function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const days=getDaysWithData().length;const phase=days<4?1:days<8?2:3;const hw=getHistoricalWakeWindows();const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw=Math.max(30,pw)+cx.napAdj-sp.napBias;range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=endM+pw;const basisBits=[];basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');if(cx.nightLabel)basisBits.push(cx.nightLabel);if(sp.hasSignals)basisBits.push('sinais recentes');return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:basisBits.join(' · '),phase,centerMin:c,range};}
+function smartPredictNextNap(lastEnd,lastDur,todayTotal){
+  const cx=getContextAdjust(),sp=getSignalPressure();
+  const months=babyAgeMonths();
+  const base=wwBaseTarget(months);
+  const days=getDaysWithData().length;
+  const phase=days<4?1:days<8?2:3;
+  const hw=getHistoricalWakeWindows();
+  const nt=getTypicalNapTimes();
+  const endM=timeToMins(lastEnd);
+
+  // Local helper: median of numeric array.
+  const median=(arr)=>{
+    const a=(Array.isArray(arr)?arr:[]).filter(n=>Number.isFinite(n)).slice().sort((x,y)=>x-y);
+    if(!a.length) return null;
+    return a[Math.floor(a.length/2)];
+  };
+  const histMed=median(hw);
+
+  let durAdj=lastDur<30?-15:lastDur<45?-8:0;
+  let debtAdj=todayTotal<base*0.9?-10:0;
+  debtAdj+=sleepDebtNapAdjustment();
+
+  let pw,range;
+  if(phase===1||hw.length<3){
+    pw=base+durAdj+debtAdj;
+    range=20;
+  }else if(phase===2){
+    const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);
+    pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;
+    range=15;
+  }else{
+    const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);
+    const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));
+    pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;
+    range=Math.max(8,Math.min(20,hs));
+    const rp=endM+pw;
+    const nb=nt.filter(t=>Math.abs(t-rp)<40);
+    if(nb.length>=2){
+      const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);
+      pw+=Math.round((pa-rp)*0.3);
+    }
+  }
+
+  // Apply context/signal biases.
+  pw=Math.max(30,pw)+cx.napAdj-sp.napBias;
+  range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);
+
+  // Guardrail: if we have enough historical nap windows, do NOT let “debt/short nap”
+  // collapse the prediction far below the baby’s own pattern.
+  // This avoids cases like "just woke up" → "nap in <2h" when the recent median is ~3h.
+  if(hw.length>=5 && Number.isFinite(histMed)){
+    const minFromHistory=Math.max(60,Math.round(histMed-20));
+    pw=Math.max(pw,minFromHistory);
+  }
+
+  const c=endM+pw;
+  const basisBits=[];
+  basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');
+  if(cx.nightLabel)basisBits.push(cx.nightLabel);
+  if(sp.hasSignals)basisBits.push('sinais recentes');
+  return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:basisBits.join(' · '),phase,centerMin:c,range};
+}
 function smartPredictNextFeed(lastStart){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);if(rf.length<4){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20-cx.rangeAdj-sp.rangeBias),to:minsToTime(t+20+cx.rangeAdj+sp.rangeBias),basis:'tabela da idade',centerMin:t};}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20),to:minsToTime(t+20),basis:'tabela da idade',centerMin:t};}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=Math.round(ai*0.8+base*0.2);const t=timeToMins(lastStart)+bl+cx.feedAdj-sp.feedBias;const r=15+cx.rangeAdj+sp.rangeBias;return{center:minsToTime(t),from:minsToTime(t-r),to:minsToTime(t+r),basis:'intervalo médio do bebê',centerMin:t};}
 function getTypicalNightStartMins(){const ns=entries.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e));if(!ns.length)return nightStartMinsVal();const mins=ns.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}
 function nightStartPrediction(){const m=getTypicalNightStartMins();const cx=getContextAdjust();const r=Math.min(40,20+cx.rangeAdj);const basis=entries.filter(e=>e.type==='sleep'&&sleepIsNight(e)&&e.durationMins).length>=2?'horário típico da noite':'horário configurado';return{center:minsToTime(m),from:minsToTime(Math.max(0,m-r)),to:minsToTime(Math.min(1439,m+r)),basis,centerMin:m};}
