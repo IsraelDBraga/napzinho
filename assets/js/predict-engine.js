@@ -88,8 +88,13 @@ function smartPredictNextNap(lastEnd,lastDur,todayTotal){
   return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:basisBits.join(' · '),phase,centerMin:c,range};
 }
 function smartPredictNextFeed(lastStart){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);if(rf.length<4){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20-cx.rangeAdj-sp.rangeBias),to:minsToTime(t+20+cx.rangeAdj+sp.rangeBias),basis:'tabela da idade',centerMin:t};}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20),to:minsToTime(t+20),basis:'tabela da idade',centerMin:t};}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=Math.round(ai*0.8+base*0.2);const t=timeToMins(lastStart)+bl+cx.feedAdj-sp.feedBias;const r=15+cx.rangeAdj+sp.rangeBias;return{center:minsToTime(t),from:minsToTime(t-r),to:minsToTime(t+r),basis:'intervalo médio do bebê',centerMin:t};}
-function getTypicalNightStartMins(){const ns=entries.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e));if(!ns.length)return nightStartMinsVal();const mins=ns.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}
-function nightStartPrediction(){const m=getTypicalNightStartMins();const cx=getContextAdjust();const r=Math.min(40,20+cx.rangeAdj);const basis=entries.filter(e=>e.type==='sleep'&&sleepIsNight(e)&&e.durationMins).length>=2?'horário típico da noite':'horário configurado';return{center:minsToTime(m),from:minsToTime(Math.max(0,m-r)),to:minsToTime(Math.min(1439,m+r)),basis,centerMin:m};}
+/** Night routine prediction uses only cfg.nightStart (Settings), not historical sleep blocks. */
+function nightStartPrediction(){
+  const m=nightStartMinsVal();
+  const cx=getContextAdjust();
+  const r=Math.min(40,20+cx.rangeAdj);
+  return{center:minsToTime(m),from:minsToTime(Math.max(0,m-r)),to:minsToTime(Math.min(1439,m+r)),basis:'horário configurado (início da noite)',centerMin:m};
+}
 function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
 function wwCurrentTargetMinutes(){return wwBaseTarget(babyAgeMonths())+Math.min(25,getContextAdjust().napAdj);}
 function getWakeRisk(minutesAwake,target){const r=target?minutesAwake/target:0;if(r<0.85)return{lvl:'low',msg:'dentro da janela'};if(r<1.1)return{lvl:'mid',msg:'próximo do limite'};return{lvl:'high',msg:'janela estourada'};}
