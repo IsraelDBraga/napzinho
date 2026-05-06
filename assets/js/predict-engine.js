@@ -6,95 +6,15 @@ const wakeCountsAsDayForPredictions=lastSleepOrEnd=>{
 };
 function getSleepEngineAdjustmentFromLastNight(){const an=analyzeLastCompleteNight();if(!an)return{napAdj:0,feedAdj:0,rangeAdj:0,label:''};let napAdj=0,feedAdj=0,rangeAdj=0;const bits=[];const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;if(an.totalSleep<tgtMin*0.78){napAdj+=8;feedAdj+=4;rangeAdj+=3;bits.push('débito de sono da noite');}if(an.wakes>=3){napAdj+=10;feedAdj+=5;rangeAdj+=5;bits.push('noite fragmentada');}if(an.blocks>=2&&an.minBlock<40){napAdj+=6;bits.push('blocos curtos');}return{napAdj:Math.min(28,napAdj),feedAdj:Math.min(18,feedAdj),rangeAdj:Math.min(14,rangeAdj),label:bits.join(' · ')};}
 function sleepDebtNapAdjustment(){const an=analyzeLastCompleteNight();if(!an||!an.totalSleep)return 0;const months=babyAgeMonths();const tgtMin=(months<=3?8:months<=9?9:9.5)*60;const shortfall=Math.max(0,tgtMin-an.totalSleep);return shortfall<90?0:-Math.min(18,Math.floor(shortfall/90));}
-function getHistoricalWakeWindows(limit=10){
-  // IMPORTANT: Only use daytime wake windows between *naps*.
-  // Night sleep is often fragmented (micro-wakes), which would artificially shrink
-  // the historical wake window and make the next window too short.
-  const naps=entries
-    .filter(e=>e && e.type==='sleep' && e.durationMins && e.end && !sleepIsNight(e))
-    .sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));
-  const w=[];
-  for(let i=0;i<naps.length-1;i++){
-    const g=gapMinutesBetweenSleeps(naps[i],naps[i+1]);
-    // Keep realistic daytime wake windows. Avoid tiny gaps and allow longer windows (older babies).
-    if(g>=30 && g<600) w.push(g);
-  }
-  return w.slice(-limit);
-}
+function getHistoricalWakeWindows(limit=10){const sleeps=entries.filter(e=>e.type==='sleep'&&e.durationMins&&e.end).sort((a,b)=>sleepEndDate(a)-sleepEndDate(b));const w=[];for(let i=0;i<sleeps.length-1;i++){const g=gapMinutesBetweenSleeps(sleeps[i],sleeps[i+1]);if(g>0&&g<300)w.push(g);}return w.slice(-limit);}
 function getTypicalNapTimes(limit=14){return entries.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).slice(-limit).map(e=>timeToMins(e.start));}
 function getContextAdjust(){let na=0,fa=0,ra=0;if(cfg.ctxTeething){na+=10;fa+=5;ra+=5;}if(cfg.ctxCold){na+=15;fa+=10;ra+=8;}if(cfg.ctxVaccine){na+=10;fa+=5;ra+=5;}if(cfg.ctxTravel){na+=12;fa+=8;ra+=6;}if(cfg.ctxRegression){na+=15;fa+=10;ra+=8;}if(cfg.ctxOther){na+=8;fa+=5;ra+=4;}const n=getSleepEngineAdjustmentFromLastNight();na+=n.napAdj;fa+=n.feedAdj;ra+=n.rangeAdj;return{napAdj:Math.min(45,na),feedAdj:Math.min(35,fa),rangeAdj:Math.min(26,ra),nightLabel:n.label};}
 function getRecentSignalCount(windowMin){const cut=now().getTime()-windowMin*60000;return entries.filter(e=>{if(e.type!=='mood'||!e.start||!e.date)return false;try{return parseTimeOnDate(e.start,e.date).getTime()>=cut;}catch{return false;}}).length;}
 function getSignalPressure(){const s30=getRecentSignalCount(30),s90=getRecentSignalCount(90);const gasToday=calendarDayEntries(todayStr()).filter(e=>e.type==='mood'&&e.subtype==='gas').length;const gasBias=Math.min(8,gasToday*2);return{napBias:Math.min(20,s30*5+s90*2+gasBias),feedBias:Math.min(15,s30*4),rangeBias:Math.min(10,s90*2),hasSignals:(s90>0||gasToday>0)};}
-function smartPredictNextNap(lastEnd,lastDur,todayTotal){
-  const cx=getContextAdjust(),sp=getSignalPressure();
-  const months=babyAgeMonths();
-  const base=wwBaseTarget(months);
-  const days=getDaysWithData().length;
-  const phase=days<4?1:days<8?2:3;
-  const hw=getHistoricalWakeWindows();
-  const nt=getTypicalNapTimes();
-  const endM=timeToMins(lastEnd);
-
-  // Local helper: median of numeric array.
-  const median=(arr)=>{
-    const a=(Array.isArray(arr)?arr:[]).filter(n=>Number.isFinite(n)).slice().sort((x,y)=>x-y);
-    if(!a.length) return null;
-    return a[Math.floor(a.length/2)];
-  };
-  const histMed=median(hw);
-
-  let durAdj=lastDur<30?-15:lastDur<45?-8:0;
-  let debtAdj=todayTotal<base*0.9?-10:0;
-  debtAdj+=sleepDebtNapAdjustment();
-
-  let pw,range;
-  if(phase===1||hw.length<3){
-    pw=base+durAdj+debtAdj;
-    range=20;
-  }else if(phase===2){
-    const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);
-    pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;
-    range=15;
-  }else{
-    const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);
-    const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));
-    pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;
-    range=Math.max(8,Math.min(20,hs));
-    const rp=endM+pw;
-    const nb=nt.filter(t=>Math.abs(t-rp)<40);
-    if(nb.length>=2){
-      const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);
-      pw+=Math.round((pa-rp)*0.3);
-    }
-  }
-
-  // Apply context/signal biases.
-  pw=Math.max(30,pw)+cx.napAdj-sp.napBias;
-  range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);
-
-  // Guardrail: if we have enough historical nap windows, do NOT let “debt/short nap”
-  // collapse the prediction far below the baby’s own pattern.
-  // This avoids cases like "just woke up" → "nap in <2h" when the recent median is ~3h.
-  if(hw.length>=5 && Number.isFinite(histMed)){
-    const minFromHistory=Math.max(60,Math.round(histMed-20));
-    pw=Math.max(pw,minFromHistory);
-  }
-
-  const c=endM+pw;
-  const basisBits=[];
-  basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');
-  if(cx.nightLabel)basisBits.push(cx.nightLabel);
-  if(sp.hasSignals)basisBits.push('sinais recentes');
-  return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:basisBits.join(' · '),phase,centerMin:c,range};
-}
+function smartPredictNextNap(lastEnd,lastDur,todayTotal){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=wwBaseTarget(months);const days=getDaysWithData().length;const phase=days<4?1:days<8?2:3;const hw=getHistoricalWakeWindows();const nt=getTypicalNapTimes();const endM=timeToMins(lastEnd);let durAdj=lastDur<30?-15:lastDur<45?-8:0;let debtAdj=todayTotal<base*0.9?-10:0;debtAdj+=sleepDebtNapAdjustment();let pw,range;if(phase===1||hw.length<3){pw=base+durAdj+debtAdj;range=20;}else if(phase===2){const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);pw=Math.round(ha*0.6+base*0.4)+durAdj+debtAdj;range=15;}else{const ha=Math.round(hw.reduce((a,b)=>a+b,0)/hw.length);const hs=Math.round(Math.sqrt(hw.map(w=>(w-ha)**2).reduce((a,b)=>a+b,0)/hw.length));pw=Math.round(ha*0.8+base*0.2)+durAdj+debtAdj;range=Math.max(8,Math.min(20,hs));const rp=endM+pw;const nb=nt.filter(t=>Math.abs(t-rp)<40);if(nb.length>=2){const pa=Math.round(nb.reduce((a,b)=>a+b,0)/nb.length);pw+=Math.round((pa-rp)*0.3);}}pw=Math.max(30,pw)+cx.napAdj-sp.napBias;range=Math.min(45,range+cx.rangeAdj+sp.rangeBias);const c=endM+pw;const basisBits=[];basisBits.push(phase===1?'tabela da idade':phase===2?'histórico + idade':'padrão do bebê');if(cx.nightLabel)basisBits.push(cx.nightLabel);if(sp.hasSignals)basisBits.push('sinais recentes');return{center:minsToTime(c),from:minsToTime(c-range),to:minsToTime(c+range),basis:basisBits.join(' · '),phase,centerMin:c,range};}
 function smartPredictNextFeed(lastStart){const cx=getContextAdjust(),sp=getSignalPressure();const months=babyAgeMonths();const base=months<=3?120:months<=6?150:180;const rf=entries.filter(e=>e.type==='feed').slice(-10);if(rf.length<4){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20-cx.rangeAdj-sp.rangeBias),to:minsToTime(t+20+cx.rangeAdj+sp.rangeBias),basis:'tabela da idade',centerMin:t};}const sf=rf.sort((a,b)=>a.start>b.start?1:-1);const iv=[];for(let i=1;i<sf.length;i++){const d=timeToMins(sf[i].start)-timeToMins(sf[i-1].start);if(d>30&&d<300)iv.push(d);}if(!iv.length){const t=timeToMins(lastStart)+base+cx.feedAdj-sp.feedBias;return{center:minsToTime(t),from:minsToTime(t-20),to:minsToTime(t+20),basis:'tabela da idade',centerMin:t};}const ai=Math.round(iv.reduce((a,b)=>a+b,0)/iv.length);const bl=Math.round(ai*0.8+base*0.2);const t=timeToMins(lastStart)+bl+cx.feedAdj-sp.feedBias;const r=15+cx.rangeAdj+sp.rangeBias;return{center:minsToTime(t),from:minsToTime(t-r),to:minsToTime(t+r),basis:'intervalo médio do bebê',centerMin:t};}
-/** Night routine prediction uses only cfg.nightStart (Settings), not historical sleep blocks. */
-function nightStartPrediction(){
-  const m=nightStartMinsVal();
-  const cx=getContextAdjust();
-  const r=Math.min(40,20+cx.rangeAdj);
-  return{center:minsToTime(m),from:minsToTime(Math.max(0,m-r)),to:minsToTime(Math.min(1439,m+r)),basis:'horário configurado (início da noite)',centerMin:m};
-}
+function getTypicalNightStartMins(){const ns=entries.filter(e=>e.type==='sleep'&&e.durationMins&&sleepIsNight(e));if(!ns.length)return nightStartMinsVal();const mins=ns.slice(-30).map(e=>timeToMins(e.start)).sort((a,b)=>a-b);return mins[Math.floor(mins.length/2)];}
+function nightStartPrediction(){const m=getTypicalNightStartMins();const cx=getContextAdjust();const r=Math.min(40,20+cx.rangeAdj);const basis=entries.filter(e=>e.type==='sleep'&&sleepIsNight(e)&&e.durationMins).length>=2?'horário típico da noite':'horário configurado';return{center:minsToTime(m),from:minsToTime(Math.max(0,m-r)),to:minsToTime(Math.min(1439,m+r)),basis,centerMin:m};}
 function wwCurrentAwakeMinutes(){const last=getLastCompletedSleep();if(!last)return 0;return Math.max(0,Math.floor((now()-sleepEndDate(last))/60000));}
 function wwCurrentTargetMinutes(){return wwBaseTarget(babyAgeMonths())+Math.min(25,getContextAdjust().napAdj);}
 function getWakeRisk(minutesAwake,target){const r=target?minutesAwake/target:0;if(r<0.85)return{lvl:'low',msg:'dentro da janela'};if(r<1.1)return{lvl:'mid',msg:'próximo do limite'};return{lvl:'high',msg:'janela estourada'};}

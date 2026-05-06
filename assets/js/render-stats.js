@@ -1,4 +1,25 @@
 /* ---- STATS ---- */
+let __chartJsLoadPromise=null;
+function ensureChartJs(){
+  if(typeof window.Chart!=='undefined')return Promise.resolve(window.Chart);
+  if(__chartJsLoadPromise)return __chartJsLoadPromise;
+  __chartJsLoadPromise=new Promise((resolve,reject)=>{
+    const src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+    const existing=[...document.querySelectorAll('script[src]')].find(s=>s.src===src);
+    if(existing){
+      existing.addEventListener('load',()=>resolve(window.Chart),{once:true});
+      existing.addEventListener('error',()=>reject(new Error('chart_load_failed')),{once:true});
+      return;
+    }
+    const s=document.createElement('script');
+    s.src=src;
+    s.async=true;
+    s.onload=()=>resolve(window.Chart);
+    s.onerror=()=>reject(new Error('chart_load_failed'));
+    document.head.appendChild(s);
+  });
+  return __chartJsLoadPromise;
+}
 function renderStats(){
   const hero=$('stat-hero'),charts=$('stats-charts');if(!hero||!charts)return;
   const statsFallback=()=>{const ymd=todayStr(),td=calendarDayEntries(ymd);const napsToday=td.filter(e=>e.type==='sleep'&&e.durationMins&&!sleepIsNight(e)).length;const feedsToday=td.filter(e=>e.type==='feed').length,diapersToday=td.filter(e=>e.type==='diaper').length;hero.innerHTML=`<div class="stat-hero-kicker">Dados</div><h2 class="stat-hero-title">Resumo rápido</h2><p class="stat-hero-sub">Não foi possível montar o painel completo agora. Valores básicos abaixo.</p>`;charts.innerHTML=`<div class="chart-card"><h4>Resumo rápido (hoje)</h4><div class="stat-grid cols2"><div class="stat-cell"><div class="stat-cell-val">${entries.length}</div><div class="stat-cell-lbl">Registros (total)</div></div><div class="stat-cell"><div class="stat-cell-val">${napsToday}</div><div class="stat-cell-lbl">Sonecas hoje</div></div><div class="stat-cell"><div class="stat-cell-val">${feedsToday}</div><div class="stat-cell-lbl">Mamadas hoje</div></div><div class="stat-cell"><div class="stat-cell-val">${diapersToday}</div><div class="stat-cell-lbl">Fraldas hoje</div></div></div></div><p style="padding:12px;color:var(--ink-muted)">Gráfico indisponível agora.</p>`;};
@@ -22,10 +43,31 @@ function renderStats(){
   try{
     const sleeps=td.filter(e=>e.type==='sleep'&&e.durationMins);
     const slots=[],labels=[];for(let i=7;i>=0;i--){const t=new Date(now()-i*3600000);labels.push(t.getHours()+'h');let mins=0;sleeps.forEach(e=>{if(!e.end)return;const s=parseTimeOnDate(e.start,e.date),en=sleepEndDate(e);const ss=new Date(t);ss.setMinutes(0,0,0);const se=new Date(ss.getTime()+3600000);mins+=Math.max(0,(Math.min(en,se)-Math.max(s,ss))/60000);});slots.push(Math.round(Math.min(mins,60)));}
+    if(typeof window.Chart==='undefined'){
+      const warn=document.createElement('div');
+      warn.style.cssText='padding:12px;margin-top:10px;border-radius:var(--r-sm);background:var(--surface-0);color:var(--ink-muted);font-size:12px';
+      warn.textContent='Carregando gráficos...';
+      charts.appendChild(warn);
+      ensureChartJs()
+        .then(()=>{
+          if($('sec-stats')?.classList.contains('active'))renderStats();
+        })
+        .catch(()=>{warn.textContent='Gráfico indisponível agora.';});
+      return;
+    }
     if(barChart)barChart.destroy();const ctxBar=$('barChart');if(ctxBar){barChart=new Chart(ctxBar,{type:'bar',data:{labels,datasets:[{data:slots,backgroundColor:(c)=>{const grad=c.chart.ctx.createLinearGradient(0,0,0,150);grad.addColorStop(0,'#A78BFA');grad.addColorStop(1,'rgba(167,139,250,.15)');return grad;},borderRadius:8,borderSkipped:false,barThickness:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1C1940',titleFont:{size:11},bodyFont:{size:11},callbacks:{label:c=>c.parsed.y+' min'}}},scales:{y:{max:60,ticks:{callback:v=>v+'m',color:'#8B87B8',font:{size:10}},grid:{color:'rgba(148,163,255,.08)'}},x:{ticks:{color:'#8B87B8',font:{size:10}},grid:{display:false}}}}});}
     const fc=td.filter(e=>e.type==='feed').length,dc=td.filter(e=>e.type==='diaper').length,sc=sleeps.length;
     if(donutChart)donutChart.destroy();const ctxD=$('donutChart');if(ctxD&&sc+fc+dc>0){donutChart=new Chart(ctxD,{type:'doughnut',data:{labels:['Sono','Mamada','Fralda'],datasets:[{data:[sc,fc,dc],backgroundColor:['#A78BFA','#22D3EE','#F59E0B'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}});}
-  }catch(chartErr){nestPushRender(nestErrPayload({type:'render',name:'renderStatsCharts',message:String(chartErr&&chartErr.message||chartErr),stack:String(chartErr&&chartErr.stack||''),filename:'',lineno:0,colno:0}));console.error('[charts failed]',chartErr);const warn=document.createElement('div');warn.style.cssText='padding:12px;margin-top:10px;border-radius:var(--r-sm);background:var(--surface-0);color:var(--ink-muted);font-size:12px';warn.textContent='Gráfico indisponível agora.';charts.appendChild(warn);}
-  }catch(err){nestPushRender(nestErrPayload({type:'render',name:'renderStats',message:String(err&&err.message||err),stack:String(err&&err.stack||''),filename:'',lineno:0,colno:0}));console.error('[renderStats failed]',err);statsFallback();}
+  }catch(chartErr){
+    if(window.__nestRenderErrors&&Array.isArray(window.__nestRenderErrors)){
+      window.__nestRenderErrors.push({name:'renderStatsCharts',message:String(chartErr&&chartErr.message||chartErr),stack:String(chartErr&&chartErr.stack||''),time:new Date().toISOString()});
+    }
+    console.error('[charts failed]',chartErr);const warn=document.createElement('div');warn.style.cssText='padding:12px;margin-top:10px;border-radius:var(--r-sm);background:var(--surface-0);color:var(--ink-muted);font-size:12px';warn.textContent='Gráfico indisponível agora.';charts.appendChild(warn);
+  }
+  }catch(err){
+    if(window.__nestRenderErrors&&Array.isArray(window.__nestRenderErrors)){
+      window.__nestRenderErrors.push({name:'renderStats',message:String(err&&err.message||err),stack:String(err&&err.stack||''),time:new Date().toISOString()});
+    }
+    console.error('[renderStats failed]',err);statsFallback();
+  }
 }
-

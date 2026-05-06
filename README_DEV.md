@@ -51,3 +51,6 @@ Regras em `storage.js`: início na janela noturna (`nightStart` ↔ `dayBoundary
 1. `runNestSelfTests()` ok  
 2. Offline: primeiro load online, depois avião — UI carrega (SW precache em `sw.js`)  
 3. Entrada manual de sono que cruza a noite aparece no painel “Noite — referência principal”  
+4. Substituir placeholders de store:
+   - `.well-known/assetlinks.json` (`PLACEHOLDER_PACKAGE_NAME` e `PLACEHOLDER_SHA256`)
+   - `assets/screenshots/mobile-home.png` e `assets/screenshots/mobile-dados.png` por capturas reais da app.

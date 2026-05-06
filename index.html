@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Nest — sono e rotina do bebê, com previsões e copiloto inteligente. Funciona offline.">
 <meta name="theme-color" content="#0B0A1A">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https:; manifest-src 'self'; worker-src 'self';">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -13,7 +14,6 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
@@ -192,7 +192,7 @@
       <label class="switch"><input type="checkbox" id="cfg-dark-theme" onchange="applyThemeFromCheckbox()"><span class="switch-slider"></span></label>
     </div>
     <div class="set-row"><label for="cfg-late-night">Modo madrugada (0h–5h59)<span class="set-hint">Tela mínima com botões grandes ao abrir o app durante a madrugada.</span></label>
-      <label class="switch"><input type="checkbox" id="cfg-late-night" onchange="cfg.lateNightMode=$('cfg-late-night').checked;save()"><span class="switch-slider"></span></label>
+      <label class="switch"><input type="checkbox" id="cfg-late-night" onchange="applyLateNightToggle()"><span class="switch-slider"></span></label>
     </div>
   </div>
 
@@ -338,7 +338,6 @@
 <script src="assets/js/stale-guard.js" defer></script>
 <script src="assets/js/storage.js" defer></script>
 <script src="assets/js/backup.js" defer></script>
-<script src="assets/js/exports.js" defer></script>
 <script src="assets/js/entries.js" defer></script>
 <script src="assets/js/copilot-engine.js" defer></script>
 <script src="assets/js/render-home.js" defer></script>

@@ -1,6 +1,6 @@
 const APP_SCHEMA_VERSION=4;
 const STORAGE_SCHEMA_VERSION=APP_SCHEMA_VERSION;
-const APP_VERSION="Nest modular-runtime settings-nullfix 97e395e";
+const APP_VERSION="Nest modular-runtime p0-fixes 2f1847c";
 window.DEV_MODE=window.DEV_MODE===true;
 const APP_NAME='Nest';
 const PROFILE_KEY='nz3_profiles_v1',CUR_PROFILE='nz3_current_profile';
