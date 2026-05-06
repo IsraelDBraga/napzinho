@@ -37,3 +37,24 @@ const TimeEngine={
   resolveClockOnDate(ymd,hhmm){const base=this.parseYmdLocalSafe(ymd);if(!base||!isValidTime(hhmm))return null;const [h,m]=hhmm.split(':').map(Number);return new Date(base.getFullYear(),base.getMonth(),base.getDate(),h,m,0,0);},
   resolveWindowOnDate(ymd,startHHMM,endHHMM){const start=this.resolveClockOnDate(ymd,startHHMM),end0=this.resolveClockOnDate(ymd,endHHMM);if(!start||!end0)return null;const end=new Date(end0);if(end<=start)end.setDate(end.getDate()+1);return{start,end};}
 };
+
+function babyAgeMonthsFromDate(birthIso,refDate=new Date()){
+  if(!isValidDateStr(birthIso)) return 3;
+  const dt=(refDate instanceof Date && Number.isFinite(refDate.getTime()))?refDate:new Date();
+  const b=TimeEngine.parseYmdLocalSafe(birthIso);
+  if(!b) return 3;
+  // Month delta, adjusted by day-of-month.
+  let m=(dt.getFullYear()-b.getFullYear())*12+(dt.getMonth()-b.getMonth());
+  if(dt.getDate()<b.getDate()) m-=1;
+  if(!Number.isFinite(m)) m=3;
+  return Math.max(0,Math.min(48,Math.round(m)));
+}
+
+function babyAgeMonths(refDate=new Date()){
+  // Prefer explicit cfg.months (already normalized); fall back to birth date if available.
+  const n=parseInt(cfg&&cfg.months,10);
+  if(Number.isFinite(n)) return Math.max(0,Math.min(48,n));
+  const iso=(cfg&&cfg.babyBirthDate)||'';
+  if(iso) return babyAgeMonthsFromDate(iso,refDate);
+  return 3;
+}

@@ -11,6 +11,7 @@ function renderOrbit(){
   // Decide what the center shows
   let title='',subText='',ctaText='Registrar agora',ctaFn='log';
   let predObj=null;
+  if(cta) cta.dataset.action='';
   if(active){
     // Sleeping right now
     const st=parseTimeOnDate(active.start,active.date);
@@ -21,7 +22,6 @@ function renderOrbit(){
     sub.textContent='Dormiu às '+active.start+' · toque em Acordou quando despertar.';
     ctaLbl.textContent='Acordou agora';
     cta.dataset.action='wake';
-    cta.onclick=()=>{babyWoke();};
   }else if(isNightContextForClock(fmtTime(now()))){
     // Inside the physiological night window — suggest night sleep, don't predict it as far away
     const mSinceLast=last?Math.max(0,Math.floor((now()-sleepEndDate(last))/60000)):null;
@@ -29,7 +29,7 @@ function renderOrbit(){
     main.innerHTML='<span class="serif" style="font-size:36px;line-height:1.1">Hora de dormir</span>';
     sub.textContent=mSinceLast!=null?'Desperto há '+fmtDur(mSinceLast)+'. Toque em Dormiu quando adormecer.':'Início da noite foi às '+(cfg.nightStart||'18:00')+'. Toque em Dormiu quando adormecer.';
     ctaLbl.textContent='Dormiu agora';
-    cta.onclick=()=>{babySlept();};
+    if(cta) cta.dataset.action='sleep';
   }else if(last&&wakeCountsAsDayForPredictions(last)){
     // Daytime — show next nap (if manual end time pushed prediction into the past, don't fake a ~24h countdown)
     const p=smartPredictNextNap(last.end,last.durationMins||0,ts);
@@ -50,7 +50,7 @@ function renderOrbit(){
       sub.textContent='Faixa provável '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
     }
     ctaLbl.textContent='Dormiu agora';
-    cta.onclick=()=>{babySlept();};
+    if(cta) cta.dataset.action='sleep';
   }else if(last){
     // Daytime (sleep ended during day) but outside active-nap logic — show night routine
     const p=nightStartPrediction();
@@ -60,14 +60,14 @@ function renderOrbit(){
     main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
     sub.textContent='Janela típica '+p.from+'–'+p.to+' · '+p.basis;
     ctaLbl.textContent='Dormiu agora';
-    cta.onclick=()=>{babySlept();};
+    if(cta) cta.dataset.action='sleep';
   }else{
     // No data yet
     kicker.textContent='Bem-vindo';
     main.innerHTML='—';
     sub.textContent='Registre o primeiro sono para começarmos a aprender o ritmo.';
     ctaLbl.textContent='Dormiu agora';
-    cta.onclick=()=>{babySlept();};
+    if(cta) cta.dataset.action='sleep';
   }
 
   // Orbit arc (progress of awake window)
@@ -213,7 +213,23 @@ function renderTodayRail(){const host=$('today-rail'),count=$('today-rail-count'
 /* ---- WW timer for header update ---- */
 function tickOrbit(){renderOrbit();renderStatusRow();}
 
+/* ---- Master refresh (after any data change) ---- */
+function refreshAppAfterDataChange(reason=''){
+  const sr=(typeof safeRender==='function')?safeRender:(name,fn)=>{try{return fn();}catch(e){console.error('[render]',name,e);return null;}};
+  sr('renderOrbit',()=>renderOrbit(),{containerId:'orbit-wrap'});
+  sr('renderStatusRow',()=>renderStatusRow(),{containerId:'status-row'});
+  sr('renderInsight',()=>renderInsight(),{containerId:'home-insight'});
+  sr('renderPredictions',()=>renderPredictions(),{containerId:'pred-list'});
+  sr('renderDaySleepPanel',()=>renderDaySleepPanel(),{containerId:'day-sleep-panel-wrap'});
+  sr('renderNightPanel',()=>renderNightPanel(),{containerId:'night-panel-wrap'});
+  sr('renderTodayRail',()=>renderTodayRail(),{containerId:'today-rail'});
+  if(typeof updateHeader==='function') sr('updateHeader',()=>updateHeader());
+  if(typeof syncSettingsForm==='function') sr('syncSettingsForm',()=>syncSettingsForm());
+  return {ok:true,reason};
+}
+window.refreshAppAfterDataChange=refreshAppAfterDataChange;
+
 
 function fmtDateBrYmd(ymd){if(!ymd||!/^\d{4}-\d{2}-\d{2}$/.test(ymd))return ymd||'';const [y,m,d]=ymd.split('-');return `${d}/${m}/${y}`;}
 
-function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=getDaySummary?getDaySummary(ymd,new Date()):{sleepTotal:totalSleepMinsCalendarDay(ymd),sleepPeriods:calendarDayEntries(ymd).filter(e=>e.type==='sleep').length,feeds:calendarDayEntries(ymd).filter(e=>e.type==='feed').length,diapers:calendarDayEntries(ymd).filter(e=>e.type==='diaper').length,events:calendarDayEntries(ymd)};host.innerHTML=`<div class="night-panel day-panel" style="margin-top:14px;margin-bottom:10px"><div class="night-head"><span class="nh-kicker">Resumo do Dia</span><span class="nh-range">${escHtml(fmtDateBrYmd(ymd))}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal||0)}</div><div class="night-metric-lbl">Sono</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods||0}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds||0}</div><div class="night-metric-lbl">Mamadas</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers||0}</div><div class="night-metric-lbl">Fraldas</div></div></div><p class="night-foot">Resumo do dia: ${(sum.events||[]).length} eventos.</p></div>`;}
+function renderDaySleepPanel(){const host=$('day-sleep-panel-wrap');if(!host)return;const ymd=todayStr();const sum=(typeof getDaySummary==='function')?getDaySummary(ymd,new Date()):{sleepTotal:totalSleepMinsCalendarDay(ymd),sleepPeriods:calendarDayEntries(ymd).filter(e=>e.type==='sleep').length,feeds:calendarDayEntries(ymd).filter(e=>e.type==='feed').length,diapers:calendarDayEntries(ymd).filter(e=>e.type==='diaper').length,events:calendarDayEntries(ymd)};host.innerHTML=`<div class="night-panel day-panel" style="margin-top:14px;margin-bottom:10px"><div class="night-head"><span class="nh-kicker">Resumo do Dia</span><span class="nh-range">${escHtml(fmtDateBrYmd(ymd))}</span></div><div class="night-metrics"><div class="night-metric"><div class="night-metric-val">${fmtDurShort(sum.sleepTotal||0)}</div><div class="night-metric-lbl">Sono</div></div><div class="night-metric"><div class="night-metric-val">${sum.sleepPeriods||0}</div><div class="night-metric-lbl">Trechos</div></div><div class="night-metric"><div class="night-metric-val">${sum.feeds||0}</div><div class="night-metric-lbl">Mamadas</div></div><div class="night-metric"><div class="night-metric-val">${sum.diapers||0}</div><div class="night-metric-lbl">Fraldas</div></div></div><p class="night-foot">Resumo do dia: ${(sum.events||[]).length} eventos.</p></div>`;}
