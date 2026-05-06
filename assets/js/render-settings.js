@@ -2,12 +2,30 @@
    RENDERERS
    ============================================== */
 function settingsEl(id){return document.getElementById(id);}
-function setCheckedSafe(id,value){const el=settingsEl(id);if(!el){console.warn('[settings] missing checkbox:',id);return false;}el.checked=!!value;return true;}
+function setCheckedSafe(id,value){
+  const el=settingsEl(id);
+  if(!el){
+    // Optional/legacy field: may not exist in newer HTML.
+    if(id==='cfg-premium-local')return false;
+    console.warn('[settings] missing checkbox:',id);
+    return false;
+  }
+  el.checked=!!value;
+  return true;
+}
 function setValueSafe(id,value){const el=settingsEl(id);if(!el){console.warn('[settings] missing value input:',id);return false;}el.value=value??'';return true;}
 function setTextSafe(id,value){const el=settingsEl(id);if(!el){console.warn('[settings] missing text element:',id);return false;}el.textContent=value??'';return true;}
 function setHtmlSafe(id,html){const el=settingsEl(id);if(!el){console.warn('[settings] missing html element:',id);return false;}el.innerHTML=html??'';return true;}
 function getValueSafe(id,fallback=''){const el=settingsEl(id);if(!el){console.warn('[settings] missing value input:',id);return fallback;}return el.value??fallback;}
-function getCheckedSafe(id,fallback=false){const el=settingsEl(id);if(!el){console.warn('[settings] missing checkbox:',id);return fallback;}return !!el.checked;}
+function getCheckedSafe(id,fallback=false){
+  const el=settingsEl(id);
+  if(!el){
+    if(id==='cfg-premium-local')return fallback;
+    console.warn('[settings] missing checkbox:',id);
+    return fallback;
+  }
+  return !!el.checked;
+}
 function debugSettingsDomMap(){const expectedIds=['cfg-name','cfg-birth-date','months-auto-hint','cfg-months','cfg-night-start','cfg-day-boundary','cfg-dark-theme','cfg-late-night','cfg-remind-nap','cfg-remind-night','ctx-teething','ctx-cold','ctx-vaccine','ctx-travel','ctx-regression','ctx-other','ctx-note','cfg-license-key','cfg-premium-local','cfg-license-api','profile-select','premium-status'];const presentIds=[];const missingIds=[];expectedIds.forEach(id=>{if(settingsEl(id))presentIds.push(id);else missingIds.push(id);});return{expectedIds,missingIds,presentIds};}
 function applyLateNightToggle(){cfg.lateNightMode=getCheckedSafe('cfg-late-night',cfg.lateNightMode);save();}
 function applyTheme(){document.documentElement.setAttribute('data-theme',cfg.darkTheme?'dark':'light');const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',cfg.darkTheme?'#0B0A1A':'#F7F5FF');const ti=$('theme-icon');if(ti){ti.innerHTML=cfg.darkTheme?'<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>':'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';}}
