@@ -5,7 +5,21 @@ function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro
 function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t});save();const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);renderHome();}
 function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistory();showToast('Registro excluído');}
 
-function orbitCtaClick(){const cta=$('orbit-cta');if(cta&&cta.onclick)cta.onclick();}
+function orbitCtaClick(){
+  const cta=$('orbit-cta');if(!cta) return;
+  // Avoid recursion: the button has inline onclick="orbitCtaClick()",
+  // so calling `cta.onclick()` here can re-enter orbitCtaClick forever.
+  const act=(cta.dataset&&cta.dataset.action)||'';
+  if(act==='wake'){babyWoke();return;}
+  if(act==='sleep'){babySlept();return;}
+  if(act==='log'){
+    const t=(cta.dataset&&cta.dataset.logType)||'';
+    if(t && typeof openLog==='function'){openLog(t);return;}
+    if(typeof openLogSheet==='function'){openLogSheet();return;}
+  }
+  // Fallback: if we couldn't infer, open sheet (safe).
+  if(typeof openLogSheet==='function') openLogSheet();
+}
 
 /* ---- Log sheet (FAB) ---- */
 function openLogSheet(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=$('tile-sleep-lbl');if(t)t.textContent=getActiveSleep()?'Acordou':'Dormiu';const shb=$('sheet-backdrop'),sh=$('log-sheet');if(!shb||!sh)return;shb.classList.add('open');sh.classList.add('open');}
