@@ -1,73 +1,125 @@
-# Backend de licenças (MVP)
+# Nest backend (Cloudflare Workers + Neon)
 
-API simples em Python (stdlib) para ativar chaves e retornar entitlement por dispositivo.
+Backend production-ready, simples e barato de operar para o app PWA Nest.
+Stack:
 
-## Subir servidor
+- Cloudflare Workers (runtime edge, fetch handler nativo)
+- TypeScript estrito
+- Neon Postgres (`@neondatabase/serverless`)
+- Drizzle ORM + drizzle-kit
+- Anthropic API (Sonnet/Haiku) para o Copiloto IA (recurso premium)
 
-```bash
-cd backend
-python3 server.py
+Sem D1/KV/R2, sem Hono/Express, sem classes/DI/abstrações enterprise.
+
+---
+
+## Variáveis de ambiente
+
+Configurar como **secrets** (`wrangler secret put`):
+
+- `DATABASE_URL` — connection string Postgres (Neon, com `sslmode=require`)
+- `ANTHROPIC_API_KEY` — chave da Anthropic (apenas para Copiloto)
+- `NAPZ_ADMIN_TOKEN` — token usado nas rotas `/api/v1/admin/*`
+
+E em `wrangler.toml` (não-secreto):
+
+- `CORS_ORIGIN` — origem permitida (use o domínio do app em produção)
+
+Para `wrangler dev` localmente, crie `backend/.dev.vars`:
+
+```
+DATABASE_URL=postgresql://...:...@...neon.tech/dbname?sslmode=require
+ANTHROPIC_API_KEY=sk-ant-...
+NAPZ_ADMIN_TOKEN=algum-token-bem-aleatorio
 ```
 
-Servidor padrão: `http://localhost:8787`
+---
 
-## Chaves pré-programadas
+## Setup
 
-Edite `preprogrammed_keys.json` com os códigos que você quer distribuir manualmente.
+```
+cd backend
+npm install
+npm run db:generate
+npm run db:migrate
+npm run dev
+```
 
-Exemplo já incluso:
-- `NAPZ-PREMIUM-30DIAS` (premium com expiração)
+- `npm run db:generate` — gera o SQL das migrations a partir de `src/schema.ts` (em `drizzle/`).
+- `npm run db:migrate` — aplica as migrations no banco apontado por `DATABASE_URL`.
+- `npm run dev` — sobe Wrangler local em `http://127.0.0.1:8787`.
+- `npm run deploy` — publica na Cloudflare.
 
-**Importante:** essas chaves só existem **depois** de subir `python3 server.py`. O servidor cria `napzinho.db` e insere as chaves do JSON na primeira execução. Se o app abrir em outro dispositivo ou em `file://`, ele não alcança `localhost:8787` do seu PC — configure no app a URL pública do backend (HTTPS) ou use túnel (ngrok, etc.).
+> `drizzle-kit` lê `DATABASE_URL` do ambiente. Em CI/local você pode usar:
+> `DATABASE_URL=postgres://... npm run db:migrate`.
 
-**Por que “não funcionou” no celular:** o app costuma apontar para `http://localhost:8787`. No telefone, `localhost` é o próprio celular, não o computador onde o Python roda. Solução: expor o backend com URL acessível e colar essa URL em Config. → “URL do servidor de licenças”.
+---
 
 ## Endpoints
 
-- `POST /api/activate`
-  - body: `{ "code": "...", "device_id": "..." }`
-- `GET /api/entitlement?device_id=...`
-- `POST /api/purchase/validate`
-  - body (Google Play): `{ "platform":"google_play", "device_id":"...", "purchase_token":"...", "subscription_id":"..." }`
-  - body (Apple): `{ "platform":"apple_app_store", "device_id":"...", "receipt_data":"..." }` ou `{ "signed_transaction_info":"..." }`
-- `POST /api/admin/seed`
-  - header: `X-Admin-Token: <NAPZ_ADMIN_TOKEN>`
-  - body: `{ "code": "...", "tier": "premium|lifetime", "max_activations": 1, "expires_at": null }`
-- `GET /api/admin/licenses`
-  - header: `X-Admin-Token: <NAPZ_ADMIN_TOKEN>`
-- `POST /api/admin/deactivate`
-  - header: `X-Admin-Token: <NAPZ_ADMIN_TOKEN>`
-  - body: `{ "code": "..." }`
+Todas as rotas de usuário usam `device_id` + `device_secret` (header
+`X-Device-Id`/`X-Device-Secret` ou no body). No primeiro uso o backend salva
+`SHA-256(secret)`; depois valida o hash a cada request. Falha → `401
+{ "error": "device_auth_failed" }`.
 
-## Interface web (admin completo)
+- `GET  /health`
+- `POST /api/v1/trial/start`
+- `POST /api/v1/copilot`
+- `POST /api/v1/sync/push`
+- `GET  /api/v1/sync/pull`
+- `POST /api/v1/activate`
+- `GET  /api/v1/entitlement`
+- `POST /api/v1/admin/seed`              (header `X-Admin-Token`)
+- `GET  /api/v1/admin/licenses`          (header `X-Admin-Token`)
+- `POST /api/v1/admin/deactivate`        (header `X-Admin-Token`)
+- `POST /api/v1/admin/grant-lifetime`    (header `X-Admin-Token`)
+- `GET  /api/v1/admin/usage?days=30`     (header `X-Admin-Token`)
 
-Há uma interface pronta em `admin.html` (raiz do projeto) para:
-- conectar no backend,
-- criar/editar chaves,
-- listar chaves,
-- desativar chave.
+### Copiloto
 
-## Segurança
+- Acesso exclusivo a `premium` e `lifetime`.
+- `trial` ⇒ `403 { error: "copiloto_bloqueado", reason: "trial_sem_copilot" }`.
+- Modelo:
+  - `lifetime` → sempre Sonnet (`claude-sonnet-4-20250514`)
+  - `premium` → Sonnet se `despertares_ultima_noite >= 3` ou `contextFlags.length > 0`; senão Haiku (`claude-haiku-4-5-20251001`).
+- Timeout: 18s (`AbortController`).
+- Dedup: SHA-256(`device_id` + JSON normalizado do contexto), TTL 60s, cleanup a cada 100 chamadas.
+- Rate limit:
+  - mensal visível: `premium` 200/mês, `lifetime` ilimitado.
+  - hard cap invisível: 30/h por device.
+- Se a IA falhar (timeout/HTTP/empty) → fallback estruturado (`shouldUseLocalCopilot: true`).
 
-Este backend é MVP para operação inicial. Para produção:
-- colocar autenticação forte no admin,
-- limitar CORS,
-- usar HTTPS,
-- auditar logs/abuso,
-- separar banco/segredos.
+### Sync
 
-## Validação de compras (Google/Apple)
+Modelo "last write wins". Sem merge granular. Limite de payload: **512KB**.
 
-Variáveis de ambiente:
+### Activate
 
-- `NAPZ_PURCHASE_VALIDATION_MODE=disabled|mock|live` (padrão: `disabled`)
-- `GOOGLE_PLAY_PACKAGE_NAME` (ex.: `com.seu.app`)
-- `GOOGLE_PLAY_ACCESS_TOKEN` (Bearer token do Android Publisher API)
-- `APPLE_SHARED_SECRET` (quando usar `verifyReceipt`)
-- `APPLE_JWS_VERIFY_URL` (endpoint externo para validar `signed_transaction_info` StoreKit 2)
-- `NAPZ_WIFE_LIFETIME_KEY` (opcional: insere automaticamente uma chave vitalícia dedicada)
+Idempotente: re-ativar com o mesmo `device_id` **não** incrementa `activations`.
+Toda a operação roda em uma transaction Drizzle.
 
-Notas:
+---
 
-- `mock` aceita tokens/receipts começando com `mock_premium_` ou `mock_lifetime_`.
-- `live` valida Google via Android Publisher API e Apple via `verifyReceipt`/`APPLE_JWS_VERIFY_URL`.
+## Logs
+
+Tudo via `lib/logger.ts` em JSON (`{ level, event, ts, ... }`). Nunca logamos
+secrets, tokens ou stacktrace bruto.
+
+## Retention
+
+- `copilot_dedup_cache`: cleanup lazy (TTL 60s, a cada 100 chamadas).
+- `copilot_usage`: limpeza opcional > 180 dias via `cleanupOldUsage(db)`
+  (chamável de um cron worker se desejado).
+
+---
+
+## Frontend (resumo)
+
+```
+const deviceId = localStorage.getItem('nz_device_id') ?? crypto.randomUUID();
+const deviceSecret = localStorage.getItem('nz_device_secret') ?? crypto.randomUUID();
+localStorage.setItem('nz_device_id', deviceId);
+localStorage.setItem('nz_device_secret', deviceSecret);
+```
+
+O `device_secret` nunca aparece para o usuário.

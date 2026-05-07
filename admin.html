@@ -5,12 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Napzinho Admin • Licenças</title>
 <style>
-body{font-family:Arial,sans-serif;max-width:980px;margin:0 auto;padding:20px;background:#f8f8fb;color:#1f2937}
+body{font-family:Arial,sans-serif;max-width:1024px;margin:0 auto;padding:20px;background:#f8f8fb;color:#1f2937}
 h1{margin:0 0 16px}
+h3{margin:0 0 12px}
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 label{font-size:12px;color:#6b7280;display:block;margin-bottom:4px}
 input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.checkbox-row input{width:auto;padding:0}
 button{padding:10px 12px;border:0;border-radius:8px;background:#111827;color:#fff;cursor:pointer;font-weight:700}
 button.alt{background:#6b7280}
 button.danger{background:#b91c1c}
@@ -21,16 +25,22 @@ th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}
 .code{font-family:monospace}
 .badge{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
 .on{background:#dcfce7;color:#166534}.off{background:#fee2e2;color:#991b1b}
+.tag{display:inline-block;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;background:#e0e7ff;color:#3730a3;margin-left:4px}
 #msg{margin-top:8px;font-size:13px}
+.usage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.usage-cell{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px}
+.usage-cell .v{font-size:20px;font-weight:700;color:#111827}
+.usage-cell .l{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
 </style>
 </head>
 <body>
 <h1>Admin de Licenças • Napzinho</h1>
+
 <div class="card">
   <div class="row">
     <div>
       <label>URL do backend</label>
-      <input id="apiBase" value="http://localhost:8787" />
+      <input id="apiBase" value="http://127.0.0.1:8787" />
     </div>
     <div>
       <label>Token admin (X-Admin-Token)</label>
@@ -38,28 +48,67 @@ th,td{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}
     </div>
   </div>
   <div class="toolbar" style="margin-top:10px">
-    <button onclick="loadLicenses()">Conectar e listar chaves</button>
+    <button onclick="loadAll()">Conectar e atualizar</button>
   </div>
   <div id="msg"></div>
 </div>
 
 <div class="card">
-  <h3 style="margin-top:0">Criar / atualizar chave</h3>
-  <div class="row">
-    <div><label>Código</label><input id="kCode" placeholder="ex: NAPZ-VITALICIO-CLIENTE-01" /></div>
-    <div><label>Tipo</label><select id="kTier"><option value="lifetime">lifetime</option><option value="premium">premium</option></select></div>
-    <div><label>Expira em (ISO, opcional)</label><input id="kExp" placeholder="2026-12-31T23:59:59+00:00" /></div>
-    <div><label>Máx. ativações</label><input id="kMax" type="number" min="1" value="1" /></div>
+  <h3>Uso do Copiloto (últimos <span id="usageDaysLbl">30</span> dias)</h3>
+  <div class="usage-grid">
+    <div class="usage-cell"><div class="v" id="uTotal">—</div><div class="l">Requisições</div></div>
+    <div class="usage-cell"><div class="v" id="uDedup">—</div><div class="l">Dedup hits</div></div>
+    <div class="usage-cell"><div class="v" id="uTokIn">—</div><div class="l">Tokens in</div></div>
+    <div class="usage-cell"><div class="v" id="uTokOut">—</div><div class="l">Tokens out</div></div>
   </div>
-  <div style="margin-top:10px"><label>Observação</label><input id="kNote" placeholder="Ex.: cliente plano anual" /></div>
-  <div class="toolbar" style="margin-top:10px">
-    <button onclick="saveKey()">Salvar chave</button>
+  <div class="row" style="margin-top:10px">
+    <div>
+      <label>Janela (dias)</label>
+      <input id="usageDays" type="number" min="1" max="180" value="30" />
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="alt" onclick="loadUsage()">Recarregar uso</button>
+    </div>
   </div>
-  <small>Dica: para vitalício simples, deixe expiração em branco.</small>
+  <div style="margin-top:10px">
+    <small>Top devices e quebra por modelo/tier ficam disponíveis em <span class="code">/api/v1/admin/usage</span>.</small>
+  </div>
 </div>
 
 <div class="card">
-  <h3 style="margin-top:0">Chaves cadastradas</h3>
+  <h3>Conceder vitalício a um device</h3>
+  <div class="row">
+    <div><label>device_id</label><input id="grantDevice" placeholder="uuid-do-device" /></div>
+    <div style="display:flex;align-items:flex-end">
+      <button onclick="grantLifetime()">Conceder vitalício</button>
+    </div>
+  </div>
+  <small>Útil para conta familiar ou suporte. Não consome ativações de chave.</small>
+</div>
+
+<div class="card">
+  <h3>Criar / atualizar chave</h3>
+  <div class="row3">
+    <div><label>Código</label><input id="kCode" placeholder="ex: NAPZ-VITALICIO-CLIENTE-01" /></div>
+    <div><label>Tipo</label><select id="kTier"><option value="lifetime">lifetime</option><option value="premium">premium</option></select></div>
+    <div><label>Máx. ativações</label><input id="kMax" type="number" min="1" value="1" /></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <div><label>Expira em (ISO, opcional)</label><input id="kExp" placeholder="2026-12-31T23:59:59Z" /></div>
+    <div><label>Observação</label><input id="kNote" placeholder="Ex.: cliente plano anual" /></div>
+  </div>
+  <div class="checkbox-row">
+    <input id="kInternal" type="checkbox" />
+    <label for="kInternal" style="margin:0">internal_only (uso interno / não promovido)</label>
+  </div>
+  <div class="toolbar" style="margin-top:10px">
+    <button onclick="saveKey()">Salvar chave</button>
+  </div>
+  <small>Para vitalício simples, deixe expiração em branco.</small>
+</div>
+
+<div class="card">
+  <h3>Chaves cadastradas</h3>
   <table>
     <thead><tr><th>Código</th><th>Tipo</th><th>Ativações</th><th>Expiração</th><th>Status</th><th>Ação</th></tr></thead>
     <tbody id="rows"><tr><td colspan="6">Nenhuma chave carregada.</td></tr></tbody>
@@ -72,21 +121,23 @@ function headers(){return {'Content-Type':'application/json','X-Admin-Token':$('
 function base(){return $('apiBase').value.trim().replace(/\/$/,'');}
 function msg(t,ok=true){$('msg').style.color=ok?'#166534':'#b91c1c';$('msg').textContent=t;}
 
+async function loadAll(){ await Promise.all([loadLicenses(), loadUsage()]); }
+
 async function loadLicenses(){
   try{
-    const r=await fetch(base()+'/api/admin/licenses',{headers:headers()});
+    const r=await fetch(base()+'/api/v1/admin/licenses',{headers:headers()});
     const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'Falha ao listar');
+    if(!r.ok) throw new Error(d.error||'Falha ao listar');
     renderRows(d.items||[]);
     msg('Conectado. '+(d.items||[]).length+' chave(s) carregada(s).');
-  }catch(e){msg(e.message,false);}
+  }catch(e){ msg(e.message,false); }
 }
 
 function renderRows(items){
   const tb=$('rows');
-  if(!items.length){tb.innerHTML='<tr><td colspan="6">Nenhuma chave.</td></tr>';return;}
+  if(!items.length){ tb.innerHTML='<tr><td colspan="6">Nenhuma chave.</td></tr>'; return; }
   tb.innerHTML=items.map(it=>`<tr>
-    <td class="code">${it.code}</td>
+    <td class="code">${it.code}${it.internal_only?'<span class="tag">internal</span>':''}</td>
     <td>${it.tier}</td>
     <td>${it.activations}/${it.max_activations}</td>
     <td>${it.expires_at||'—'}</td>
@@ -101,26 +152,52 @@ async function saveKey(){
     tier:$('kTier').value,
     expires_at:$('kExp').value.trim()||null,
     max_activations:parseInt($('kMax').value||'1',10),
+    internal_only: $('kInternal').checked,
     note:$('kNote').value.trim()||null
   };
   try{
-    const r=await fetch(base()+'/api/admin/seed',{method:'POST',headers:headers(),body:JSON.stringify(body)});
+    const r=await fetch(base()+'/api/v1/admin/seed',{method:'POST',headers:headers(),body:JSON.stringify(body)});
     const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'Falha ao salvar chave');
+    if(!r.ok) throw new Error(d.error||'Falha ao salvar chave');
     msg('Chave salva: '+d.code);
     await loadLicenses();
-  }catch(e){msg(e.message,false);}
+  }catch(e){ msg(e.message,false); }
 }
 
 async function deactivateKey(code){
   if(!confirm('Desativar chave '+code+'?'))return;
   try{
-    const r=await fetch(base()+'/api/admin/deactivate',{method:'POST',headers:headers(),body:JSON.stringify({code})});
+    const r=await fetch(base()+'/api/v1/admin/deactivate',{method:'POST',headers:headers(),body:JSON.stringify({code})});
     const d=await r.json();
-    if(!r.ok)throw new Error(d.error||'Falha ao desativar');
+    if(!r.ok) throw new Error(d.error||'Falha ao desativar');
     msg('Chave desativada: '+code);
     await loadLicenses();
-  }catch(e){msg(e.message,false);}
+  }catch(e){ msg(e.message,false); }
+}
+
+async function loadUsage(){
+  const days=Math.max(1,Math.min(180,parseInt($('usageDays').value||'30',10)));
+  $('usageDaysLbl').textContent=days;
+  try{
+    const r=await fetch(base()+'/api/v1/admin/usage?days='+days,{headers:headers()});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Falha ao carregar uso');
+    $('uTotal').textContent=d.total_requests ?? 0;
+    $('uDedup').textContent=d.dedup_hits ?? 0;
+    $('uTokIn').textContent=d.tokens_input ?? 0;
+    $('uTokOut').textContent=d.tokens_output ?? 0;
+  }catch(e){ msg(e.message,false); }
+}
+
+async function grantLifetime(){
+  const device_id=$('grantDevice').value.trim();
+  if(!device_id){ msg('Informe um device_id.',false); return; }
+  try{
+    const r=await fetch(base()+'/api/v1/admin/grant-lifetime',{method:'POST',headers:headers(),body:JSON.stringify({device_id})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Falha ao conceder vitalício');
+    msg('Vitalício concedido para '+d.device_id);
+  }catch(e){ msg(e.message,false); }
 }
 </script>
 </body>

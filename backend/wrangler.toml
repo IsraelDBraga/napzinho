@@ -1,0 +1,12 @@
+name = "nest-backend"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Production secrets are set via `wrangler secret put`:
+#   DATABASE_URL
+#   ANTHROPIC_API_KEY
+#   NAPZ_ADMIN_TOKEN
+# Public/non-secret config:
+[vars]
+CORS_ORIGIN = "*"
