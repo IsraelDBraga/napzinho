@@ -5,7 +5,7 @@ function babyWoke(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro
 function logMoodQuick(sub){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=fmtTime(now());entries.push({id:Date.now(),date:todayStr(),type:'mood',subtype:sub,start:t});save();const lab=sub==='crying'?'Choro':sub==='gas'?'Gases':'Irritação';showToast(lab+' registrado às '+t);renderHome();}
 function deleteEntry(id){if(!confirm('Excluir este registro?'))return;entries=entries.filter(e=>e.id!==id);save();renderHome();renderHistory();showToast('Registro excluído');}
 
-function orbitCtaClick(){const cta=$('orbit-cta');if(cta&&cta.onclick)cta.onclick();}
+function orbitCtaClick(){const cta = $('orbit-cta');if (!cta) return;const action = (cta.dataset && cta.dataset.action || '').toLowerCase();if (action === 'wake') {babyWoke();return;}if (action === 'sleep') {babySlept();return;}if (action === 'feed') {openLog('feed');return;}if (action === 'diaper') {openLog('diaper');return;}if (action === 'sleep-manual' || action === 'manual') {openLog('sleep-manual');return;}if (action === 'log') {const logType = (cta.dataset && cta.dataset.logType || '').toLowerCase();if (logType === 'feed' || logType === 'diaper' || logType === 'sleep-manual') {openLog(logType);return;}}openLogSheet();}
 
 /* ---- Log sheet (FAB) ---- */
 function openLogSheet(){if(profileNeedsSetup()){showToast('Cadastre o bebê primeiro');return;}const t=$('tile-sleep-lbl');if(t)t.textContent=getActiveSleep()?'Acordou':'Dormiu';const shb=$('sheet-backdrop'),sh=$('log-sheet');if(!shb||!sh)return;shb.classList.add('open');sh.classList.add('open');}
