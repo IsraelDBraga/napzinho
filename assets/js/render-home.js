@@ -29,6 +29,7 @@ function renderOrbit(){
     main.innerHTML='<span class="serif" style="font-size:36px;line-height:1.1">Hora de dormir</span>';
     sub.textContent=mSinceLast!=null?'Desperto há '+fmtDur(mSinceLast)+'. Toque em Dormiu quando adormecer.':'Início da noite foi às '+(cfg.nightStart||'18:00')+'. Toque em Dormiu quando adormecer.';
     ctaLbl.textContent='Dormiu agora';
+    cta.dataset.action='sleep';
     cta.onclick=()=>{babySlept();};
   }else if(last&&wakeCountsAsDayForPredictions(last)){
     // Daytime — show next nap (if manual end time pushed prediction into the past, don't fake a ~24h countdown)
@@ -50,6 +51,7 @@ function renderOrbit(){
       sub.textContent='Faixa provável '+predObj.from+'–'+predObj.to+' · '+predObj.basis;
     }
     ctaLbl.textContent='Dormiu agora';
+    cta.dataset.action='sleep';
     cta.onclick=()=>{babySlept();};
   }else if(last){
     // Daytime (sleep ended during day) but outside active-nap logic — show night routine
@@ -60,6 +62,7 @@ function renderOrbit(){
     main.innerHTML=mins<60?`${mins}<small>min</small>`:`${Math.floor(mins/60)}<small>h</small> ${String(mins%60).padStart(2,'0')}<small>min</small>`;
     sub.textContent='Janela típica '+p.from+'–'+p.to+' · '+p.basis;
     ctaLbl.textContent='Dormiu agora';
+    cta.dataset.action='sleep';
     cta.onclick=()=>{babySlept();};
   }else{
     // No data yet
@@ -67,6 +70,7 @@ function renderOrbit(){
     main.innerHTML='—';
     sub.textContent='Registre o primeiro sono para começarmos a aprender o ritmo.';
     ctaLbl.textContent='Dormiu agora';
+    cta.dataset.action='sleep';
     cta.onclick=()=>{babySlept();};
   }
 
