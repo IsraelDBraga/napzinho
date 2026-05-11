@@ -1,14 +1,31 @@
 /* Napzinho service worker — cache shell for offline PWA */
-const CACHE = 'nest-v3';
+const CACHE = 'nest-v5';
 const ASSETS = [
   './',
   './index.html',
+  './assets/css/styles.css',
+  './assets/js/config.js',
+  './assets/js/state.js',
+  './assets/js/time-engine.js',
+  './assets/js/sleep-engine.js',
+  './assets/js/predict-engine.js',
+  './assets/js/stale-guard.js',
+  './assets/js/storage.js',
+  './assets/js/render-settings.js',
+  './assets/js/render-home.js',
+  './assets/js/render-stats.js',
+  './assets/js/render-history.js',
+  './assets/js/render-copilot.js',
+  './assets/js/entries.js',
+  './assets/js/backup.js',
+  './assets/js/debug.js',
+  './assets/js/tests.js',
+  './assets/js/app.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',
-  './icons/apple-touch-icon.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
+  './icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
