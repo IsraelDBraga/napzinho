@@ -1,5 +1,38 @@
 /* ---- MASTER RENDER ---- */
-function renderHome(){refreshAppAfterDataChange('renderHome');}
+
+function refreshAppAfterDataChange(reason){
+  const jobs = [
+    'renderOrbit',
+    'renderStatusRow',
+    'renderInsight',
+    'renderPredictions',
+    'renderGlance',
+    'renderNightPanel',
+    'renderDaySleepPanel',
+    'renderTodayRail'
+  ];
+
+  jobs.forEach(name => {
+    const fn = window[name];
+
+    if (typeof fn !== 'function') return;
+
+    if (typeof safeRender === 'function') {
+      safeRender(name, () => fn());
+      return;
+    }
+
+    try {
+      fn();
+    } catch (err) {
+      console.error('[Napzinho render]', name, reason || '', err);
+    }
+  });
+}
+
+function renderHome(){
+  refreshAppAfterDataChange('renderHome');
+}
 function showSec(name){if(profileNeedsSetup()&&name!=='settings'&&name!=='home'){showToast('Complete o perfil do bebê primeiro');return;}document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));$('sec-'+name).classList.add('active');const ni=$('nav-'+name);if(ni)ni.classList.add('active');if(name==='home')renderHome();if(name==='stats')safeRender('renderStats',()=>renderStats(),{containerId:'sec-stats',fallbackHtml:'<div class="card"><h3>Dados</h3><p class="muted">Falha ao renderizar gráficos. Recarregue o app.</p></div>'});if(name==='history')renderHistory();if(name==='copilot')renderCopilot();if(name==='settings')syncSettingsForm();}
 
 /* ---- Toast ---- */
