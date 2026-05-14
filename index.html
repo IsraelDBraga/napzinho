@@ -141,7 +141,7 @@
       <button class="btn-ghost" onclick="printReport()" style="margin-top:0" id="btn-export-pdf">Relatório / PDF</button>
       <button class="btn-ghost" onclick="document.getElementById('import-file').click()" style="margin-top:0" id="btn-import-json">Importar JSON</button>
     </div>
-    <input type="file" id="import-file" accept=".json" class="hide" onchange="importData(event)">
+    <input type="file" id="import-file" accept=".json,application/json,text/json,text/plain" class="hide" onchange="importData(event)">
   </div>
 </section>
 

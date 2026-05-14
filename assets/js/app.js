@@ -47,7 +47,42 @@ function dismissLateNight(){const o=$('lateNight');if(o){o.classList.remove('ope
 function updateLateNight(){const c=$('ln-clock'),s=$('ln-since');if(!c)return;c.textContent=fmtTime(now());const active=getActiveSleep();const last=getLastCompletedSleep();if(active){const mins=Math.round((now()-parseTimeOnDate(active.start,active.date))/60000);s.textContent='Dormindo há '+fmtDur(mins)+' (desde '+active.start+')';}else if(last){const mins=Math.round((now()-sleepEndDate(last))/60000);s.textContent='Acordado há '+fmtDur(mins);}else s.textContent='Registre o primeiro sono para começar.';}
 
 /* ---- PWA ---- */
-function registerPWA(){if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}}
+function registerPWA(){
+  if(!('serviceWorker' in navigator)) return;
+  let regRef=null;
+  let refreshing=false;
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+    regRef=reg;
+    const notifyWaiting=()=>{
+      if(reg.waiting){
+        try{showToast('Atualização disponível. Reiniciando app…');}catch{}
+        reg.waiting.postMessage({type:'SKIP_WAITING'});
+      }
+    };
+    if(reg.waiting) notifyWaiting();
+    reg.addEventListener('updatefound',()=>{
+      const installing=reg.installing;
+      if(!installing) return;
+      installing.addEventListener('statechange',()=>{
+        if(installing.state==='installed' && navigator.serviceWorker.controller){
+          notifyWaiting();
+        }
+      });
+    });
+    setTimeout(()=>{try{reg.update();}catch{}},1200);
+  }).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing) return;
+    refreshing=true;
+    window.location.reload();
+  });
+  const refreshUpdateCheck=()=>{
+    if(!regRef) return;
+    try{regRef.update();}catch{}
+  };
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshUpdateCheck();});
+  setInterval(refreshUpdateCheck,30*60*1000);
+}
 
 /* ---- init ---- */
 function init(){
